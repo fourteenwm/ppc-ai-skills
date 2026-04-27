@@ -1,0 +1,18 @@
+-- Geographic Performance Report
+-- Shows performance by location
+SELECT
+    geographic_view.country_criterion_id,
+    geographic_view.location_type,
+    campaign.name,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.cost_micros,
+    metrics.conversions,
+    metrics.conversions_value,
+    metrics.ctr,
+    metrics.average_cpc,
+    metrics.cost_per_conversion
+FROM geographic_view
+WHERE segments.date {DATE_RANGE}
+    AND metrics.impressions > 0
+ORDER BY metrics.cost_micros DESC

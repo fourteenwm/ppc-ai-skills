@@ -1,0 +1,87 @@
+{
+  "name": "Professional Blue",
+  "description": "Clean, professional theme based on Google's design language",
+  "colors": {
+    "header": {
+      "background": "#1a73e8",
+      "text": "#ffffff",
+      "rgb": {"red": 0.102, "green": 0.451, "blue": 0.91}
+    },
+    "subheader": {
+      "background": "#e8f0fe",
+      "text": "#1a73e8",
+      "rgb": {"red": 0.91, "green": 0.941, "blue": 0.996}
+    },
+    "alternating_row_1": {
+      "background": "#ffffff",
+      "rgb": {"red": 1, "green": 1, "blue": 1}
+    },
+    "alternating_row_2": {
+      "background": "#f8f9fa",
+      "rgb": {"red": 0.973, "green": 0.976, "blue": 0.98}
+    },
+    "border": {
+      "color": "#dadce0",
+      "rgb": {"red": 0.855, "green": 0.863, "blue": 0.878}
+    },
+    "success": {
+      "background": "#34a853",
+      "text": "#ffffff",
+      "rgb": {"red": 0.204, "green": 0.659, "blue": 0.325}
+    },
+    "warning": {
+      "background": "#fbbc04",
+      "text": "#000000",
+      "rgb": {"red": 0.984, "green": 0.737, "blue": 0.016}
+    },
+    "alert": {
+      "background": "#ea4335",
+      "text": "#ffffff",
+      "rgb": {"red": 0.918, "green": 0.263, "blue": 0.208}
+    }
+  },
+  "typography": {
+    "header": {
+      "bold": true,
+      "fontSize": 12,
+      "fontFamily": "Arial"
+    },
+    "subheader": {
+      "bold": true,
+      "fontSize": 11,
+      "fontFamily": "Arial"
+    },
+    "data": {
+      "bold": false,
+      "fontSize": 10,
+      "fontFamily": "Arial"
+    }
+  },
+  "conditional_formatting": {
+    "scores": {
+      "high_threshold": 0.8,
+      "medium_threshold": 0.5,
+      "high_color": "success",
+      "medium_color": "warning",
+      "low_color": "alert"
+    },
+    "threat_levels": {
+      "HIGH": "alert",
+      "MEDIUM": "warning",
+      "LOW": "success"
+    },
+    "flags": {
+      "check": {"text_color": "#34a853"},
+      "x": {"text_color": "#ea4335"},
+      "warning": {"text_color": "#fbbc04"}
+    }
+  },
+  "layout": {
+    "header_row_height": 30,
+    "data_row_height": 21,
+    "min_column_width": 100,
+    "description_column_width": 550,
+    "freeze_rows": 1,
+    "freeze_columns": 0
+  }
+}

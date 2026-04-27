@@ -1,0 +1,21 @@
+-- Ad Group Performance Report
+-- Shows ad group-level metrics
+SELECT
+    ad_group.id,
+    ad_group.name,
+    ad_group.status,
+    ad_group.type,
+    campaign.name,
+    campaign.advertising_channel_type,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.cost_micros,
+    metrics.conversions,
+    metrics.conversions_value,
+    metrics.ctr,
+    metrics.average_cpc,
+    metrics.cost_per_conversion
+FROM ad_group
+WHERE segments.date {DATE_RANGE}
+    AND ad_group.status != 'REMOVED'
+ORDER BY metrics.cost_micros DESC

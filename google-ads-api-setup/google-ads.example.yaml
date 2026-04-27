@@ -1,0 +1,19 @@
+# Google Ads API Credentials
+# Copy this file to google-ads.yaml and fill in your values.
+# NEVER commit google-ads.yaml to git.
+
+# From your client_secret.json (downloaded in Step 4)
+client_id: "YOUR_CLIENT_ID.apps.googleusercontent.com"
+client_secret: "YOUR_CLIENT_SECRET"
+
+# From Step 7 (generate_credentials.py output)
+refresh_token: "YOUR_REFRESH_TOKEN"
+
+# From Step 5 (Google Ads MCC → Tools → API Center)
+developer_token: "YOUR_DEVELOPER_TOKEN"
+
+# Your MCC (Manager) account ID — digits only, no dashes
+# Example: if MCC is 123-456-7890, enter "1234567890"
+login_customer_id: "YOUR_MCC_ID"
+
+use_proto_plus: True

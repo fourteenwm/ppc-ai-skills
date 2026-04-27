@@ -1,0 +1,16 @@
+-- Conversion Actions Report
+-- Shows conversion action performance
+SELECT
+    conversion_action.id,
+    conversion_action.name,
+    conversion_action.category,
+    conversion_action.type,
+    conversion_action.status,
+    conversion_action.primary_for_goal,
+    metrics.conversions,
+    metrics.conversions_value,
+    metrics.all_conversions,
+    metrics.all_conversions_value
+FROM conversion_action
+WHERE conversion_action.status = 'ENABLED'
+ORDER BY metrics.conversions DESC

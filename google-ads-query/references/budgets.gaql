@@ -1,0 +1,17 @@
+-- Budget Utilization Report
+-- Shows campaign budget and spend
+SELECT
+    campaign.id,
+    campaign.name,
+    campaign.status,
+    campaign_budget.amount_micros,
+    campaign_budget.type,
+    campaign_budget.delivery_method,
+    metrics.cost_micros,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.conversions
+FROM campaign
+WHERE segments.date {DATE_RANGE}
+    AND campaign.status = 'ENABLED'
+ORDER BY metrics.cost_micros DESC

@@ -1,0 +1,43 @@
+# Credentials — never commit
+*.yaml
+!*.example.yaml
+*.env
+.env*
+!.env.example
+client_secret*.json
+token-*.json
+token.json
+credentials/
+auth/
+
+# Local account / portfolio files (user-specific, should not be committed)
+accounts.md
+accounts.json
+client_folders.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs / runtime state
+*.log
+logs/
+data/

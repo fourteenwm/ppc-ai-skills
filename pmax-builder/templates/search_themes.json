@@ -1,0 +1,20 @@
+{
+  "generic": [
+    "apartments for rent",
+    "luxury apartments",
+    "apartments near me",
+    "apartments for rent near me",
+    "apartment rentals",
+    "spacious apartments near me",
+    "apts near me",
+    "luxury apts near me"
+  ],
+  "location_specific": [
+    "apartments in {city} {state}",
+    "best apartments in {city}",
+    "best apartments in {city} {state}",
+    "apartment rentals in {city} {state}",
+    "luxury apartments in {city} {state}",
+    "{city} apartments for rent"
+  ]
+}

@@ -1,0 +1,19 @@
+-- Asset Performance Report (PMAX)
+-- Shows asset-level performance for Performance Max campaigns
+SELECT
+    asset.id,
+    asset.name,
+    asset.type,
+    asset.text_asset.text,
+    asset.image_asset.file_size,
+    campaign.name,
+    asset_group.name,
+    asset_group_asset.performance_label,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.cost_micros,
+    metrics.conversions
+FROM asset_group_asset
+WHERE segments.date {DATE_RANGE}
+    AND campaign.advertising_channel_type = 'PERFORMANCE_MAX'
+ORDER BY metrics.cost_micros DESC

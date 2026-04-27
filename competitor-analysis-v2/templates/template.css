@@ -1,0 +1,673 @@
+/*
+ * Competitor Analysis v2 - PDF Design System
+ * Professional document styling for competitor reports
+ * Uses system fonts - no external dependencies
+ */
+
+/* ========================================
+   CSS Variables
+   ======================================== */
+
+:root {
+    /* Text colors */
+    --ink: #1a1a1a;
+    --ink-light: #4a4a4a;
+    --ink-muted: #6e7681;
+
+    /* Backgrounds */
+    --paper: #ffffff;
+    --paper-warm: #faf9f7;
+
+    /* Brand accent - professional blue */
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+
+    /* Utility colors */
+    --border: #d8d8d4;
+    --success: #1a7f37;
+    --success-bg: #dafbe1;
+    --highlight: #fff8e6;
+
+    /* Typography */
+    --font-heading: 'Segoe UI', 'Trebuchet MS', 'Arial', sans-serif;
+    --font-body: 'Georgia', 'Times New Roman', serif;
+    --font-mono: 'Consolas', 'Monaco', monospace;
+}
+
+/* ========================================
+   Page Setup
+   ======================================== */
+
+@page {
+    margin: 0.75in;
+    size: letter;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: 11pt;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--paper);
+    margin: 0;
+    padding: 0.5in;
+    max-width: 7.5in;
+}
+
+/* ========================================
+   Typography
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--ink);
+    margin-top: 0;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: 28pt;
+    font-weight: 700;
+    margin-bottom: 0.2in;
+}
+
+h2 {
+    font-size: 16pt;
+    font-weight: 600;
+    margin-top: 0.4in;
+    margin-bottom: 0.15in;
+    padding-bottom: 0.08in;
+    border-bottom: 1px solid var(--border);
+    page-break-after: avoid;
+}
+
+h2::after {
+    content: '';
+    display: block;
+    width: 0.6in;
+    height: 3px;
+    background: var(--accent);
+    margin-top: 0.08in;
+}
+
+h3 {
+    font-size: 13pt;
+    font-weight: 600;
+    margin-top: 0.25in;
+    margin-bottom: 0.1in;
+}
+
+p {
+    margin: 0 0 0.12in 0;
+}
+
+strong {
+    font-weight: 600;
+}
+
+/* ========================================
+   Cover Page
+   ======================================== */
+
+.cover {
+    page-break-after: always;
+    padding-top: 2in;
+    position: relative;
+    min-height: 8in;
+}
+
+.cover-logo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1in;
+    height: auto;
+}
+
+.cover h1 {
+    font-size: 32pt;
+    margin-bottom: 0.15in;
+}
+
+.cover .subtitle {
+    font-family: var(--font-heading);
+    font-size: 18pt;
+    color: var(--accent);
+    margin-bottom: 0.4in;
+}
+
+.cover .meta {
+    font-family: var(--font-heading);
+    font-size: 10pt;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.5in;
+}
+
+.cover::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 2in;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ink);
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.15in 0;
+    font-size: 10pt;
+    page-break-inside: auto;
+}
+
+thead {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+th {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.1in 0.12in;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+td {
+    padding: 0.08in 0.12in;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+tr {
+    page-break-inside: avoid;
+}
+
+tbody tr:last-child td {
+    border-bottom: 2px solid var(--ink);
+}
+
+/* Highlight cells */
+td.yes, td.highlight {
+    background: var(--success-bg);
+    color: var(--success);
+    font-weight: 600;
+}
+
+td.no, td.muted {
+    color: var(--ink-muted);
+}
+
+td.accent {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* ========================================
+   Callout Boxes
+   ======================================== */
+
+.callout, .key-findings, .implication {
+    background: var(--paper-warm);
+    border-left: 4px solid var(--accent);
+    padding: 0.15in 0.2in;
+    margin: 0.15in 0;
+    page-break-inside: avoid;
+}
+
+.callout .label, .key-findings .label {
+    font-family: var(--font-heading);
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin-bottom: 0.1in;
+}
+
+.finding {
+    margin-bottom: 0.1in;
+    padding-left: 0.15in;
+    position: relative;
+}
+
+.finding::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.25em;
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+}
+
+/* Dark callout for key opportunities */
+.opportunity {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.2in;
+    margin: 0.2in 0;
+    page-break-inside: avoid;
+}
+
+.opportunity strong {
+    color: var(--paper);
+}
+
+/* ========================================
+   Positioning Charts (2x2 Grid)
+   ======================================== */
+
+.positioning-chart {
+    margin: 0.3in 0;
+    page-break-inside: avoid;
+}
+
+.chart-container {
+    position: relative;
+    width: 4in;
+    height: 4in;
+    margin: 0.3in auto;
+    border-left: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+}
+
+/* Axis labels */
+.axis-label {
+    font-family: var(--font-heading);
+    font-size: 8pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--ink-muted);
+    position: absolute;
+}
+
+.axis-label-top {
+    top: -0.25in;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.axis-label-bottom {
+    bottom: -0.3in;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.axis-label-left {
+    left: -0.5in;
+    top: 50%;
+    transform: rotate(-90deg) translateX(50%);
+}
+
+.axis-label-right {
+    right: -0.5in;
+    top: 50%;
+    transform: rotate(90deg) translateX(-50%);
+}
+
+/* Grid lines */
+.chart-gridline-h, .chart-gridline-v {
+    position: absolute;
+    border: 1px dashed var(--border);
+}
+
+.chart-gridline-h {
+    left: 0;
+    right: 0;
+    top: 50%;
+}
+
+.chart-gridline-v {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+}
+
+/* Competitor dots */
+.chart-dot {
+    position: absolute;
+    text-align: center;
+    transform: translate(-50%, -50%);
+}
+
+.chart-dot-circle {
+    width: 0.4in;
+    height: 0.4in;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 10pt;
+    font-weight: 600;
+    margin: 0 auto;
+}
+
+.chart-dot-circle.highlight {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+    width: 0.55in;
+    height: 0.55in;
+}
+
+.chart-dot-label {
+    font-family: var(--font-heading);
+    font-size: 8pt;
+    color: var(--ink-muted);
+    margin-top: 0.05in;
+    white-space: nowrap;
+}
+
+.chart-dot-label.highlight {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* White space indicator */
+.white-space {
+    position: absolute;
+    border: 2px dashed var(--accent);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+/* Chart legend */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15in;
+    margin-top: 0.2in;
+    font-size: 9pt;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.08in;
+}
+
+.chart-legend-dot {
+    width: 0.2in;
+    height: 0.2in;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 8pt;
+    font-weight: 600;
+}
+
+.chart-legend-dot.highlight {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+}
+
+/* ========================================
+   Screenshot Grids
+   ======================================== */
+
+/* 2x3 grid of hero screenshots */
+.screenshot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.15in;
+    margin: 0.2in 0;
+}
+
+.screenshot-item {
+    page-break-inside: avoid;
+}
+
+.screenshot-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    object-position: top;
+    border: 1px solid var(--border);
+    display: block;
+}
+
+.screenshot-label {
+    text-align: center;
+    padding: 0.08in;
+    background: var(--paper-warm);
+    border: 1px solid var(--border);
+    border-top: none;
+}
+
+.label-type {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 7pt;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.02in;
+}
+
+.label-name {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 9pt;
+}
+
+.label-position {
+    display: block;
+    font-size: 8pt;
+    color: var(--ink-light);
+}
+
+/* Full Homepage View - 6 screenshots side by side */
+.full-screenshot-row {
+    display: flex;
+    gap: 0.08in;
+    margin: 0.15in 0;
+    page-break-inside: avoid;
+}
+
+.full-screenshot-item {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+}
+
+.full-screenshot-item img {
+    width: 100%;
+    max-height: 7.5in;
+    object-fit: cover;
+    object-position: top;
+    border: 1px solid var(--border);
+    display: block;
+}
+
+.column-header {
+    font-family: var(--font-heading);
+    font-size: 7pt;
+    font-weight: 600;
+    padding: 0.04in;
+    background: var(--ink);
+    color: var(--paper);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ========================================
+   Lists
+   ======================================== */
+
+ul, ol {
+    margin: 0.1in 0;
+    padding-left: 0.3in;
+}
+
+li {
+    margin-bottom: 0.06in;
+}
+
+/* Checklist style */
+.checklist {
+    list-style: none;
+    padding-left: 0;
+}
+
+.checklist li {
+    padding-left: 0.25in;
+    position: relative;
+}
+
+.checklist li::before {
+    content: '\2610';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* ========================================
+   Summary Box
+   ======================================== */
+
+.summary {
+    background: var(--success-bg);
+    border: 1px solid var(--success);
+    border-left: 4px solid var(--success);
+    padding: 0.2in;
+    margin: 0.2in 0;
+    page-break-inside: avoid;
+}
+
+.summary .label {
+    font-family: var(--font-heading);
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--success);
+    margin-bottom: 0.1in;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+
+.footer {
+    position: fixed;
+    bottom: 0.5in;
+    left: 0.75in;
+    right: 0.75in;
+    font-family: var(--font-heading);
+    font-size: 8pt;
+    color: var(--ink-muted);
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 0.1in;
+}
+
+/* ========================================
+   Page Breaks
+   ======================================== */
+
+.page-break {
+    page-break-before: always;
+}
+
+.no-break {
+    page-break-inside: avoid;
+}
+
+.section {
+    page-break-before: always;
+}
+
+.section:first-of-type {
+    page-break-before: auto;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    body {
+        padding: 0;
+    }
+
+    .no-print {
+        display: none;
+    }
+
+    a {
+        text-decoration: none;
+        color: var(--ink);
+    }
+
+    /* CRITICAL: Prevent orphaned headings */
+    h2, h3, h4, .section-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        orphans: 3;
+        widows: 3;
+    }
+
+    /* Tables - keep rows together */
+    table {
+        page-break-inside: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Cards and content blocks - never break within */
+    .callout, .key-findings, .implication, .opportunity, .summary {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Prevent widows/orphans in paragraphs */
+    p {
+        orphans: 3;
+        widows: 3;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+
+    .screenshot-grid {
+        page-break-inside: avoid;
+    }
+
+    .full-screenshot-row {
+        page-break-inside: avoid;
+    }
+}

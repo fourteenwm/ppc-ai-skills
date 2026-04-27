@@ -1,0 +1,17 @@
+-- Search Terms Report
+-- Shows search queries that triggered ads
+SELECT
+    search_term_view.search_term,
+    campaign.name,
+    ad_group.name,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.cost_micros,
+    metrics.conversions,
+    metrics.conversions_value,
+    metrics.ctr,
+    metrics.average_cpc
+FROM search_term_view
+WHERE segments.date {DATE_RANGE}
+    AND metrics.impressions > 0
+ORDER BY metrics.cost_micros DESC
