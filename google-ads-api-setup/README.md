@@ -168,7 +168,7 @@ Success! Found X accounts under your MCC.
 
 Accounts:
   - Account Name 1 (ID: 1234567890)
-  - Account Name 2 (ID: 0987654321)
+  - Account Name 2 (ID: XXXXXXXXXX)
   ...
 ```
 

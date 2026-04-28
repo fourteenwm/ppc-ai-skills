@@ -114,10 +114,10 @@ A conflict occurs when a search query either:
 22. Active: "Chula Vista" | Query: "chulla vista apartments" -> FAIL (likely typo, 1 letter difference)
 23. Active: "Chula Vista" | Query: "chula vsta apartments" -> FAIL (missing letter typo)
 24. Active: "Chula Vista" | Query: "chula vista's apartments" -> FAIL (possessive form)
-25. Active: "Cota Vera" | Query: "cota vera apartments" -> FAIL (direct match)
-26. Active: "Cota Vera" | Query: "apartments cota vera" -> FAIL (word order reversed)
-27. Active: "Cota Vera" | Query: "apartments in cota vera" -> FAIL (added preposition)
-28. Active: "Cota Vera" | Query: "cota vera top apts for rent" -> FAIL (matches geo with modifiers)
+25. Active: "Sunnybrook" | Query: "sunnybrook apartments" -> FAIL (direct match)
+26. Active: "Sunnybrook" | Query: "apartments sunnybrook" -> FAIL (word order reversed)
+27. Active: "Sunnybrook" | Query: "apartments in sunnybrook" -> FAIL (added preposition)
+28. Active: "Sunnybrook" | Query: "sunnybrook top apts for rent" -> FAIL (matches geo with modifiers)
 
 ### FAIL EXAMPLES (Different Specific Geo Conflicts):
 
@@ -148,7 +148,7 @@ A conflict occurs when a search query either:
 12. Active: "Chula Vista" | Query: "otay apartments" -> PASS (completely different neighborhood)
 13. Active: "Chula Vista" | Query: "east lake apartments" -> PASS (different neighborhood)
 14. Active: "Chula Vista" | Query: "ocean view hills apartments" -> PASS (different neighborhood)
-15. Active: "Chula Vista" | Query: "cota vera apartments" -> PASS (different neighborhood)
+15. Active: "Chula Vista" | Query: "sunnybrook apartments" -> PASS (different neighborhood)
 16. Active: "Chula Vista" | Query: "south county apartments" -> PASS (different region)
 17. Active: "Chula Vista" | Query: "san diego apartments" -> PASS (broader region, different target)
 18. Active: "Downtown LA" | Query: "santa monica apartments" -> PASS (different area entirely)
@@ -229,7 +229,7 @@ Where:
     {"CID": "339-555-1071", "Query": "luxury apartments chula vista"}
   ],
   "geo_targets": {
-    "339-555-1071": ["Chula Vista", "Cota Vera", "East Lake", "Ocean View Hills", "Otay", "South County"]
+    "339-555-1071": ["Chula Vista", "Sunnybrook", "East Lake", "Ocean View Hills", "Otay", "South County"]
   }
 }
 ```

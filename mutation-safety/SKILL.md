@@ -45,7 +45,7 @@ ALL mutations MUST use exact matching for identifiers to prevent accidental modi
 
 **Why this matters:**
 - "Form_Submit" and "Form_Submit_BC" are different conversion actions
-- CID `9125741649` and `9125749164` are different accounts
+- CID `1234567890` and `1234567809` are different accounts
 - One character difference can affect the wrong entity
 
 ### Rule 3: Scope Verification Before Execution

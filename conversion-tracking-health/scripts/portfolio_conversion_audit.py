@@ -30,7 +30,7 @@ Prerequisites:
 
 Accounts file format (CSV, no header):
     1234567890,Client Name A
-    2345678901,Client Name B
+    XXXXXXXXXX,Client Name B
 """
 
 import argparse

@@ -13,7 +13,7 @@ A two-step approval system that prevents accidental changes to live Google Ads a
 Real mistakes this skill was built to catch:
 
 - Renaming "Form_Submit" when you meant "Form_Submit_BC" (one character difference, wrong conversion action)
-- Modifying account `9125741649` when you meant `9125749164` (transposed digits)
+- Modifying account `1234567890` when you meant `1234567809` (transposed digits)
 - Pausing all campaigns in an account because a script had the wrong scope
 - Uploading negative keywords to the wrong shared list
 - Overwriting a Google Sheet tab with live client data
