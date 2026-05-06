@@ -63,7 +63,7 @@ done
 | [GA4 Cross-Analysis](ga4-cross-analysis/) | GA4 data collection framework for diagnosing lead quality and conversion path issues |
 | [Account Audit](account-audit/) | Comprehensive single-account health audit — generates structured HTML reports |
 
-### Search Query Management
+### Search Query & Negative Keyword Management
 | Skill | What It Does |
 |-------|-------------|
 | [SQR Classifier](sqr-classifier/) | Paste search terms, get intent classification (high-intent, low-intent, informational, off-brand) |
@@ -71,6 +71,7 @@ done
 | [Geo Conflict Analyzer](geo-conflict-analyzer/) | GPT-powered check on whether a query conflicts with your active geo targets before you negative it |
 | [SQR 3-Run Pipeline](sqr-3run/) | 3 independent AI classification passes with consensus voting — reduces false positives |
 | [SQR Upload](sqr-upload/) | Upload approved negative keywords to Google Ads shared keyword lists |
+| [Neg Conflict Finder](neg-conflict-finder/) | Google Ads Script that finds every place a negative is silently blocking a positive — across the whole MCC, at every level (ad group, campaign, shared list, MCC shared list) |
 
 ### Ad Copy & RSAs
 | Skill | What It Does |
@@ -147,7 +148,7 @@ I built these skills because AI is fast but not careful. It hallucinates phone n
 
 The philosophy is simple: **engineered AI with guardrails beats raw prompting every time.**
 
-These 35 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
+These 36 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)
