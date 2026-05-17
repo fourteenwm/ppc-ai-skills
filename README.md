@@ -49,6 +49,8 @@ done
 | [Mutation Safety](mutation-safety/) | Two-step approval system that prevents accidental changes to live Google Ads accounts |
 | [Ad Copy Verification Standard](ad-copy-verification-standard/) | Forces AI to source every ad claim from the business website — no hallucinated copy |
 | [Fair Housing Compliance](fair-housing-compliance/) | Blocks discriminatory targeting (age, income, zip codes) for property management advertising — Fair Housing Act compliance |
+| [MCC Hack Audit](mcc-hack-audit/) | Portfolio-wide scan of every manager (MCC) with access to any account in your tree — built after a real-world MCC link-fraud incident |
+| [Budget Guardian](budget-guardian/) | 2-hour spend tripwire — alerts on 100%/120% monthly budget overruns to catch hijacked accounts, runaway PMax, and fat-fingered budget formulas. Alert-only, never pauses |
 
 ### Diagnostics & Investigation
 | Skill | What It Does |
@@ -148,7 +150,7 @@ I built these skills because AI is fast but not careful. It hallucinates phone n
 
 The philosophy is simple: **engineered AI with guardrails beats raw prompting every time.**
 
-These 36 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
+These 38 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)

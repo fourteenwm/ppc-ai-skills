@@ -1,0 +1,43 @@
+name: Budget Guardian
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'    # Every 2 hours UTC
+  workflow_dispatch: {}        # Manual trigger for testing
+
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write credentials
+        env:
+          GUARDIAN_TOKEN_SHEETS_JSON: ${{ secrets.GUARDIAN_TOKEN_SHEETS_JSON }}
+          GUARDIAN_GOOGLE_ADS_YAML: ${{ secrets.GUARDIAN_GOOGLE_ADS_YAML }}
+        run: |
+          echo "$GUARDIAN_TOKEN_SHEETS_JSON" > /tmp/sheets-token.json
+          echo "$GUARDIAN_GOOGLE_ADS_YAML" > /tmp/google-ads.yaml
+
+      - name: Run Budget Guardian
+        run: python -m workflows.budget_guardian.main
+        env:
+          GOOGLE_TOKEN_PATH: /tmp/sheets-token.json
+          GOOGLE_ADS_YAML_PATH: /tmp/google-ads.yaml
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GUARDIAN_SHEET_ID: ${{ secrets.GUARDIAN_SHEET_ID }}
+          GUARDIAN_BUDGET_TAB: ${{ vars.GUARDIAN_BUDGET_TAB }}
+          SLACK_USER_MENTION: ${{ secrets.SLACK_USER_MENTION }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f /tmp/sheets-token.json /tmp/google-ads.yaml
