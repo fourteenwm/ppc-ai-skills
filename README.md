@@ -74,6 +74,7 @@ done
 | [SQR 3-Run Pipeline](sqr-3run/) | 3 independent AI classification passes with consensus voting — reduces false positives |
 | [SQR Upload](sqr-upload/) | Upload approved negative keywords to Google Ads shared keyword lists |
 | [Neg Conflict Finder](neg-conflict-finder/) | Google Ads Script that finds every place a negative is silently blocking a positive — across the whole MCC, at every level (ad group, campaign, shared list, MCC shared list) |
+| [Account-Level Negative Keywords](add-account-negative-keywords/) | Bulk-add account-level negatives (Admin → Account Settings) using the 3-step SharedSet pattern most guides miss — idempotent across portfolios, with state categorization (NO_SET / PARTIAL / COMPLIANT) |
 
 ### Ad Copy & RSAs
 | Skill | What It Does |
