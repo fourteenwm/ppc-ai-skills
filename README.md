@@ -65,6 +65,7 @@ done
 | [GA4 Campaign Cross-Reference](ga4-campaign-cross-reference/) | Cross-analyze GA4 behavioral data with Google Ads campaign settings to find gaps |
 | [GA4 Cross-Analysis](ga4-cross-analysis/) | GA4 data collection framework for diagnosing lead quality and conversion path issues |
 | [Account Audit](account-audit/) | Comprehensive single-account health audit — generates structured HTML reports |
+| [Ads Checker](ads-checker/) | Creative-compliance audit — 10 checks (DKI, ad disapprovals, broken URLs, auto-applied recommendations, Fair-Housing-risk content, spelling, irrelevance, more) with run-over-run issue-history comparison and chronic-issue detection (3+ occurrences / 90 days). Read-only; severity-ranked Google Sheet output |
 
 ### Search Query & Negative Keyword Management
 | Skill | What It Does |
