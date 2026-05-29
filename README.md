@@ -64,6 +64,7 @@ done
 | [Lead Quality Recommendation Prioritization](lead-quality-recommendation-prioritization/) | 3-tier action framework for turning lead quality findings into prioritized fixes |
 | [GA4 Campaign Cross-Reference](ga4-campaign-cross-reference/) | Cross-analyze GA4 behavioral data with Google Ads campaign settings to find gaps |
 | [GA4 Cross-Analysis](ga4-cross-analysis/) | GA4 data collection framework for diagnosing lead quality and conversion path issues |
+| [GA4 Lead Quality Investigation](ga4-lead-quality-investigation/) | Cross-analyze GA4 behavioral data with Google Ads settings to diagnose low-quality leads (no-shows, bot traffic, geo mismatches) — 5 red-flag frameworks, hypothesis-driven verification, 3-tier prioritized fixes |
 | [Account Audit](account-audit/) | Comprehensive single-account health audit — generates structured HTML reports |
 | [Ads Checker](ads-checker/) | Creative-compliance audit — 10 checks (DKI, ad disapprovals, broken URLs, auto-applied recommendations, Fair-Housing-risk content, spelling, irrelevance, more) with run-over-run issue-history comparison and chronic-issue detection (3+ occurrences / 90 days). Read-only; severity-ranked Google Sheet output |
 
@@ -84,6 +85,7 @@ done
 | [Ad Copy Generation Framework](ad-copy-generation-framework/) | 23-element RSA copywriting framework with distribution formulas and verification checkpoints |
 | [RSA Refresh](rsa-refresh/) | Replace LOW-performing RSA assets with website-verified headlines and descriptions |
 | [RSA Bulk Edit](rsa-bulk-edit/) | Find-and-replace text across RSA ads with preview, approval, and rollback safety |
+| [RSA Single-Account Generator](rsa-single-account/) | Generate a full RSA set (15 headlines + 4 descriptions per ad group) for one account from website-verified copy + live SERP competitive analysis + GBP review fallback |
 
 ### Portfolio Management
 | Skill | What It Does |
@@ -153,7 +155,7 @@ I built these skills because AI is fast but not careful. It hallucinates phone n
 
 The philosophy is simple: **engineered AI with guardrails beats raw prompting every time.**
 
-These 38 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
+These 43 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)
