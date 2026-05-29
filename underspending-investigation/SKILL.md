@@ -43,7 +43,7 @@ Do this BEFORE analyzing script output. These six companion skills are each ship
 ### STEP 0: Run the Universal Investigation Script
 
 ```bash
-python scripts/investigate_underspend.py "{ACCOUNT_NAME}"
+python investigate_underspend.py "{ACCOUNT_NAME}"
 ```
 
 The script (which you adapt to your own data sources — see "Script Contract" below) should:
@@ -248,7 +248,7 @@ The skill is NOT required to run all steps. Use judgment:
 
 ## Script Contract
 
-The skill assumes a universal investigation script at `scripts/investigate_underspend.py`. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. This repo documents the skill's data contract; you implement the script against your own infrastructure.
+The skill assumes a universal investigation script at `investigate_underspend.py`. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. This repo documents the skill's data contract; you implement the script against your own infrastructure.
 
 **Required script behavior:**
 

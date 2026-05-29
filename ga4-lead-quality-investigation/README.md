@@ -86,7 +86,7 @@ The skill will:
 1. Auto-load the 5 companion skills via the Skill tool
 2. Run the GA4 + Google Ads data collection (via `ga4-cross-analysis` companion skill)
 3. Apply all 5 red-flag detection frameworks
-4. Run `scripts/query_campaign_settings.py` to capture current configuration
+4. Run `query_campaign_settings.py` to capture current configuration
 5. Cross-reference GA4 patterns against campaign settings using Hypothesis → Verification → Finding methodology
 6. Produce a Background → Analysis → Conclusions report with prioritized recommendations + a "What Was Ruled Out" section
 

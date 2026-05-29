@@ -44,7 +44,7 @@ done
 
 ## Script Dependency (You Provide)
 
-This skill calls a universal investigation script at `scripts/investigate_underspend.py` that you implement against your own data sources. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. The SKILL.md documents the data contract the script must satisfy.
+This skill calls a universal investigation script at `investigate_underspend.py` that you implement against your own data sources. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. The SKILL.md documents the data contract the script must satisfy.
 
 **Required script output sections:**
 
@@ -72,7 +72,7 @@ A working reference script lives in the private brain this skill was extracted f
 The skill will:
 
 1. Auto-load the six companion skills via the Skill tool
-2. Run `scripts/investigate_underspend.py "Example Property - Pmax"`
+2. Run `investigate_underspend.py "Example Property - Pmax"`
 3. Apply the diagnostic decision trees to the script output
 4. Produce a standardized investigation report with root cause, evidence, and a specific budget recommendation (or no-action call)
 

@@ -87,7 +87,7 @@ Apply all 5 analysis frameworks from the companion skill:
 Run a campaign-settings query against the Google Ads API to capture current configuration:
 
 ```bash
-python scripts/query_campaign_settings.py {CUSTOMER_ID} "{CAMPAIGN_NAME}"
+python query_campaign_settings.py {CUSTOMER_ID} "{CAMPAIGN_NAME}"
 ```
 
 (The script is environment-specific — see "Script Contract" below.)
