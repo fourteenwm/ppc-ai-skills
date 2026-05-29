@@ -408,7 +408,7 @@ Before finalizing RSA set:
 
 **Ad Group**: "Oil Change Austin"
 **Primary Keyword**: "Oil Change Austin"
-**Business**: "Keller Bros Auto Repair"
+**Business**: "Example Auto Repair"
 
 ### Headlines (15):
 

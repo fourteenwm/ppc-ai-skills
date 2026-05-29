@@ -68,8 +68,8 @@ Complete examples demonstrating good vs bad ad copy, plus the "Four Words to Val
    - Focus on business, not customer need
    - Value buried at end
 
-❌ **"Welcome To Keller Bros Auto Repair"**
-   - First 4 words: "Welcome To Keller Bros"
+❌ **"Welcome To Example Auto Repair"**
+   - First 4 words: "Welcome To Example Auto"
    - No benefit, just business name
    - No action or value proposition
    - Wasted headline space
@@ -103,7 +103,7 @@ Complete examples demonstrating good vs bad ad copy, plus the "Four Words to Val
 ### Example 1: Auto Repair - Oil Change Austin
 
 **Ad Group**: "Oil Change Austin"
-**Business**: "Keller Bros Auto Repair"
+**Business**: "Example Auto Repair"
 **Website Verified USPs**: ASE Certified, Family Owned Since 1985, Same-Day Service, Free Multi-Point Inspection
 
 #### Headlines (15):
@@ -151,7 +151,7 @@ Complete examples demonstrating good vs bad ad copy, plus the "Four Words to Val
 ### Example 2: Plumbing - Emergency Plumber Austin
 
 **Ad Group**: "Emergency Plumber Austin"
-**Business**: "Austin Plumbing Pros"
+**Business**: "Example Plumbing Co"
 **Website Verified USPs**: Licensed Master Plumber, 24/7 Service, No Hidden Fees, Upfront Pricing
 
 #### Headlines (15):
