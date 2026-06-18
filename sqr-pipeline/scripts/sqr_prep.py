@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
-"""SQR 3-Run Pipeline Prep: read pending queries from a sheet and create batches.
+"""SQR Pipeline Prep: read pending queries from a sheet and create batches.
 
 Reads:
   - "Have Cost" tab (Column I = "Waiting") for pending queries
-  - offbrand-keywords.txt for competitor terms (from the offbrand-analyzer skill)
+  - references/offbrand-keywords.txt for competitor terms (bundled with this skill)
+  - (optional) a "GEO Source" tab for geo targets by CID — only needed for the
+    optional geo step (see prep_geo_batches.py + references/geo-prompt.md)
 
 Creates under ./data/sqr-pipeline/:
   ob_batches/ob_001.json ... ob_NNN.json
   account_lookup.json
   brand_lookup.json
+  geo_targets.json          (empty {} unless a GEO Source tab is found)
   manifest.json
-  run1/step1/  run2/step1/  run3/step1/  (empty, populated by the 3-run skill)
+  run1/step{1,2}/  run2/step{1,2}/  run3/step{1,2}/  (empty, populated downstream)
 
 Usage:
     python sqr_prep.py --sheet-id YOUR_SHEET_ID
     python sqr_prep.py --sheet-id YOUR_SHEET_ID --dry-run
     python sqr_prep.py --sheet-id YOUR_SHEET_ID --all  # include all rows, not just "Waiting"
+    python sqr_prep.py --sheet-id YOUR_SHEET_ID --geo-tab "GEO Source"  # enable geo step input
 
 Prerequisites:
     - token.json at project root with Google Sheets scope (or set
       SHEETS_TOKEN_PATH env var)
-    - offbrand-keywords.txt alongside the offbrand-analyzer skill (default
-      resolution: ../../offbrand-analyzer/offbrand-keywords.txt relative to
-      this script — override via --offbrand-keywords)
+    - references/offbrand-keywords.txt bundled with this skill (default
+      resolution: ../references/offbrand-keywords.txt relative to this
+      script — override via --offbrand-keywords)
     - pip install google-auth google-api-python-client
 """
 
@@ -30,6 +34,7 @@ import argparse
 import json
 import math
 import os
+import re
 from pathlib import Path
 
 from google.oauth2.credentials import Credentials
@@ -42,13 +47,10 @@ BATCH_SIZE = 50
 NUM_RUNS = 3
 
 SCRIPT_DIR = Path(__file__).parent
-SKILL_DIR = SCRIPT_DIR.parent
-SKILLS_ROOT = SKILL_DIR.parent  # sibling skills live here
+SKILL_DIR = SCRIPT_DIR.parent  # the sqr-pipeline skill folder
 
 DEFAULT_DATA_DIR = Path(os.getenv("SQR_DATA_DIR", "./data/sqr-pipeline"))
-DEFAULT_OFFBRAND_KEYWORDS = (
-    SKILLS_ROOT / "offbrand-analyzer" / "offbrand-keywords.txt"
-)
+DEFAULT_OFFBRAND_KEYWORDS = SKILL_DIR / "references" / "offbrand-keywords.txt"
 SHEETS_TOKEN_PATH = Path(os.getenv("SHEETS_TOKEN_PATH", "./token.json"))
 
 
@@ -57,7 +59,8 @@ def load_sheets_service():
     if not SHEETS_TOKEN_PATH.exists():
         raise FileNotFoundError(
             f"Sheets token not found at {SHEETS_TOKEN_PATH.absolute()}\n"
-            "Set up OAuth credentials first or set SHEETS_TOKEN_PATH env var."
+            "Set up OAuth credentials first or set SHEETS_TOKEN_PATH env var.\n"
+            "See the google-ads-api-setup skill for the walkthrough."
         )
     creds = Credentials.from_authorized_user_file(
         str(SHEETS_TOKEN_PATH),
@@ -133,13 +136,50 @@ def load_queries(service, sheet_id, input_tab='Have Cost', mode='waiting'):
     return queries
 
 
+def load_geo_targets(service, sheet_id, geo_tab):
+    """Load geo targets from an optional GEO Source tab.
+
+    Expects: CID (col A), semicolon-separated geo names (col B). Returns a dict
+    keyed by digits-only CID -> list of geo names. Returns {} if the tab is
+    absent or empty (the geo step is optional). prep_geo_batches.py matches
+    query CIDs against these keys after normalizing to digits-only too.
+    """
+    if not geo_tab:
+        return {}
+    print(f"Reading optional '{geo_tab}' tab for geo targets...")
+    try:
+        values = read_tab(service, sheet_id, geo_tab, "A:B")
+    except Exception:
+        values = []
+    if not values:
+        print(f"  No '{geo_tab}' tab / no data — geo step disabled for this run.")
+        return {}
+
+    start_idx = 0
+    if values[0] and any(str(h).strip().lower() in ('cid', 'customer id', 'account')
+                         for h in values[0]):
+        start_idx = 1
+
+    geo_targets = {}
+    for row in values[start_idx:]:
+        if len(row) < 2:
+            continue
+        cid = re.sub(r'\D', '', str(row[0]))  # normalize to digits-only
+        geo_names = str(row[1]).strip()
+        if cid and geo_names:
+            geo_targets[cid] = [g.strip() for g in geo_names.split(';') if g.strip()]
+
+    print(f"  Loaded geo targets for {len(geo_targets)} CID(s)")
+    return geo_targets
+
+
 def load_offbrand_keywords(path: Path):
     """Load off-brand keywords list."""
     if not path.exists():
         raise FileNotFoundError(
             f"Off-brand keywords not found at {path}\n"
-            "Install the offbrand-analyzer skill alongside this one, or "
-            "pass --offbrand-keywords PATH."
+            "Expected references/offbrand-keywords.txt bundled with this skill, "
+            "or pass --offbrand-keywords PATH."
         )
     with open(path, 'r', encoding='utf-8') as f:
         keywords = [line.strip() for line in f if line.strip()]
@@ -148,17 +188,21 @@ def load_offbrand_keywords(path: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='SQR 3-Run Pipeline Prep')
+    parser = argparse.ArgumentParser(description='SQR Pipeline Prep')
     parser.add_argument('--sheet-id', required=True,
                         help='Google Sheet ID containing the SQR pipeline tabs')
     parser.add_argument('--input-tab', default='Have Cost',
                         help='Input tab name (default: "Have Cost")')
+    parser.add_argument('--geo-tab', default=None,
+                        help='Optional GEO Source tab name (CID in col A, '
+                             'semicolon-separated geo names in col B). Enables the '
+                             'optional geo step. Omit to skip geo entirely.')
     parser.add_argument('--data-dir', type=Path, default=DEFAULT_DATA_DIR,
                         help=f'Data directory (default: {DEFAULT_DATA_DIR})')
     parser.add_argument('--offbrand-keywords', type=Path,
                         default=DEFAULT_OFFBRAND_KEYWORDS,
                         help='Path to offbrand-keywords.txt '
-                             '(default: ../../offbrand-analyzer/offbrand-keywords.txt)')
+                             '(default: ../references/offbrand-keywords.txt)')
     parser.add_argument('--batch-size', type=int, default=BATCH_SIZE,
                         help=f'Queries per batch (default: {BATCH_SIZE})')
     parser.add_argument('--dry-run', action='store_true',
@@ -168,7 +212,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("SQR 3-Run Pipeline Prep: Creating batches from pending queries")
+    print("SQR Pipeline Prep: Creating batches from pending queries")
     print("=" * 60)
 
     print("\nLoading Google Sheets credentials...")
@@ -182,6 +226,7 @@ def main():
         print("\nNo pending queries found. Nothing to do.")
         return
 
+    geo_targets = load_geo_targets(service, args.sheet_id, args.geo_tab)
     offbrand_keywords = load_offbrand_keywords(args.offbrand_keywords)
 
     cids = sorted(set(q['CID'] for q in queries))
@@ -195,6 +240,7 @@ def main():
         print(f"{'=' * 60}")
         print(f"  Would create {num_batches} batches of {args.batch_size}")
         print(f"  Total queries: {len(queries)}")
+        print(f"  Geo targets loaded: {len(geo_targets)} CID(s)")
         print(f"  {num_batches} batches x {NUM_RUNS} runs = "
               f"{num_batches * NUM_RUNS} classification passes")
         return
@@ -210,13 +256,19 @@ def main():
                 shutil.rmtree(target)
         print("  Cleaned previous run data")
 
-    # Create directory structure
+    # Create directory structure (step1 for classification, step2 for optional geo)
     print("\nCreating directory structure...")
     ob_batch_dir = data_dir / "ob_batches"
     ob_batch_dir.mkdir(parents=True, exist_ok=True)
     for run in range(1, NUM_RUNS + 1):
         (data_dir / f"run{run}" / "step1").mkdir(parents=True, exist_ok=True)
-    print(f"  Created {data_dir}/run{{1,2,3}}/step1/")
+        (data_dir / f"run{run}" / "step2").mkdir(parents=True, exist_ok=True)
+    print(f"  Created {data_dir}/run{{1,2,3}}/step{{1,2}}/")
+
+    # Save geo targets (empty {} if no GEO Source tab — the geo step is optional)
+    with open(data_dir / "geo_targets.json", 'w', encoding='utf-8') as f:
+        json.dump(geo_targets, f, indent=2)
+    print(f"  Saved geo targets ({len(geo_targets)} CIDs)")
 
     # Create off-brand batches
     print(f"\nCreating {num_batches} off-brand batches of {args.batch_size}...")
@@ -271,7 +323,7 @@ def main():
 
     # Save manifest
     manifest = {
-        'pipeline': 'sqr-3run',
+        'pipeline': 'sqr-pipeline',
         'sheet_id': args.sheet_id,
         'input_tab': args.input_tab,
         'total_queries': len(queries),
@@ -280,8 +332,9 @@ def main():
         'num_runs': NUM_RUNS,
         'num_cids': len(cids),
         'cids': cids,
+        'geo_cids': len(geo_targets),
         'offbrand_keywords_count': len(offbrand_keywords),
-        'steps': ['step1_offbrand'],
+        'steps': ['step1_offbrand', 'step2_geo'],
         'status': 'prepared'
     }
     with open(data_dir / "manifest.json", 'w') as f:
@@ -297,11 +350,12 @@ def main():
     print(f"  Batch size:          {args.batch_size}")
     print(f"  Number of batches:   {num_batches}")
     print(f"  Unique CIDs:         {len(cids)}")
+    print(f"  Geo target CIDs:     {len(geo_targets)}")
     print(f"  Off-brand keywords:  {len(offbrand_keywords)}")
     print(f"  VERIFIED: All {len(queries)} queries batched")
     print(f"\n{'=' * 60}")
-    print("NEXT STEP: Trigger the 3-run classification skill")
-    print(f"  Say: 'run SQR 3 run' in Claude Code")
+    print("NEXT STEP: Run the 3-run classification (step 2 of the sqr-pipeline skill)")
+    print(f"  Say: 'run SQR pipeline' in Claude Code")
     print(f"  {num_batches} batches x {NUM_RUNS} runs = "
           f"{num_batches * NUM_RUNS} classification passes")
     print(f"{'=' * 60}")

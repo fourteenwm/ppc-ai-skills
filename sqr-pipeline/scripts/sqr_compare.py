@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""SQR 3-Run Pipeline Compare: merge 3-run results and write to sheet.
+"""SQR Pipeline Compare: merge 3-run results and write the agree tabs to a sheet.
 
-Reads Step 1 results across 3 runs, computes consensus, and writes two
-tabs to the target Google Sheet:
-  "3-3 Agree"  - All 3 runs agree: off-brand (highest confidence NEGATEs)
-  "2-3 Agree"  - 2 of 3 runs agree: off-brand (majority NEGATEs)
+Reads Step 1 (classification) and, if present, Step 2 (geo) results across the
+3 runs, computes consensus, and writes two tabs to the target Google Sheet:
+  "3-3 Agree"  - All 3 runs agree this is a negate candidate (highest confidence)
+  "2-3 Agree"  - 2 of 3 runs agree (majority)
 
-Column Schema (A-M):
-  A: CID, B: Account, C: Query, D: Brand Names,
+The geo stage is OPTIONAL. If you ran it, an off-brand query only becomes a
+NEGATE when the geo check did not FAIL (i.e. it does not collide with a location
+the advertiser actively targets). If you did NOT run the geo stage, every
+off-brand consensus is a NEGATE — the geo columns are simply left blank.
+
+Column Schema (A-N):
+  A: CID, B: Query, C: Account, D: Brand Names,
   E: R1 Category, F: R2 Category, G: R3 Category,
-  H-L: (empty - reserved for downstream workflow),
-  M: Include? (human review)
+  H: R1 Geo Check, I: R2 Geo Check, J: R3 Geo Check,
+  K: R1 Conflicting Geo, L: R2 Conflicting Geo,
+  M: Include? (human review — mark "x"), N: Count
 
 Usage:
     python sqr_compare.py --sheet-id YOUR_SHEET_ID
@@ -18,7 +24,8 @@ Usage:
 
 Prerequisites:
     - sqr_prep.py must have been run first (creates data/sqr-pipeline/manifest.json)
-    - Run 1/2/3 step1 directories populated by the 3-run classification skill
+    - run{1,2,3}/step1 directories populated by the classification step
+    - (optional) run{1,2,3}/step2 directories populated by the geo step
     - token.json at project root with Google Sheets scope (or set
       SHEETS_TOKEN_PATH env var)
     - pip install google-auth google-api-python-client
@@ -36,7 +43,7 @@ from googleapiclient.discovery import build
 
 
 NUM_RUNS = 3
-NUM_COLS = 13
+NUM_COLS = 14
 
 DEFAULT_DATA_DIR = Path(os.getenv("SQR_DATA_DIR", "./data/sqr-pipeline"))
 SHEETS_TOKEN_PATH = Path(os.getenv("SHEETS_TOKEN_PATH", "./token.json"))
@@ -51,7 +58,8 @@ def load_sheets_service():
     if not SHEETS_TOKEN_PATH.exists():
         raise FileNotFoundError(
             f"Sheets token not found at {SHEETS_TOKEN_PATH.absolute()}\n"
-            "Set up OAuth credentials first or set SHEETS_TOKEN_PATH env var."
+            "Set up OAuth credentials first or set SHEETS_TOKEN_PATH env var.\n"
+            "See the google-ads-api-setup skill for the walkthrough."
         )
     creds = Credentials.from_authorized_user_file(
         str(SHEETS_TOKEN_PATH),
@@ -90,7 +98,7 @@ def clear_tab(service, spreadsheet_id, tab_name):
             range=f"'{tab_name}'!A:Z"
         ).execute()
     except Exception:
-        pass
+        pass  # Tab may not exist yet
 
 
 def ensure_sheet_size(service, spreadsheet_id, tab_name, needed_rows, needed_cols=NUM_COLS):
@@ -166,6 +174,33 @@ def load_step1_results(data_dir: Path, run_num: int, expected_batches: int):
     return results, missing
 
 
+def load_step2_results(data_dir: Path, run_num: int):
+    """Load all Step 2 (geo conflict) results for a run, if any."""
+    run_dir = data_dir / f"run{run_num}" / "step2"
+    results = []
+    if not run_dir.exists():
+        return results
+    for geo_file in sorted(run_dir.glob("geo_*.json")):
+        with open(geo_file, 'r', encoding='utf-8') as f:
+            raw = json.load(f)
+        for r in raw:
+            if isinstance(r, dict):
+                # Normalize field names
+                if 'Result' in r and 'Geo_Check' not in r:
+                    r['Geo_Check'] = r['Result']
+                r.setdefault('Conflicting_Geo', '')
+                r.setdefault('Confidence', '')
+                results.append(r)
+            elif isinstance(r, list) and len(r) >= 3:
+                results.append({
+                    'CID': r[0], 'Query': r[1],
+                    'Geo_Check': r[2],
+                    'Conflicting_Geo': r[3] if len(r) > 3 else '',
+                    'Confidence': r[4] if len(r) > 4 else ''
+                })
+    return results
+
+
 def load_lookups(data_dir: Path):
     """Load account and brand lookups saved by sqr_prep.py."""
     account_lookup = {}
@@ -188,8 +223,23 @@ def load_lookups(data_dir: Path):
 # Pipeline logic
 # ================================================================
 
+def compute_pipeline_result(step1_cat, geo_check):
+    """Determine pipeline outcome for a single run.
+
+    Off-brand + geo FAIL  -> GEO_CONFLICT (do NOT negate)
+    Off-brand + geo PASS  -> NEGATE
+    Off-brand + no geo run -> NEGATE (geo stage is optional)
+    Anything else         -> the original category (not a negate candidate)
+    """
+    if step1_cat != 'off-brand':
+        return step1_cat
+    if geo_check == 'FAIL':
+        return 'GEO_CONFLICT'
+    return 'NEGATE'
+
+
 def build_pipeline_data(data_dir: Path, expected_batches: int):
-    """Build step1_map and pipeline_map from all runs."""
+    """Build step1_map, step2_maps, pipeline_map from all runs."""
     print("\nLoading Step 1 results...")
     step1_runs = []
     for run in range(1, NUM_RUNS + 1):
@@ -197,6 +247,14 @@ def build_pipeline_data(data_dir: Path, expected_batches: int):
         print(f"  Run {run}: {len(results)} results, missing batches: {missing or 'none'}")
         step1_runs.append(results)
 
+    print("Loading Step 2 (geo) results, if any...")
+    step2_runs = []
+    for run in range(1, NUM_RUNS + 1):
+        results = load_step2_results(data_dir, run)
+        print(f"  Run {run}: {len(results)} geo results")
+        step2_runs.append(results)
+
+    # Build Step 1 lookup: (CID, Query) -> [cat_run1, cat_run2, cat_run3]
     step1_map = {}
     for run_idx, run_results in enumerate(step1_runs):
         for r in run_results:
@@ -205,24 +263,41 @@ def build_pipeline_data(data_dir: Path, expected_batches: int):
                 step1_map[key] = [None] * NUM_RUNS
             step1_map[key][run_idx] = r.get('Category', '').lower()
 
+    # Build Step 2 lookups
+    step2_maps = []
+    for run_results in step2_runs:
+        m = {}
+        for r in run_results:
+            key = (r['CID'], r['Query'])
+            m[key] = {
+                'Geo_Check': r.get('Geo_Check', ''),
+                'Conflicting_Geo': r.get('Conflicting_Geo', ''),
+                'Confidence': r.get('Confidence', '')
+            }
+        step2_maps.append(m)
+
+    # Filter to queries with all 3 Step 1 runs complete
     complete = {k: v for k, v in step1_map.items() if all(v)}
     incomplete = len(step1_map) - len(complete)
     print(f"\n  Queries with all 3 Step 1 runs: {len(complete)}")
     if incomplete:
         print(f"  Queries missing runs (excluded): {incomplete}")
 
-    # No GEO stage - off-brand = NEGATE directly
+    # Compute pipeline result per query per run
     pipeline_map = {}
     for key, cats in complete.items():
         pipeline = []
-        for cat in cats:
+        for run_idx in range(NUM_RUNS):
+            cat = cats[run_idx]
             if cat == 'off-brand':
-                pipeline.append('NEGATE')
+                geo = step2_maps[run_idx].get(key, {})
+                geo_check = geo.get('Geo_Check', '')
+                pipeline.append(compute_pipeline_result(cat, geo_check))
             else:
                 pipeline.append(cat)
         pipeline_map[key] = pipeline
 
-    return complete, pipeline_map
+    return complete, step2_maps, pipeline_map
 
 
 def get_negate_sets(pipeline_map):
@@ -246,27 +321,47 @@ def format_cid(cid):
     return str(cid)
 
 
-def build_tab_rows(keys, complete, account_lookup, brand_lookup):
-    """Build row data for a tab from a set of query keys."""
+def build_tab_rows(keys, complete, step2_maps, account_lookup, brand_lookup):
+    """Build row data for a tab from a set of query keys.
+
+    Column Schema (A-N):
+      A: CID, B: Query, C: Account, D: Brand Names,
+      E: R1 Cat, F: R2 Cat, G: R3 Cat,
+      H: R1 Geo, I: R2 Geo, J: R3 Geo,
+      K: R1 Conflict, L: R2 Conflict,
+      M: Include?, N: Count
+    """
     rows = []
     for key in sorted(keys):
         cid, query = key
         cats = complete[key]
         row = [
             format_cid(cid),
-            account_lookup.get(cid, ''),
             query,
+            account_lookup.get(cid, ''),
             brand_lookup.get(cid, ''),
             cats[0], cats[1], cats[2],  # R1-R3 Category
-            '', '', '', '', '',          # H-L empty (reserved)
-            '',                          # M: Include? (human review)
         ]
+        # R1-R3 Geo Check
+        for run_idx in range(NUM_RUNS):
+            geo = step2_maps[run_idx].get(key, {})
+            geo_check = geo.get('Geo_Check', '') if cats[run_idx] == 'off-brand' else ''
+            row.append(geo_check)
+        # R1-R2 Conflicting Geo (R3 dropped to keep M as Include?)
+        for run_idx in range(2):
+            geo = step2_maps[run_idx].get(key, {})
+            conflict = geo.get('Conflicting_Geo', '') if cats[run_idx] == 'off-brand' else ''
+            row.append(conflict)
+        # Column M: Include? (empty for human review)
+        row.append('')
+        # Column N: Count (handy for an Uploader QUERY/SUM formula)
+        row.append(1)
         rows.append(row)
     return rows
 
 
 def main():
-    parser = argparse.ArgumentParser(description='SQR 3-Run Pipeline Compare & Write')
+    parser = argparse.ArgumentParser(description='SQR Pipeline Compare & Write')
     parser.add_argument('--sheet-id', required=True,
                         help='Google Sheet ID to write "3-3 Agree" and "2-3 Agree" tabs')
     parser.add_argument('--data-dir', type=Path, default=DEFAULT_DATA_DIR,
@@ -276,7 +371,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("SQR 3-Run Pipeline Compare: Merge 3-Run Results")
+    print("SQR Pipeline Compare: Merge 3-Run Results")
     print("=" * 60)
 
     manifest_file = args.data_dir / "manifest.json"
@@ -294,7 +389,7 @@ def main():
     account_lookup, brand_lookup = load_lookups(args.data_dir)
     print(f"Lookups: {len(account_lookup)} accounts, {len(brand_lookup)} brands")
 
-    complete, pipeline_map = build_pipeline_data(args.data_dir, expected_batches)
+    complete, step2_maps, pipeline_map = build_pipeline_data(args.data_dir, expected_batches)
 
     if not complete:
         print("\nERROR: No complete results found. Run classification first.")
@@ -322,14 +417,15 @@ def main():
     print(f"  Total:         {n}")
 
     HEADER = [
-        "CID", "Account", "Query", "Brand Names",
+        "CID", "Query", "Account", "Brand Names",
         "R1 Category", "R2 Category", "R3 Category",
-        "", "", "", "", "",  # H-L reserved
-        "Include?"
+        "R1 Geo Check", "R2 Geo Check", "R3 Geo Check",
+        "R1 Conflicting Geo", "R2 Conflicting Geo",
+        "Include?", "Count"
     ]
 
-    rows_33 = build_tab_rows(negate_33, complete, account_lookup, brand_lookup)
-    rows_23 = build_tab_rows(negate_23, complete, account_lookup, brand_lookup)
+    rows_33 = build_tab_rows(negate_33, complete, step2_maps, account_lookup, brand_lookup)
+    rows_23 = build_tab_rows(negate_23, complete, step2_maps, account_lookup, brand_lookup)
 
     print(f"\n3-3 Agree tab: {len(rows_33)} rows")
     print(f"2-3 Agree tab: {len(rows_23)} rows")
@@ -369,8 +465,8 @@ def main():
     print(f"\nNEXT STEPS:")
     print(f"  1. Review queries in '3-3 Agree' and '2-3 Agree' tabs")
     print(f"  2. Mark 'x' in Column M (Include?) for approved negatives")
-    print(f"  3. Upload via the sqr-upload skill:")
-    print(f"     python ../sqr-upload/scripts/sqr_upload_negatives.py --sheet-id {args.sheet_id}")
+    print(f"  3. Upload (two-step dry-run -> approval code -> execute):")
+    print(f"     python scripts/sqr_upload_negatives.py --sheet-id {args.sheet_id}")
 
 
 if __name__ == '__main__':

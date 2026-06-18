@@ -133,5 +133,4 @@ pip install openai google-auth google-api-python-client python-dotenv
 ## Related Skills
 
 - [`offbrand-analyzer`](../offbrand-analyzer/) — Stage 1 of the SQR pipeline (classify queries as high-intent/off-brand/informational/low-intent)
-- [`sqr-upload`](../sqr-upload/) — Upload approved negatives to Google Ads shared keyword lists
-- [`sqr-3run`](../sqr-3run/) — 3-pass consensus voting for higher confidence
+- [`sqr-pipeline`](../sqr-pipeline/) — End-to-end SQR negative-keyword pipeline (3-run consensus → review → two-step upload); this geo check is its optional step

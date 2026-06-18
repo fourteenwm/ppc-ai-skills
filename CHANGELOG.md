@@ -2,6 +2,20 @@
 
 All notable changes to this repository.
 
+## 2026-06-18 — Consolidated: SQR Pipeline
+
+Merged the `sqr-3run` and `sqr-upload` skills into a single end-to-end
+[`sqr-pipeline/`](sqr-pipeline/) skill: MCC search-terms pull → batch prep →
+3-run consensus classification → optional geo conflict check → human review →
+two-step negative upload, plus a remove branch to un-negate mistakes.
+
+- Retired `sqr-3run/` and `sqr-upload/` — their scripts (`sqr_prep.py`,
+  `sqr_compare.py`, `sqr_upload_negatives.py`) now live in `sqr-pipeline/scripts/`,
+  alongside newly added pull, geo-batch, n-gram, and remove scripts.
+- `sqr-classifier/` (zero-setup paste-and-classify) is unchanged.
+- Cross-references in `offbrand-analyzer` and `geo-conflict-analyzer` repointed
+  to `sqr-pipeline`.
+
 ## 2026-05-06 — Added: Neg Conflict Finder
 
 New skill: [`neg-conflict-finder/`](neg-conflict-finder/) — a Google Ads Script that finds every place a negative keyword is silently blocking a positive across an entire MCC, at every level Google supports (ad group, campaign, account-level shared lists, MCC-level shared lists, and account-level negatives). Match-type-aware blocking detection. Read-only — outputs to a Google Sheet for review.

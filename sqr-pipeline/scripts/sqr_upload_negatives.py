@@ -26,14 +26,14 @@ Usage:
 
     # Explicit credential paths
     python sqr_upload_negatives.py --sheet-id YOUR_SHEET_ID \
-        --config google-ads.yaml --sheets-token token-sheets.json
+        --config google-ads.yaml --sheets-token token.json
 
 Prerequisites:
     - google-ads.yaml at project root (Google Ads API credentials)
-    - token-sheets.json at project root OR a refresh token in google-ads.yaml
-      with the spreadsheets scope. The script tries token-sheets.json first,
+    - token.json at project root OR a refresh token in google-ads.yaml
+      with the spreadsheets scope. The script tries token.json first,
       then falls back to google-ads.yaml for OAuth.
-    - pip install google-ads google-auth google-api-python-client
+    - pip install google-ads google-auth google-api-python-client pyyaml
 
 Uploader tab column schema (required):
     A: CID               (full format, e.g. 123-456-7890 — informational only)
@@ -75,7 +75,7 @@ GOOGLE_ADS_KEYWORD_MAX_LENGTH = 80
 def get_sheets_service(sheets_token_path: str, ads_config_path: str):
     """Build authenticated Google Sheets API service.
 
-    Prefers a dedicated token-sheets.json (OAuth with spreadsheets scope).
+    Prefers a dedicated token.json (OAuth with spreadsheets scope).
     Falls back to the refresh token in google-ads.yaml if present with
     the spreadsheets scope.
     """
@@ -391,8 +391,8 @@ def main():
                         help='Tab name (default: "Uploader")')
     parser.add_argument('--config', default='google-ads.yaml',
                         help='Google Ads credentials YAML (default: ./google-ads.yaml)')
-    parser.add_argument('--sheets-token', default='token-sheets.json',
-                        help='Google Sheets OAuth token JSON (default: ./token-sheets.json). '
+    parser.add_argument('--sheets-token', default='token.json',
+                        help='Google Sheets OAuth token JSON (default: ./token.json). '
                              'If not found, falls back to credentials in --config.')
     parser.add_argument('approval_code', nargs='?', default=None,
                         help='APPROVE-XXXXXXXX code from dry-run (omit for dry-run preview)')

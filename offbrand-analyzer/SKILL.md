@@ -189,20 +189,20 @@ pip install openai google-auth google-api-python-client python-dotenv
 
 ---
 
-## Production Method: 3-Run Consistency Pipeline
+## Production Method: SQR Pipeline (3-Run Consensus)
 
-**The production SQR classification now uses the `sqr-3run` skill**, which runs 3 independent classification passes via Claude Code Task agents and uses consensus (3-3 unanimous / 2-3 majority) for higher confidence.
+**The production SQR classification now uses the `sqr-pipeline` skill**, which runs 3 independent classification passes via Claude Code Task agents and uses consensus (3-3 unanimous / 2-3 majority) for higher confidence — then carries the approved negatives through human review and two-step upload.
 
-**Use `sqr-3run` for production runs.** This script (`analyze.py`) remains available for:
+**Use `sqr-pipeline` for production runs.** This script (`analyze.py`) remains available for:
 - Debugging individual batches
 - Testing prompt changes on small sets
-- Legacy single-pass runs when 3-run is overkill
+- Legacy single-pass runs when the full pipeline is overkill
 
-**See:** `.claude/skills/sqr-3run/SKILL.md`
+**See:** `.claude/skills/sqr-pipeline/SKILL.md`
 
 ---
 
 ## Related
 
-- **SQR 3-Run Pipeline**: `.claude/skills/sqr-3run/` (production method)
+- **SQR Pipeline**: `.claude/skills/sqr-pipeline/` (production method — pull → classify → review → upload)
 - **GEO Conflict Analyzer**: `.claude/skills/geo-conflict-analyzer/` (similar pattern)
