@@ -81,6 +81,6 @@ Auto-invokes when Claude is asked to:
 
 ---
 
-Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage 118 Google Ads accounts with 85+ specialized skills. This standard exists because I got tired of manually deleting AI-hallucinated claims from live ads.
+Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage over 110 Google Ads accounts with 85+ specialized skills. This standard exists because I got tired of manually deleting AI-hallucinated claims from live ads.
 
 More free skills: [github.com/fourteenwm/ppc-ai-skills](https://github.com/fourteenwm/ppc-ai-skills)

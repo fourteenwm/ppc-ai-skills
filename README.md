@@ -148,7 +148,7 @@ Start Claude Code in your project directory. The skill loads automatically when 
 
 ## About
 
-I'm Kurt Henninger. I manage Google Ads portfolios across property management and local services — about 118 accounts total.
+I'm Kurt Henninger. I manage Google Ads portfolios across property management and local services — over 110 accounts total.
 
 I built these skills because AI is fast but not careful. It hallucinates phone numbers, overwrites live campaigns, generates ad copy from assumptions instead of facts. Every skill in this repo exists because something went wrong and I wanted to make sure it didn't happen again.
 

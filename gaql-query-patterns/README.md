@@ -2,7 +2,7 @@
 
 Ready-to-use Google Ads Query Language (GAQL) templates for the most common PPC analysis tasks.
 
-**The pain point:** GAQL syntax is powerful but poorly documented. Most PPC practitioners waste hours guessing at field names, figuring out which resource to query, and debugging `INVALID_PREDICATE_ENUM_VALUE` errors. These templates are battle-tested across 118 accounts.
+**The pain point:** GAQL syntax is powerful but poorly documented. Most PPC practitioners waste hours guessing at field names, figuring out which resource to query, and debugging `INVALID_PREDICATE_ENUM_VALUE` errors. These templates are battle-tested across over 110 accounts.
 
 ---
 
@@ -55,6 +55,6 @@ You don't need Claude Code to use these queries. Copy any query from `SKILL.md` 
 
 ---
 
-Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage 118 Google Ads accounts with 85+ specialized skills.
+Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage over 110 Google Ads accounts with 85+ specialized skills.
 
 More free skills: [github.com/fourteenwm/ppc-ai-skills](https://github.com/fourteenwm/ppc-ai-skills)
