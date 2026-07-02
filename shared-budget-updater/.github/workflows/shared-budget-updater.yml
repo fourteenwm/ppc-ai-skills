@@ -1,0 +1,53 @@
+name: Shared Budget Updater
+
+on:
+  schedule:
+    - cron: '15 14 * * *'   # Daily, 8:15am MDT (UTC-6) — adjust to your own morning
+  workflow_dispatch: {}      # Manual trigger for testing
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write credentials
+        env:
+          UPDATER_TOKEN_SHEETS_JSON: ${{ secrets.UPDATER_TOKEN_SHEETS_JSON }}
+          UPDATER_GOOGLE_ADS_YAML: ${{ secrets.UPDATER_GOOGLE_ADS_YAML }}
+        run: |
+          echo "$UPDATER_TOKEN_SHEETS_JSON" > /tmp/sheets-token.json
+          echo "$UPDATER_GOOGLE_ADS_YAML" > /tmp/google-ads.yaml
+
+      - name: Run processor
+        run: python -m workflows.shared_budget_updater.main
+        env:
+          GOOGLE_TOKEN_PATH: /tmp/sheets-token.json
+          GOOGLE_ADS_YAML_PATH: /tmp/google-ads.yaml
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          UPDATER_SHEET_ID: ${{ secrets.UPDATER_SHEET_ID }}
+          SHEET_TAB: ${{ vars.SHEET_TAB }}
+          SLACK_USER_MENTION: ${{ secrets.SLACK_USER_MENTION }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f /tmp/sheets-token.json /tmp/google-ads.yaml
+
+      - name: Slack alert on failure
+        if: failure()
+        run: |
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"${SLACK_USER_MENTION:-} :red_circle: *Shared Budget Updater* failed — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USER_MENTION: ${{ secrets.SLACK_USER_MENTION }}

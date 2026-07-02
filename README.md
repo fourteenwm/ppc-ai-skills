@@ -92,6 +92,7 @@ done
 | [Portfolio Health Prioritization](portfolio-health-prioritization/) | 5-tier triage framework — answers "which account do I look at first?" |
 | [Portfolio Pacing Rules](portfolio-pacing-rules/) | Budget pacing thresholds and tolerance rules for multi-portfolio management |
 | [Budget Recommendation Calculator](budget-recommendation-calculator/) | Conservative budget change framework with 5-10% increase caps and performance guardrails |
+| [Shared Budget Updater](shared-budget-updater/) | Sheet-driven daily budget pusher — approve changes by adding a row, a GitHub Actions cron pushes them to Google Ads and marks them done. Consolidated Slack alerts on failures; ≤$0 guard; alert-don't-crash design |
 
 ### Campaign Building
 | Skill | What It Does |
@@ -154,7 +155,7 @@ I built these skills because AI is fast but not careful. It hallucinates phone n
 
 The philosophy is simple: **engineered AI with guardrails beats raw prompting every time.**
 
-These 42 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
+These 43 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)

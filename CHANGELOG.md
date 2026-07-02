@@ -2,6 +2,25 @@
 
 All notable changes to this repository.
 
+## 2026-07-01 — Added: Shared Budget Updater
+
+New deployable automation: [`shared-budget-updater/`](shared-budget-updater/) —
+a sheet-driven daily budget pusher. Approve a change by adding a row (CID,
+shared budget ID, amount) to a Google Sheet tab; a GitHub Actions cron pushes
+it via `campaignBudgets:mutate` (amount only), marks the row done in column D,
+and sends one consolidated Slack alert for any failed rows. Amounts ≤ $0 are
+guarded and never reach the API; failed rows retry on the next run.
+
+- Bundle shape matches Budget Guardian: `SKILL.md` + `README.md` +
+  `rules.md`/`examples.md` (alert triage) + `sheet-template.md` +
+  `.github/workflows/` cron + `workflows/` Python package + `_shared/` helpers.
+- Cross-links [`budget-guardian/`](budget-guardian/) — this pushes the
+  budgets, the Guardian is the tripwire that watches what gets spent against
+  them.
+- Generic replica of a production automation, sanitized per the repo's 6-gate
+  audit; config-driven (`UPDATER_SHEET_ID`, `SHEET_TAB`, `SLACK_USER_MENTION`),
+  zero credentials shipped.
+
 ## 2026-06-18 — Consolidated: SQR Pipeline
 
 Merged the `sqr-3run` and `sqr-upload` skills into a single end-to-end
