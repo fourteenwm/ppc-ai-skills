@@ -8,6 +8,8 @@ allowed-tools: [Read, Write, Edit, Bash]
 
 A spend tripwire for your Google Ads MCC. Scans every enabled account in your MCC every 2 hours. If month-to-date spend crosses 100% or 120% of the monthly budget you set, it pings Slack. **Alert-only — never pauses campaigns.**
 
+Pairs with [Shared Budget Updater](../shared-budget-updater/) — the execution arm: it pushes sheet-approved budgets; the Guardian is the tripwire watching what gets spent against them.
+
 ## Why this exists
 
 Two threats with the same shape — a spend spike nobody noticed until the damage was done.
@@ -61,6 +63,8 @@ GitHub Actions (every 2 hours)
 |------|---------|
 | `SKILL.md` | This file |
 | `README.md` | Full setup guide with step-by-step deployment |
+| `rules.md` | Alert-triage decision logic (invariants + triage table) |
+| `examples.md` | Worked triage decisions, including the edge cases |
 | `requirements.txt` | Python dependencies |
 | `sheet-template.md` | Google Sheet column structure |
 | `.github/workflows/budget-guardian.yml` | GitHub Actions cron config (every 2 hours) |
@@ -101,3 +105,17 @@ All identity-bearing values are loaded from environment variables. Nothing is ha
 - **Does not modify Google Ads.** Read-only access is sufficient.
 - **Does not need Anthropic credentials.** No LLM call in the loop — pure threshold math.
 - **Does not require a brain.** Runs standalone on GitHub Actions; the SKILL.md just helps Claude help you deploy it.
+
+## Production twin & behavior parity
+
+This bundle is the generic replica of a production automation running on the
+same architecture every 2 hours. The two stay in **behavioral sync** on the
+parity set: thresholds 1.0/1.2 · kill-switch fail-closed semantics · state
+schema (`Month | CID | Account Name | Threshold | Action | Timestamp`) +
+per-account/threshold/month dedupe + stale-month clear · alert shape.
+
+Ingestion differs **BY DESIGN**: this bundle reads a direct-CID `Budgets` tab
+(A:C — Name, CID, Monthly Budget); the production twin discovers accounts via
+an MCC label and reads a pre-aggregated budget export. Env names + branding
+also differ by design. Drift between the two is reviewed against the parity
+set, never byte-synced.

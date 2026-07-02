@@ -2,6 +2,8 @@
 
 A 2-hour spend tripwire for your Google Ads MCC. Alert-only — never pauses campaigns.
 
+Pairs with [Shared Budget Updater](../shared-budget-updater/) — the execution arm: it pushes sheet-approved budgets; the Guardian is the tripwire watching what gets spent against them.
+
 ## What it catches
 
 - Fat-fingered budgets — wrong formulas or stale values in a budget sheet that quietly push the wrong number across multiple accounts

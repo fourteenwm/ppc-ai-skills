@@ -2,6 +2,19 @@
 
 All notable changes to this repository.
 
+## 2026-07-02 — Updated: Budget Guardian
+
+[`budget-guardian/`](budget-guardian/) gains its judgment layer — `rules.md`
+(invariants + a triage table for 100%/120% alerts, script errors, and the
+"silence ≠ healthy" checklist) and `examples.md` (worked decisions, including
+declining the "just lower the budget" request — the Guardian never touches
+budgets). SKILL.md now documents the behavior-parity rule with the production
+twin: thresholds, kill switch, dedupe/state, and alert shape stay synced;
+ingestion is deliberately different (direct-CID Budgets tab here vs label-driven
+account discovery in production). Cross-links
+[`shared-budget-updater/`](shared-budget-updater/) — the execution arm to this
+tripwire. No code changes — the deployed workflow is untouched.
+
 ## 2026-07-01 — Added: Shared Budget Updater
 
 New deployable automation: [`shared-budget-updater/`](shared-budget-updater/) —
