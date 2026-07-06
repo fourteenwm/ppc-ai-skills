@@ -2,6 +2,14 @@
 
 All notable changes to this repository.
 
+## 2026-07-06 — Maintenance: Example CIDs standardized
+
+[`geo-conflict-analyzer/`](geo-conflict-analyzer/) and
+[`offbrand-analyzer/`](offbrand-analyzer/) prompt examples now use the
+universal `123-456-7890` placeholder CID throughout (13 occurrences),
+matching the placeholder convention used across the rest of the repo.
+No behavioral changes.
+
 ## 2026-07-02 — Updated: Budget Guardian
 
 [`budget-guardian/`](budget-guardian/) gains its judgment layer — `rules.md`

@@ -200,13 +200,13 @@ Where:
 
 ## EXAMPLE OUTPUT:
 
-["339-555-1071","luxury apartments chula vista","FAIL","Chula Vista","HIGH"],
-["339-555-1071","downtown chula vista apartments","PASS","","HIGH"],
-["339-555-1071","east lake apartments","PASS","","HIGH"],
-["339-555-1071","apartments in chula vista ca","FAIL","Chula Vista","HIGH"],
-["339-555-1071","thornton apartments alexandria va","PASS","","MEDIUM"],
-["339-555-1071","westgate manor apartments","PASS","","LOW"],
-["339-555-1071","chula vista condos","PASS","","HIGH"]
+["123-456-7890","luxury apartments chula vista","FAIL","Chula Vista","HIGH"],
+["123-456-7890","downtown chula vista apartments","PASS","","HIGH"],
+["123-456-7890","east lake apartments","PASS","","HIGH"],
+["123-456-7890","apartments in chula vista ca","FAIL","Chula Vista","HIGH"],
+["123-456-7890","thornton apartments alexandria va","PASS","","MEDIUM"],
+["123-456-7890","westgate manor apartments","PASS","","LOW"],
+["123-456-7890","chula vista condos","PASS","","HIGH"]
 
 ## IMPORTANT RULES:
 
@@ -225,11 +225,11 @@ Where:
 ```json
 {
   "queries": [
-    {"CID": "339-555-1071", "Query": "downtown chula vista apartments"},
-    {"CID": "339-555-1071", "Query": "luxury apartments chula vista"}
+    {"CID": "123-456-7890", "Query": "downtown chula vista apartments"},
+    {"CID": "123-456-7890", "Query": "luxury apartments chula vista"}
   ],
   "geo_targets": {
-    "339-555-1071": ["Chula Vista", "Sunnybrook", "East Lake", "Ocean View Hills", "Otay", "South County"]
+    "123-456-7890": ["Chula Vista", "Sunnybrook", "East Lake", "Ocean View Hills", "Otay", "South County"]
   }
 }
 ```

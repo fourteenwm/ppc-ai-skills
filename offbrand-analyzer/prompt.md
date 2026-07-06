@@ -15,11 +15,11 @@ Example:
 ```json
 {
   "queries": [
-    {"CID": "339-555-1071", "Query": "apartments in denver colorado"},
-    {"CID": "339-555-1071", "Query": "pinecrest manor apts"}
+    {"CID": "123-456-7890", "Query": "apartments in denver colorado"},
+    {"CID": "123-456-7890", "Query": "pinecrest manor apts"}
   ],
   "brand_names": {
-    "339-555-1071": "Cedar Point, The Pinecrest"
+    "123-456-7890": "Cedar Point, The Pinecrest"
   },
   "off_brand_keywords": ["pinecrest manor", "riverbend towers", ...]
 }
