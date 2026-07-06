@@ -23,7 +23,7 @@ Analyze search queries for geographic targeting conflicts in GEO campaigns. Uses
 2. Sends batches to OpenAI GPT-4o for geo conflict analysis
 3. Writes PASS/FAIL + confidence results to an output tab
 
-Pairs naturally with [`offbrand-analyzer`](../offbrand-analyzer/) — run off-brand classification first, then geo-conflict analysis on queries that need geographic validation before being negatived.
+Pairs naturally with [`sqr-pipeline`](../sqr-pipeline/) — run its off-brand classification first, then geo-conflict analysis on queries that need geographic validation before being negatived.
 
 ---
 
@@ -132,5 +132,5 @@ pip install openai google-auth google-api-python-client python-dotenv
 
 ## Related Skills
 
-- [`offbrand-analyzer`](../offbrand-analyzer/) — Stage 1 of the SQR pipeline (classify queries as high-intent/off-brand/informational/low-intent)
-- [`sqr-pipeline`](../sqr-pipeline/) — End-to-end SQR negative-keyword pipeline (3-run consensus → review → two-step upload); this geo check is its optional step
+- [`sqr-pipeline`](../sqr-pipeline/) — End-to-end SQR negative-keyword pipeline (classify queries as high-intent/off-brand/informational/low-intent with 3-run consensus → review → two-step upload); this geo check is its optional step
+- [`sqr-classifier`](../sqr-classifier/) — Zero-setup paste-and-classify intent classification

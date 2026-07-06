@@ -125,7 +125,11 @@ def get_all_conversion_actions(customer_id, ads_client, include_ignored=False):
 
 
 def get_last_conversion_dates(customer_id, ads_client, lookback_days=90):
-    """Query conversion performance segmented by date and action."""
+    """Query conversion performance segmented by date and action.
+
+    Uses metrics.all_conversions so both optimization-included and
+    observation-only conversions are captured.
+    """
     ga_service = ads_client.get_service("GoogleAdsService")
 
     end_date = datetime.now()
@@ -238,10 +242,11 @@ def main():
 
     if not last_dates:
         print("WARNING: No conversions found in the lookback period!")
+        print(f"Consider increasing the --days parameter (currently {args.days})")
         sys.exit(0)
 
     print(f"\n{'-'*80}")
-    print(f"STEP 3: ANALYSIS")
+    print(f"STEP 3: ANALYSIS - CONVERSION ACTION HEALTH")
     print(f"{'-'*80}\n")
 
     healthy = []
@@ -273,48 +278,67 @@ def main():
         print(f"HEALTHY - Last conversion within 14 days ({len(healthy)} actions)\n")
         for entry in sorted(healthy, key=lambda x: x['days_ago']):
             days_text = "today" if entry['days_ago'] == 0 else f"{entry['days_ago']} days ago"
-            print(f"  - {entry['name']}: {entry['last_date']} ({days_text})")
+            include_marker = "(in)" if entry['include_in_conversions'] else "(obs)"
+            print(f"  - {include_marker} {entry['name']}: {entry['last_date']} ({days_text})")
         print()
 
     if warning:
         print(f"WARNING - Last conversion 15-30 days ago ({len(warning)} actions)\n")
         for entry in sorted(warning, key=lambda x: x['days_ago'], reverse=True):
-            print(f"  - {entry['name']}: {entry['last_date']} ({entry['days_ago']} days ago)")
+            include_marker = "(in)" if entry['include_in_conversions'] else "(obs)"
+            print(f"  - {include_marker} {entry['name']}: {entry['last_date']} ({entry['days_ago']} days ago)")
         print()
 
     if stale:
         print(f"STALE - Last conversion 30+ days ago ({len(stale)} actions)\n")
         for entry in sorted(stale, key=lambda x: x['days_ago'], reverse=True):
-            print(f"  - {entry['name']}: {entry['last_date']} ({entry['days_ago']} days ago)")
+            include_marker = "(in)" if entry['include_in_conversions'] else "(obs)"
+            print(f"  - {include_marker} {entry['name']}: {entry['last_date']} ({entry['days_ago']} days ago)")
             print(f"     INVESTIGATE: May indicate broken tracking or low volume")
         print()
 
     if never_fired:
         print(f"NO RECENT CONVERSIONS - No activity in last {args.days} days ({len(never_fired)} actions)\n")
         for entry in never_fired:
-            print(f"  - {entry['name']} (Status: {entry['status']})")
+            include_marker = "(in)" if entry['include_in_conversions'] else "(obs)"
+            print(f"  - {include_marker} {entry['name']} (Status: {entry['status']})")
             if entry['status'] == 'ENABLED':
                 print(f"     INVESTIGATE: Enabled but no conversions recorded")
         print()
 
     print(f"\n{'-'*80}")
-    print(f"SUMMARY")
+    print(f"STEP 4: SUMMARY & RECOMMENDATIONS")
     print(f"{'-'*80}\n")
 
+    actions_with_data = len(healthy) + len(warning) + len(stale)
+
     print(f"Total Conversion Actions: {len(conversion_actions)}")
+    print(f"Actions with Recent Data: {actions_with_data}")
     print(f"  Healthy (<=14 days): {len(healthy)}")
     print(f"  Warning (15-30 days): {len(warning)}")
     print(f"  Stale (30+ days): {len(stale)}")
     print(f"  No Recent Data: {len(never_fired)}")
 
+    print(f"\nRECOMMENDED ACTIONS:\n")
+
     if stale or never_fired:
-        print("\nHIGH PRIORITY ACTIONS:")
+        print("HIGH PRIORITY:")
         if stale:
-            print(f"  - Investigate {len(stale)} stale conversion action(s)")
+            print(f"  - Investigate {len(stale)} stale conversion action(s) - may indicate broken tracking")
         if never_fired:
             enabled_never_fired = [e for e in never_fired if e['status'] == 'ENABLED']
             if enabled_never_fired:
                 print(f"  - Review {len(enabled_never_fired)} enabled action(s) with no conversions")
+                print(f"    Consider disabling if tracking is broken, or removing if not needed")
+        print()
+
+    if warning:
+        print("MEDIUM PRIORITY:")
+        print(f"  - Monitor {len(warning)} conversion action(s) with declining activity")
+        print()
+
+    if healthy:
+        print(f"{len(healthy)} conversion action(s) are healthy and recording conversions regularly")
 
     print(f"\n{'='*80}\n")
 

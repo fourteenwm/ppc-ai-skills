@@ -19,7 +19,7 @@ Analyzes search queries for geographic targeting conflicts in Google Ads GEO cam
 3. Sends batches of 50 queries to GPT-4o with a 200+ example ruleset
 4. Writes PASS/FAIL + confidence back to an output tab
 
-Pairs with [`offbrand-analyzer`](../offbrand-analyzer/) — off-brand runs first, then geo-conflict runs on queries that need geographic validation.
+Pairs with [`sqr-pipeline`](../sqr-pipeline/) — its off-brand classification runs first, then geo-conflict runs on queries that need geographic validation.
 
 ---
 

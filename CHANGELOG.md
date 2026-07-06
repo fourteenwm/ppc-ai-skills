@@ -2,6 +2,27 @@
 
 All notable changes to this repository.
 
+## 2026-07-06 — Updated: Conversion Tracking Health
+
+[`conversion-tracking-health/`](conversion-tracking-health/)'s
+`last_conversion_dates_by_action.py` refreshed from the maintained version.
+The report now shows the included-vs-observation marker (`(in)`/`(obs)`) on
+every action in the health categories — a stale action that feeds Smart
+Bidding is a different severity than an observation-only one — adds an
+"Actions with Recent Data" summary count, upgrades the closing summary to
+priority-tiered recommendations (HIGH: stale + enabled-but-silent actions;
+MEDIUM: declining actions to monitor), and suggests widening `--days` when
+the lookback comes back empty. No query or CLI changes.
+
+## 2026-07-06 — Retired: Offbrand Analyzer
+
+`offbrand-analyzer/` removed — superseded by
+[`sqr-pipeline/`](sqr-pipeline/), which carries query intent classification
+(3-run consensus) plus the review gate and two-step upload end-to-end.
+[`sqr-classifier/`](sqr-classifier/) remains the zero-setup paste-and-classify
+option, and [`geo-conflict-analyzer/`](geo-conflict-analyzer/) still runs its
+geo check standalone (cross-references repointed). Skill count: 43 → 42.
+
 ## 2026-07-06 — Maintenance: Example CIDs standardized
 
 [`geo-conflict-analyzer/`](geo-conflict-analyzer/) and

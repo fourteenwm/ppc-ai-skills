@@ -72,7 +72,6 @@ done
 | Skill | What It Does |
 |-------|-------------|
 | [SQR Classifier](sqr-classifier/) | Paste search terms, get intent classification (high-intent, low-intent, informational, off-brand) |
-| [Offbrand Analyzer](offbrand-analyzer/) | GPT-powered query intent classification at scale with competitor keyword matching |
 | [Geo Conflict Analyzer](geo-conflict-analyzer/) | GPT-powered check on whether a query conflicts with your active geo targets before you negative it |
 | [SQR Pipeline](sqr-pipeline/) | End-to-end negative-keyword pipeline — pull search terms, classify with 3-run consensus, optional geo conflict check, human review, then two-step upload of approved negatives (supersedes the old SQR 3-Run + SQR Upload skills) |
 | [Neg Conflict Finder](neg-conflict-finder/) | Google Ads Script that finds every place a negative is silently blocking a positive — across the whole MCC, at every level (ad group, campaign, shared list, MCC shared list) |
@@ -155,7 +154,7 @@ I built these skills because AI is fast but not careful. It hallucinates phone n
 
 The philosophy is simple: **engineered AI with guardrails beats raw prompting every time.**
 
-These 43 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
+These 42 public skills are a subset of what I run in production. I use a larger production system of 85+ specialized skills to manage accounts daily. If you're curious about how the full system works or want to build something similar for your agency, I write about it here:
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)
