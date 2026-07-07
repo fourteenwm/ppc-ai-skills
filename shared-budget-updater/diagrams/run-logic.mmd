@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph P1 ["THE RUN STARTS"]
+        direction TB
+        A(["Daily 8:15 AM cron<br/>(or manual run)"]) --> B["Read the budget tab"]
+        B --> C{"Any pending rows?"}
+        C -- "no" --> Z(["Exit — nothing to do"])
+    end
+
+    subgraph P2 ["FOR EACH PENDING ROW"]
+        direction TB
+        E["Parse amount<br/>(exact decimal math)"] --> F{"Over $0?"}
+        F -- "no — guard" --> G["Record failure.<br/>No API call made."]
+        F -- "yes" --> H["Google Ads API:<br/>update the amount —<br/>only that field<br/>(3 retries)"]
+        H --> I{"Confirmed?"}
+        I -- "yes" --> J["Add to done list"]
+        I -- "no" --> K["Capture exact API error"]
+    end
+
+    subgraph P3 ["AFTER THE LOOP"]
+        direction TB
+        M["Mark successes done (one batch write)"] --> N{"Any failures?"}
+        N -- "no" --> P(["Exit green"])
+        N -- "yes" --> O["One consolidated<br/>Slack alert — failures<br/>+ success count"]
+        O --> Q["Failed rows keep an<br/>empty done-cell —<br/>tomorrow's retry queue"]
+        Q --> R(["Exit green —<br/>a partial failure<br/>never fails the run"])
+    end
+
+    P1 -- "yes — process them" --> P2
+    P2 --> P3

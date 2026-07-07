@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    actor Mgr as PPC Manager
+    participant Sheet as Budget Sheet
+    participant Bot as Budget Updater<br/>(runs daily, 8:15 AM)
+    participant Ads as Google Ads API
+    participant Slack as Slack
+
+    Mgr->>Sheet: Enter changes — account, shared budget, new amount
+    Note over Mgr,Sheet: A human decides every dollar amount.<br/>The automation never invents one.
+
+    Bot->>Sheet: Read rows not yet marked done
+    loop Each pending row
+        Bot->>Bot: Validate — amount must be over $0
+        Bot->>Ads: Update the budget amount — that one field, nothing else
+        Ads-->>Bot: Confirmed (or error)
+    end
+    Bot->>Sheet: Mark successes done ✓ (one batch write)
+
+    opt Any row failed
+        Bot->>Slack: One consolidated alert — what failed and why,<br/>plus what succeeded
+        Note over Sheet,Slack: Failed rows stay unmarked —<br/>the sheet itself is the retry queue.<br/>Tomorrow's run picks them up automatically.
+        Mgr->>Sheet: Fix the data — no code, no redeploy
+    end

@@ -12,6 +12,8 @@ cron pushes it to Google Ads and marks the row done.
 
 ## How it works
 
+![Sequence diagram: a PPC manager enters budget changes in a sheet; the daily updater reads pending rows, validates each amount, updates only the budget amount via the Google Ads API, marks successes done, and sends one consolidated Slack alert for any failures — failed rows retry automatically on the next run](diagrams/workflow-hero.svg)
+
 A GitHub Actions cron fires once a day. The job:
 
 1. Reads the uploader tab for rows where columns A/B/C are filled and column D
@@ -25,6 +27,14 @@ A GitHub Actions cron fires once a day. The job:
 
 The job exits 0 even when some rows fail — the Slack alert is the failure
 signal, and the workflow-crash alert stays reserved for real crashes.
+
+Every decision gate in one view:
+
+![Flowchart of the run logic in three phases: the run starts (cron fires, read the budget tab, exit if nothing is pending), for each pending row (parse the amount, the over-zero guard, the single-field API update with retries, capture any error), and after the loop (batch-write done marks, one consolidated Slack alert, failed rows become tomorrow's retry queue)](diagrams/run-logic.svg)
+
+The `.mmd` sources for both diagrams live in `diagrams/` — they're
+[Mermaid](https://mermaid.js.org/) diagram-as-code, rendered with the included
+`theme.json`.
 
 ## Prerequisites
 
