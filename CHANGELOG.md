@@ -2,6 +2,45 @@
 
 All notable changes to this repository.
 
+## 2026-07-09 — Release: repo polish, Start Here diagrams, underspend script inlined
+
+Three-part release readying the repo for a wider audience.
+
+**Underspending Investigation now ships its script.**
+[`underspending-investigation/`](underspending-investigation/) gains
+`scripts/investigate_underspend.py` — the universal investigation script the
+skill's protocol runs (7-day spend analysis, impression share root-cause
+readout, month-to-date pacing). Self-contained and read-only: Google Ads API
+only, invoked by `--cid` or account name (resolved via an `accounts.md`
+registry or an MCC walk), `--config google-ads.yaml`, and `--monthly-budget`
+to pace against the contracted budget instead of the daily-budget estimate.
+Impression share metrics are converted to percentages so the threshold
+readouts fire correctly, and Pmax campaigns are flagged instead of being run
+through the Search decision tree. SKILL.md and README updated for the shipped
+script; the Script Contract section now documents adaptation hooks (pacing
+dashboards, optimization logs, custom registries). BYO-script skills: 3 → 2
+(ads-checker and rsa-single-account ship next release).
+
+**Workflow diagrams for all five Start Here skills.**
+Each Start Here skill — [`mutation-safety/`](mutation-safety/),
+[`ad-copy-verification-standard/`](ad-copy-verification-standard/),
+[`investigation-methodology/`](investigation-methodology/),
+[`non-serving-keyword-scanner/`](non-serving-keyword-scanner/), and
+[`portfolio-health-prioritization/`](portfolio-health-prioritization/) — gains
+a `diagrams/` folder: workflow-hero and run-logic diagrams as Mermaid source
+with rendered SVGs, embedded in each skill README with descriptive alt text.
+The mutation-safety hero is also embedded in the root README under the Start
+Here table.
+
+**Repo polish.**
+SKILL.md frontmatter normalized across the catalog;
+[`client-communication-standards/`](client-communication-standards/) now ships
+its client summary template (the repo's one broken reference, fixed); the root
+README gains a git-clone install path (curl fetches SKILL.md only —
+tool-backed skills also ship `scripts/`), interim notes on the two skills
+whose scripts ship next release, and a "How This Repo Fits a Larger System"
+section. GitHub repo metadata filled in (homepage + topics).
+
 ## 2026-07-09 — New: Account Diagnostic
 
 [`account-diagnostic/`](account-diagnostic/) — 40-point account inspection
