@@ -1,7 +1,7 @@
 ---
 name: markdown-to-sheets-presenter
 description: Transforms markdown reports into professionally formatted Google Sheets for client presentation. Auto-invoke when user wants to make a report presentable, share analysis with clients, convert markdown to Sheets, or export competitive analysis. Triggers include "make this presentable", "create a Google Sheet", "export to sheets", "format for client".
-allowed-tools: "Read,Write,Bash,Glob,Grep,WebFetch"
+allowed-tools: [Read, Write, Bash, Glob, Grep, WebFetch]
 version: "1.0.0"
 ---
 

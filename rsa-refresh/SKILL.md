@@ -1,6 +1,6 @@
 ---
 name: rsa-refresh
-description: Refresh RSA ad copy by scraping the business website, identifying LOW-performing assets, and generating replacement headlines and descriptions using AI. Uses Firecrawl for scraping and Claude for copy generation.
+description: Refresh RSA ad copy by scraping the business website, identifying LOW-performing assets, and generating replacement headlines and descriptions using AI. Auto-invoke when user says 'refresh RSAs for [account]', 'update RSA assets', 'rewrite RSAs', or 'replace low-performing RSA assets'. Uses Firecrawl for scraping and Claude for copy generation.
 ---
 
 # RSA Refresh Skill

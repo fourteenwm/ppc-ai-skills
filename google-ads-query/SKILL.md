@@ -2,7 +2,7 @@
 name: google-ads-query
 description: |
   Query Google Ads data and save to CSV. AUTO-ACTIVATE for: search terms, campaigns, keywords, ad groups, conversions, budgets, assets, geo performance. Also triggered by account names or "get/pull/show me" + Google Ads resource.
-allowed-tools: Read, Bash, Glob
+allowed-tools: [Read, Bash, Glob]
 ---
 
 # Google Ads Query Skill

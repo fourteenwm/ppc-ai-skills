@@ -1,5 +1,5 @@
 ---
-name: "Non-Serving Keyword Scanner"
+name: non-serving-keyword-scanner
 description: "Scans your agency accounts for keywords with 0 impressions in last 180 days. Auto-invoke when user says 'scan non-serving keywords', 'find dead keywords', 'keyword cleanup report', or 'non-serving keyword scan'. Outputs to Google Sheet for human review."
 allowed-tools: [Bash, Read]
 ---

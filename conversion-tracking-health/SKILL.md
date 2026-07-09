@@ -1,5 +1,5 @@
 ---
-name: "Conversion Tracking Health"
+name: conversion-tracking-health
 description: "Audits conversion tracking health across Google Ads portfolios. Auto-invoke when user says 'conversion tracking audit', 'check conversion health', or 'audit conversions for [portfolio]'. Only analyzes accounts with spend in last 7 days. Identifies conversion actions that haven't fired or are stale."
 allowed-tools: [Bash, Read]
 ---

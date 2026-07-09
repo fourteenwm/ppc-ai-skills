@@ -1,5 +1,5 @@
 ---
-name: "MCC Hack Audit"
+name: mcc-hack-audit
 description: "Portfolio-wide scan of every manager (MCC) that has access to accounts in your Google Ads tree. Built after an MCC link-fraud incident where hostile external MCCs were found linked to client accounts via compromised admin credentials. Classifies each manager link as INTERNAL (in your tree), HOSTILE (known threat), or EXTERNAL (potential exposure — no judgment). Outputs CSV by default with optional Google Sheets upload. Auto-invoke when user says 'mcc hack audit', 'audit mcc links', 'scan for external managers', 'check manager links', 'run mcc link scan', 'find external mccs', or asks who has access to their Google Ads accounts."
 allowed-tools: [Bash, Read]
 ---
