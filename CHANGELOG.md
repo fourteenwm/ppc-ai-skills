@@ -2,6 +2,17 @@
 
 All notable changes to this repository.
 
+## 2026-07-09 — Fixed: DGen Automation Disable (API v23)
+
+[`dgen-automation-disable/`](dgen-automation-disable/)'s
+`fix_dgen_ad_automation.py` — Google Ads API v23 renamed
+`campaign.end_date` to `campaign.end_date_time`; both GAQL queries (the
+needs-fix scan and the `--verify` re-query) were erroring server-side with
+`Unrecognized field`. Field updated in both; behavior unchanged (ended
+campaigns are still excluded). If you're pinned to an older API version via
+your own `google-ads.yaml`, the previous field name still works there — this
+tracks the current library default.
+
 ## 2026-07-09 — Release: repo polish, Start Here diagrams, underspend script inlined
 
 Three-part release readying the repo for a wider audience.

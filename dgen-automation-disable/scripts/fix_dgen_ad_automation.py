@@ -265,7 +265,7 @@ def get_dgen_ads_needing_fix(client, customer_id):
         WHERE campaign.advertising_channel_type = 'DEMAND_GEN'
             AND campaign.status = 'ENABLED'
             AND ad_group_ad.status = 'ENABLED'
-            AND campaign.end_date >= '{today}'
+            AND campaign.end_date_time >= '{today}'
         ORDER BY campaign.name, ad_group.name
     """
 
@@ -390,7 +390,7 @@ def run_verification_query(client, customer_id, account_name):
         WHERE campaign.advertising_channel_type = 'DEMAND_GEN'
             AND campaign.status = 'ENABLED'
             AND ad_group_ad.status = 'ENABLED'
-            AND campaign.end_date >= '{today}'
+            AND campaign.end_date_time >= '{today}'
     """
 
     try:
