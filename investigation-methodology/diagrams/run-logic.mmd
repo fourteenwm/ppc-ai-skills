@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph P1 ["FRAME THE PROBLEM"]
+        direction TB
+        A(["Performance question<br/>arrives"]) --> B{"Problem statement<br/>precise?"}
+        B -- "no" --> C["Ask — which metric,<br/>before vs after,<br/>period, scope"]
+        C --> B
+        B -- "yes" --> D["List 5-8 hypotheses<br/>BEFORE pulling data —<br/>internal, external,<br/>measurement"]
+    end
+
+    subgraph P2 ["THE EVIDENCE LOOP"]
+        direction TB
+        E["Pull the next layer —<br/>performance, traffic,<br/>segments, changes,<br/>tracking"] --> F["Update hypotheses —<br/>supported, weakened,<br/>eliminated"]
+        F --> G{"One clear<br/>root cause?"}
+        G -- "not yet — layers remain" --> E
+        G -- "no layers left" --> H(["Inconclusive — say so.<br/>List the eliminated,<br/>flag what needs<br/>manual digging"])
+    end
+
+    subgraph P3 ["VERDICT"]
+        direction TB
+        I["One root cause,<br/>stated in a sentence"] --> J["Evidence — the 3-5<br/>data points that<br/>prove it"]
+        J --> K["Hypothesis scorecard —<br/>confirmed, eliminated,<br/>uncertain"]
+        K --> L(["A recommendation with<br/>numbers, not vibes"])
+    end
+
+    P1 --> P2
+    P2 -- "confirmed" --> P3

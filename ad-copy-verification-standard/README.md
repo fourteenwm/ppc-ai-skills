@@ -4,6 +4,8 @@ A strict protocol that forces AI to source every ad claim from the actual busine
 
 **The pain point:** AI will happily write "Family-Owned Since 1952" for a shop that opened in 2019. It'll add "Free Estimates" that don't exist, cite "5-Star Reviews" that aren't there, and invent ASE certifications the business never had. By the time you notice, the ads are live and the client is angry. This skill makes that impossible.
 
+![Sequence diagram: a PPC manager requests ad copy; the AI agent scrapes the business website before writing a word, extracts claims that each cite their source page and exact wording, and returns proposed copy with every line cited plus an excluded list for anything unverifiable; if the website is unreachable, the agent states the limitation and asks the human for facts — fields stay empty rather than guessed](diagrams/workflow-hero.svg)
+
 ---
 
 ## The Core Principle
@@ -31,6 +33,14 @@ This is the thesis: **engineered AI with guardrails beats raw prompting every ti
 - No fallback values when data is missing — use empty strings
 - RSA generation scripts must reference this standard in their header
 - `if not social_proof: headlines.append("")` — never `headlines.append("5-Star Reviews")`
+
+The whole gate in one view:
+
+![Flowchart of the verification gate in three phases: gather (scrape the business website; if content can't be retrieved, state the limitation and never substitute assumptions), the gate applied to every candidate line (claims not found on the website are excluded — no source, no ship; inferred claims are flagged for human review; verified claims containing "Free" are excluded anyway because they attract the wrong customer; explicit claims ship with a page-and-exact-wording citation), and compose and present (assemble from included claims only, leave missing data empty rather than inserting placeholders, and present the copy with citations plus the excluded list)](diagrams/run-logic.svg)
+
+The `.mmd` sources for both diagrams live in `diagrams/` — they're
+[Mermaid](https://mermaid.js.org/) diagram-as-code, rendered with the included
+`theme.json`.
 
 ---
 

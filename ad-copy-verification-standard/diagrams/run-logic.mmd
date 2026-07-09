@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph P1 ["GATHER"]
+        direction TB
+        A(["Ad copy requested"]) --> B["Scrape the business<br/>website"]
+        B --> C{"Content<br/>retrieved?"}
+        C -- "no" --> D["State the limitation<br/>and ask the human.<br/>Never substitute<br/>assumptions."]
+    end
+
+    subgraph P2 ["THE GATE — EVERY LINE"]
+        direction TB
+        E{"Claim found on<br/>the website?"} -- "no" --> F["EXCLUDED —<br/>no source, no ship"]
+        E -- "yes" --> G{"Explicit, or<br/>inferred?"}
+        G -- "inferred" --> H["For human review —<br/>flagged as inferred"]
+        G -- "explicit" --> I{"Contains 'Free'?"}
+        I -- "yes" --> J["EXCLUDED —<br/>attracts the wrong<br/>customer, even<br/>when true"]
+        I -- "no" --> K["INCLUDED — with page +<br/>exact wording citation"]
+    end
+
+    subgraph P3 ["COMPOSE & PRESENT"]
+        direction TB
+        L["Assemble copy from<br/>included claims only"] --> M["Missing data stays<br/>EMPTY — never a<br/>generic placeholder"]
+        M --> N(["Present with citations<br/>and the excluded list.<br/>Empty beats Inaccurate"])
+    end
+
+    P1 -- "claims extracted" --> P2
+    P2 --> P3

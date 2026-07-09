@@ -4,6 +4,8 @@ A hypothesis-driven framework for diagnosing Google Ads performance issues. Teac
 
 **The pain point:** When CPA spikes or spend drops, most PPC managers start pulling random reports hoping something jumps out. This leads to hours of unfocused analysis and "gut feel" conclusions. This skill enforces a structured investigation that starts with hypotheses and proves or eliminates them one layer at a time.
 
+![Sequence diagram: a PPC manager reports vague underperformance; the AI analyst sharpens it into a precise problem statement — which metric, before vs now, over what period — lists 5-8 hypotheses before touching any data, then pulls evidence one layer at a time, updating every hypothesis after each layer, and closes with a verdict: one root cause, the evidence that proves it, and one specific fix; inconclusive is a valid answer, guessing is not](diagrams/workflow-hero.svg)
+
 ---
 
 ## What It Does
@@ -15,6 +17,14 @@ When you say "investigate why [account] is underperforming," the skill forces a 
 3. **Gather evidence one layer at a time** — performance metrics first, then traffic quality, then segmentation, then change history
 4. **Update probabilities as evidence comes in** — each data point either supports or eliminates a hypothesis
 5. **Conclude with a root cause** — not a list of observations, but a specific diagnosis with a recommended fix
+
+The loop in one view:
+
+![Flowchart of the hypothesis loop in three phases: frame the problem (sharpen vague statements into a precise metric-before-after-period question, then list 5-8 hypotheses across internal, external, and measurement categories before pulling any data), the evidence loop (pull one layer at a time, update each hypothesis as supported, weakened, or eliminated, and repeat until one clear root cause emerges — or layers run out, in which case say so and flag what needs manual digging), and verdict (one root cause stated in a sentence, the 3-5 data points that prove it, a hypothesis scorecard, and a recommendation with numbers, not vibes)](diagrams/run-logic.svg)
+
+The `.mmd` sources for both diagrams live in `diagrams/` — they're
+[Mermaid](https://mermaid.js.org/) diagram-as-code, rendered with the included
+`theme.json`.
 
 ---
 

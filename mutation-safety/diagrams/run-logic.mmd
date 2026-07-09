@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph P1 ["A CHANGE IS REQUESTED"]
+        direction TB
+        A(["AI is asked to modify<br/>a live account"]) --> B{"Is it a mutation?<br/>(write, update, delete)"}
+        B -- "no — read-only" --> C(["Run freely — reads<br/>need no approval"])
+        B -- "yes" --> D{"Scope verified?<br/>Known account,<br/>exact-match IDs"}
+        D -- "no" --> E["STOP — ask the human<br/>to confirm scope"]
+    end
+
+    subgraph P2 ["THE TWO-STEP GATE"]
+        direction TB
+        F["Dry-run preview —<br/>current vs proposed,<br/>entity count,<br/>reversibility"] --> G["Present to the human.<br/>Nothing has executed."]
+        G --> H{"Explicit<br/>approval?"}
+        H -- "no" --> I(["Abort — account<br/>untouched"])
+        H -- "yes" --> J["Approval arrives —<br/>typed by the human,<br/>never generated<br/>by the AI"]
+    end
+
+    subgraph P3 ["EXECUTE & LOG"]
+        direction TB
+        K["Execute exactly<br/>what was previewed —<br/>no scope drift"] --> L["Log the mutation —<br/>what, when,<br/>who approved"]
+        L --> M(["Done — with<br/>an audit trail"])
+    end
+
+    P1 -- "yes — scope confirmed" --> P2
+    P2 --> P3

@@ -1,0 +1,19 @@
+sequenceDiagram
+    autonumber
+    actor Mgr as PPC Manager
+    participant AI as AI Agent
+    participant Site as Business Website
+
+    Mgr->>AI: Write ad copy for this business
+    AI->>Site: Scrape the site FIRST —<br/>before writing a word
+    Site-->>AI: Actual pages — services,<br/>credentials, hours, history
+
+    AI->>AI: Extract claims — each cites<br/>its page and exact wording
+    Note over AI,Site: A claim without a source does not ship.<br/>Empty beats inaccurate.
+
+    AI-->>Mgr: Proposed copy — every line cited,<br/>unverifiable ideas listed as EXCLUDED
+    Mgr->>AI: Review with sources visible —<br/>approve or trim
+
+    opt Website unreachable
+        AI-->>Mgr: State the limitation — no guessing.<br/>The human provides facts,<br/>or fields stay empty.
+    end

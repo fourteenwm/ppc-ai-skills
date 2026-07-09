@@ -1,0 +1,28 @@
+flowchart LR
+    subgraph P1 ["HARD THRESHOLDS"]
+        direction TB
+        A(["A flagged account<br/>enters triage"]) --> B{"Variance beyond<br/>±15%?"}
+        B -- "yes" --> T1["TIER 1 — critical.<br/>Same day,<br/>no exceptions."]
+        B -- "no" --> C{"Outside the book's<br/>tolerance? Strict<br/>±5%, standard ±8%"}
+        C -- "yes" --> T2["TIER 2 — high priority<br/>within 24 hours"]
+    end
+
+    subgraph P2 ["SOFT SIGNALS"]
+        direction TB
+        D{"Zero spend this month,<br/>or sharply worse<br/>in 7 days?"} -- "yes" --> T2b["TIER 2 —<br/>high priority"]
+        D -- "no" --> E{"Tracking issue,<br/>disapprovals, or<br/>campaign ending soon?"}
+        E -- "yes" --> T3["TIER 3 — this week"]
+        E -- "no" --> F{"Creeping toward<br/>the threshold?"}
+        F -- "yes" --> T4["TIER 4 — monitor<br/>a few days"]
+        F -- "no" --> T5(["TIER 5 — on pace.<br/>Most of the portfolio<br/>lives here."])
+    end
+
+    subgraph P3 ["BUILD THE DAY"]
+        direction TB
+        G["Every Tier 1 account<br/>gets investigated"] --> H["Fill to five with<br/>Tier 2 — underspend<br/>before overspend,<br/>strict-SLA book first,<br/>biggest variance first"]
+        H --> I["The rest, listed by<br/>tier in the briefing —<br/>seen, not chased"]
+        I --> J(["3-5 deep dives.<br/>Repeatable,<br/>not a gut call."])
+    end
+
+    P1 -- "within hard limits" --> P2
+    P2 -- "all accounts tiered" --> P3

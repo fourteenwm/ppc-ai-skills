@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    actor Mgr as PPC Manager
+    participant Check as Portfolio<br/>Health Check
+    participant AI as Triage AI
+
+    Check->>Mgr: Morning flags — 25 accounts look off<br/>(pacing, zero spend, tracking)
+    Note over Mgr: A day has room for<br/>maybe 5 deep dives.<br/>Which 5?
+
+    Mgr->>AI: Prioritize these
+    AI->>AI: Tier every account —<br/>1 critical through<br/>5 no-action
+    AI->>AI: Break ties — underspend first,<br/>strict-SLA book first,<br/>sudden shifts before<br/>seasonal patterns
+
+    AI-->>Mgr: Today's list — 3-5 investigations,<br/>everything else tiered in the briefing
+    Note over Mgr,AI: Same inputs, same order, every day —<br/>repeatable triage, not a gut call.

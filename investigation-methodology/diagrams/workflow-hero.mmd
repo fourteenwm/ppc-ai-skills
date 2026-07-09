@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    actor Mgr as PPC Manager
+    participant AI as AI Analyst
+    participant Data as Account Data
+
+    Mgr->>AI: This account is performing poorly
+    AI-->>Mgr: Sharpen it — which metric,<br/>before vs now, over what period?
+    Mgr->>AI: CPA rose from $38 to $59 in January
+
+    AI->>AI: List 5-8 hypotheses BEFORE touching data
+    Note over AI,Data: Internal changes, external factors,<br/>measurement issues — all three<br/>categories, every time.
+
+    loop One evidence layer at a time
+        AI->>Data: Pull one layer —<br/>performance, traffic,<br/>segments, change history
+        Data-->>AI: Findings
+        AI->>AI: Update each hypothesis —<br/>supported, weakened, eliminated
+    end
+
+    AI-->>Mgr: Verdict — one root cause,<br/>the evidence that proves it, one specific fix
+    Note over Mgr,AI: Every hypothesis ends confirmed or<br/>eliminated — never quietly forgotten.<br/>Inconclusive is a valid answer. Guessing is not.

@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    actor Mgr as PPC Manager
+    participant Scan as Keyword Scanner<br/>(one command)
+    participant Ads as Google Ads API
+    participant Sheet as Review Sheet
+
+    Mgr->>Scan: Run it — whole portfolio or one account
+    Scan->>Scan: Build the account list — a file,<br/>CID flags, or walk the MCC
+
+    loop Each account
+        Scan->>Ads: Enabled Search keywords with<br/>ZERO impressions in 180 days
+        Ads-->>Scan: Matches — known-exception ad groups dropped
+        Note over Scan,Ads: One account erroring never kills<br/>the run — noted, skipped,<br/>scan continues.
+    end
+
+    Scan->>Sheet: One review tab — account, campaign,<br/>ad group, keyword, match type
+    Scan-->>Mgr: Summary — accounts scanned,<br/>dead keywords found
+
+    Mgr->>Sheet: Review each row — pause, keep, or investigate
+    Note over Mgr,Sheet: The scanner never pauses anything.<br/>A human decides, in the Google Ads UI.

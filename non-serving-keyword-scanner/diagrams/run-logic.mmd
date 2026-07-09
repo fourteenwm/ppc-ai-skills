@@ -1,0 +1,27 @@
+flowchart LR
+    subgraph P1 ["SETUP"]
+        direction TB
+        A(["One command —<br/>flags pick the scope"]) --> B["Load API + Sheets<br/>credentials — one file"]
+        B --> C["Build the account list<br/>from one CID, a list,<br/>the accounts file, or<br/>the whole MCC"]
+        C --> D{"Any accounts<br/>to scan?"}
+        D -- "no" --> E(["Exit — nothing to do"])
+    end
+
+    subgraph P2 ["SCAN EACH ACCOUNT"]
+        direction TB
+        F["Query — enabled Search<br/>keywords with ZERO<br/>impressions in the<br/>window (180d default)"] --> G["Drop known-exception<br/>ad groups"]
+        G --> H{"Query errored?"}
+        H -- "yes" --> I["Record the failure —<br/>keep scanning the<br/>other accounts"]
+        H -- "no" --> J["Add findings to<br/>the report"]
+    end
+
+    subgraph P3 ["REPORT"]
+        direction TB
+        K{"Any dead<br/>keywords found?"} -- "no" --> L(["Exit — sheet untouched"])
+        K -- "yes" --> M["Write ONE review tab —<br/>fresh each run,<br/>timestamped"]
+        M --> N["Print summary —<br/>accounts scanned,<br/>keywords found,<br/>any failures"]
+        N --> O(["A human reviews —<br/>nothing auto-pauses"])
+    end
+
+    P1 -- "yes" --> P2
+    P2 -- "all accounts done" --> P3
