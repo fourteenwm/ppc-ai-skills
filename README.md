@@ -39,6 +39,17 @@ for skill in mutation-safety ad-copy-verification-standard investigation-methodo
 done
 ```
 
+The curl loop fetches each skill's `SKILL.md` only. Tool-backed skills — like the Non-Serving Keyword Scanner (#4) — also ship a `scripts/` folder, so clone instead if you want everything:
+
+```bash
+# Or clone once and copy skills in, scripts/ folders included
+git clone https://github.com/fourteenwm/ppc-ai-skills.git
+mkdir -p .claude/skills
+for skill in mutation-safety ad-copy-verification-standard investigation-methodology non-serving-keyword-scanner portfolio-health-prioritization; do
+  cp -r ppc-ai-skills/$skill .claude/skills/$skill
+done
+```
+
 ---
 
 ## All Skills
@@ -66,7 +77,7 @@ done
 | [GA4 Cross-Analysis](ga4-cross-analysis/) | GA4 data collection framework for diagnosing lead quality and conversion path issues |
 | [GA4 Lead Quality Investigation](ga4-lead-quality-investigation/) | Cross-analyze GA4 behavioral data with Google Ads settings to diagnose low-quality leads (no-shows, bot traffic, geo mismatches) — 5 red-flag frameworks, hypothesis-driven verification, 3-tier prioritized fixes |
 | [Account Audit](account-audit/) | Comprehensive single-account health audit — generates structured HTML reports |
-| [Ads Checker](ads-checker/) | Creative-compliance audit — 10 checks (DKI, ad disapprovals, broken URLs, auto-applied recommendations, Fair-Housing-risk content, spelling, irrelevance, more) with run-over-run issue-history comparison and chronic-issue detection (3+ occurrences / 90 days). Read-only; severity-ranked Google Sheet output |
+| [Ads Checker](ads-checker/) | Creative-compliance audit — 10 checks (DKI, ad disapprovals, broken URLs, auto-applied recommendations, Fair-Housing-risk content, spelling, irrelevance, more) with run-over-run issue-history comparison and chronic-issue detection (3+ occurrences / 90 days). Read-only; severity-ranked Google Sheet output *(script ships next release — the skill includes the full spec today)* |
 
 ### Search Query & Negative Keyword Management
 | Skill | What It Does |
@@ -83,7 +94,7 @@ done
 | [Ad Copy Generation Framework](ad-copy-generation-framework/) | 23-element RSA copywriting framework with distribution formulas and verification checkpoints |
 | [RSA Refresh](rsa-refresh/) | Replace LOW-performing RSA assets with website-verified headlines and descriptions |
 | [RSA Bulk Edit](rsa-bulk-edit/) | Find-and-replace text across RSA ads with preview, approval, and rollback safety |
-| [RSA Single-Account Generator](rsa-single-account/) | Generate a full RSA set (15 headlines + 4 descriptions per ad group) for one account from website-verified copy + live SERP competitive analysis + GBP review fallback |
+| [RSA Single-Account Generator](rsa-single-account/) | Generate a full RSA set (15 headlines + 4 descriptions per ad group) for one account from website-verified copy + live SERP competitive analysis + GBP review fallback *(script ships next release — the skill includes the full spec today)* |
 
 ### Portfolio Management
 | Skill | What It Does |
@@ -141,6 +152,14 @@ curl -sO --output-dir .claude/skills/mutation-safety \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/mutation-safety/SKILL.md
 ```
 
+Or clone the repo and copy any skill folder in — required for tool-backed skills, whose `scripts/` folder the curl one-liner doesn't fetch:
+
+```bash
+git clone https://github.com/fourteenwm/ppc-ai-skills.git
+mkdir -p .claude/skills
+cp -r ppc-ai-skills/mutation-safety .claude/skills/
+```
+
 ### 3. Use it
 Start Claude Code in your project directory. The skill loads automatically when relevant.
 
@@ -158,6 +177,12 @@ These 42 public skills are a subset of what I run in production. I use a larger 
 
 **Website:** [fourteenwebmedia.com](https://fourteenwebmedia.com)
 **X:** [@KurtHenninger](https://x.com/KurtHenninger)
+
+---
+
+## How This Repo Fits a Larger System
+
+These skills are the portable layer of a larger private system. The private layer holds everything that can't be shared — client context, account routing, and credentials — while the skills carry the method: frameworks, safety protocols, and query patterns. That separation is deliberate: skills are shareable precisely because they contain method, not data. Point them at your own credentials and account list and they work the same way they do in production.
 
 ---
 
