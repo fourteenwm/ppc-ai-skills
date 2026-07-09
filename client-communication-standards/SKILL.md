@@ -264,7 +264,7 @@ increase). The campaign is performing as expected given market conditions.
 ## Templates & Examples
 
 ### Template Location:
-`.claude/templates/client_summary_template.md` (provide your own template)
+`templates/client_summary_template.md` (ships with this skill — copy it as the starting point for each report)
 
 ### Example Reports:
 Save your example client reports in your project's documents/output folder for reference.
@@ -343,7 +343,7 @@ Before sending any client communication, verify:
 ## Related Documentation
 
 - Your own CLAUDE.md — for any project-specific reporting conventions
-- `.claude/templates/client_summary_template.md` — blank template (provide your own)
+- `templates/client_summary_template.md` — blank template (ships with this skill)
 - Your own examples folder — store delivered client reports for reference
 
 ---
