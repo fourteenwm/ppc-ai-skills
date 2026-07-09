@@ -8,7 +8,7 @@ allowed-tools: [Read, Bash, Grep, Glob, Skill]
 
 **Purpose:** Investigate why a Google Ads account is underspending and determine the root cause with actionable, data-backed recommendations.
 
-**Type:** Read-only investigation skill. Reads campaign/IS data and pacing sheets; never writes to Google Ads.
+**Type:** Read-only investigation skill. Reads campaign, impression share, and pacing data; never writes to Google Ads.
 
 ---
 
@@ -38,23 +38,39 @@ Do this BEFORE analyzing script output. These six companion skills are each ship
 
 ---
 
+## Prerequisites
+
+1. **Google Ads API credentials** — `google-ads.yaml` at project root (see [`google-ads-api-setup`](../google-ads-api-setup/))
+2. **Python packages** — `pip install google-ads pyyaml`
+3. **Optional: `accounts.md`** at project root — a name→CID registry so investigations can be invoked by account name (format documented in the script header). Without it, the script falls back to walking your MCC via the `login_customer_id` in `google-ads.yaml`.
+
+---
+
 ## Investigation Protocol
 
 ### STEP 0: Run the Universal Investigation Script
 
+The script ships with this skill at [`scripts/investigate_underspend.py`](scripts/investigate_underspend.py):
+
 ```bash
-python investigate_underspend.py "{ACCOUNT_NAME}"
+# By account name (resolved via accounts.md, or by walking the MCC)
+python scripts/investigate_underspend.py "{ACCOUNT_NAME}"
+
+# By customer ID
+python scripts/investigate_underspend.py --cid 1234567890
+
+# Pace against the contracted monthly budget instead of the daily-budget estimate
+python scripts/investigate_underspend.py "{ACCOUNT_NAME}" --monthly-budget 5000
 ```
 
-The script (which you adapt to your own data sources — see "Script Contract" below) should:
+The script:
 
-1. Resolve the customer ID for the account
-2. Run a 7-day campaign spend analysis (budget utilization, performance)
-3. Pull impression share metrics (Search IS, Budget Lost IS, Rank Lost IS) for Search campaigns
-4. Pull MTD pacing data from your pacing dashboard
-5. Optionally pull recent optimization log entries
+1. Resolves the customer ID for the account (`accounts.md` registry, MCC walk, or `--cid`)
+2. Runs a 7-day campaign spend analysis (budget utilization, performance)
+3. Pulls impression share metrics (Search IS, Budget Lost IS, Rank Lost IS) with a threshold-based root-cause readout per campaign (Pmax is flagged separately — its Search IS metrics are not meaningful)
+4. Computes month-to-date pacing (MTD spend vs. expected spend at today's day-of-month, variance %) from campaign daily budgets — or from the true contracted budget when `--monthly-budget` is supplied
 
-The script handles data collection. The skill's job is to read/interpret the script output, apply the diagnostic frameworks from the auto-loaded companion skills, and synthesize findings into actionable recommendations.
+The script handles data collection. The skill's job is to read/interpret the script output, apply the diagnostic frameworks from the auto-loaded companion skills, and synthesize findings into actionable recommendations. To wire the script into your own pacing dashboard or optimization logs, see "Script Contract" below.
 
 ---
 
@@ -90,16 +106,16 @@ The script handles data collection. The skill's job is to read/interpret the scr
 - **Campaign status:** ENABLED, PAUSED (with MTD spend), vs. ENDED (excluded)
 - **Bidding strategy:** Smart bidding type (Max Conversions, Max Conversion Value, etc.)
 
-**Standard filters applied by the script:**
+**What the script output gives you:**
 
-- Filter campaigns by line designation (Pmax / Demand Gen / Search by account name suffix)
-- Exclude campaigns with $0 MTD spend
-- Exclude ENDED / REMOVED campaigns
-- Compute 7-day and MTD spend averages
+- Per-campaign 7-day budget, spend, utilization %, status, and bidding strategy (campaigns with $0 spend in the window are excluded from display)
+- Shared vs. individual budget type per campaign
+- MTD spend and pacing variance (STEP 3 of the script output)
 
 **Skill analysis:**
 
-- Review filtered campaign list
+- Filter the campaign list by line designation per `campaign-line-filtering` (Pmax / Demand Gen / Search by account name suffix)
+- Set aside ENDED / REMOVED campaigns when diagnosing current pacing
 - Note unusual patterns (paused campaigns with spend, shared-budget imbalances)
 - Identify primary spending campaigns
 
@@ -246,9 +262,9 @@ The skill is NOT required to run all steps. Use judgment:
 
 ---
 
-## Script Contract
+## Script Contract (Adapting to Your Own Data Sources)
 
-The skill assumes a universal investigation script at `investigate_underspend.py`. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. This repo documents the skill's data contract; you implement the script against your own infrastructure.
+This skill ships with a working investigation script at `scripts/investigate_underspend.py` — Google Ads API only, no sheet or database dependencies. The contract below documents what any implementation must output, so you can extend the shipped script (or swap in your own) and the skill's diagnostic steps keep working.
 
 **Required script behavior:**
 
@@ -259,11 +275,11 @@ The skill assumes a universal investigation script at `investigate_underspend.py
 - Output a month-to-date pacing section (monthly budget, MTD spend, variance %, days elapsed)
 - Optionally output recent optimization log entries
 
-**Reference implementation hooks:**
+**Extension hooks (where the shipped script is designed to be adapted):**
 
-- Google Ads API access via `google-ads-python` (loads credentials from `google-ads.yaml`)
-- Pacing dashboard read via Google Sheets API (configure your sheet ID via env var, e.g. `PACING_SHEET_ID`)
-- Account registry for CID lookups (your `accounts.json` or equivalent)
+- **Pacing dashboard:** the shipped script computes MTD pacing from campaign daily budgets, with `--monthly-budget` as the manual override. If you maintain a pacing dashboard (Google Sheet or otherwise) that holds contracted monthly budgets, replace the STEP 3 budget lookup with a read against it — the highest-value adaptation, because contracted budgets and daily-budget math diverge whenever budgets change mid-month.
+- **Optimization log:** if you keep a budget-change log, print recent entries as an extra output section — Step 1 of the protocol consumes it directly. (`change-history-checker` in this repo is an API-based alternative for the same question.)
+- **Account registry:** swap `accounts.md` for your own registry (JSON, sheet, or database) inside the script's `resolve_account_name()`.
 
 ---
 
@@ -308,7 +324,7 @@ Step 1: Recent Optimizations
 
 Step 2: Campaign Spend Analysis
 {Filtered campaigns, budget structure, utilization %}
-{Note: Script already filtered by line designation per campaign-line-filtering}
+{Note: Apply line-designation filtering per campaign-line-filtering}
 
 Step 3: Impression Share Analysis
 {IS metrics per campaign, interpreted using impression-share-diagnostics decision tree}

@@ -22,11 +22,13 @@ Diagnose root causes of Google Ads account underspending and produce a specific,
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/underspending-investigation
+mkdir -p .claude/skills/underspending-investigation/scripts
 curl -o .claude/skills/underspending-investigation/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/SKILL.md
 curl -o .claude/skills/underspending-investigation/README.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/README.md
+curl -o .claude/skills/underspending-investigation/scripts/investigate_underspend.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/scripts/investigate_underspend.py
 ```
 
 Then install the six companion skills (also in this repo):
@@ -42,24 +44,30 @@ done
 
 ---
 
-## Script Dependency (You Provide)
+## The Investigation Script (Ships With This Skill)
 
-This skill calls a universal investigation script at `investigate_underspend.py` that you implement against your own data sources. The script is environment-specific — it lives where your Google Ads credentials, sheet IDs, and account registry live. The SKILL.md documents the data contract the script must satisfy.
+[`scripts/investigate_underspend.py`](scripts/investigate_underspend.py) — self-contained, read-only, Google Ads API only (no sheet or database dependencies):
 
-**Required script output sections:**
+```bash
+# By account name (resolved via accounts.md, or by walking your MCC)
+python scripts/investigate_underspend.py "Acme Plumbing - Search"
+
+# By customer ID
+python scripts/investigate_underspend.py --cid 1234567890
+
+# Pace against the contracted monthly budget instead of the daily-budget estimate
+python scripts/investigate_underspend.py --cid 1234567890 --monthly-budget 5000
+```
+
+**Output sections** (the data contract the skill's diagnostic steps consume):
 
 1. **Campaign Spend Analysis (last 7 days)** — per-campaign budget, utilization %, status, bidding strategy, spend / impressions / clicks / conversions / value
-2. **Impression Share Analysis** — Search IS, Budget Lost IS, Rank Lost IS for Search and Pmax (Pmax IS is not diagnostically meaningful — flag accordingly)
+2. **Impression Share Analysis** — Search IS, Budget Lost IS, Rank Lost IS with a threshold-based root-cause readout per campaign (Pmax is flagged separately — its Search IS metrics are not diagnostically meaningful)
 3. **Month-to-Date Pacing Analysis** — monthly budget, MTD spend, expected spend at current day-of-month, variance %
-4. **(Optional) Recent Optimizations Log** — budget changes in the last 14 days
 
-**Reference implementation hooks:**
+**Prerequisites:** `google-ads.yaml` at project root (see [google-ads-api-setup](../google-ads-api-setup/)) and `pip install google-ads pyyaml`. Optional: an `accounts.md` registry at project root for name→CID resolution (format documented in the script header).
 
-- Google Ads API via `google-ads-python` (loads credentials from `google-ads.yaml`)
-- Google Sheets read via Sheets API (configure your sheet ID via env var, e.g. `PACING_SHEET_ID`)
-- Account registry for customer ID lookups (your `accounts.json` or equivalent)
-
-A working reference script lives in the private brain this skill was extracted from; if you'd like a starter template to adapt, open an issue.
+The SKILL.md's "Script Contract" section documents how to adapt the script to your own infrastructure — pacing dashboard reads, optimization logs, custom account registries.
 
 ---
 
@@ -72,7 +80,7 @@ A working reference script lives in the private brain this skill was extracted f
 The skill will:
 
 1. Auto-load the six companion skills via the Skill tool
-2. Run `investigate_underspend.py "Example Property - Pmax"`
+2. Run `scripts/investigate_underspend.py "Example Property - Pmax"`
 3. Apply the diagnostic decision trees to the script output
 4. Produce a standardized investigation report with root cause, evidence, and a specific budget recommendation (or no-action call)
 
