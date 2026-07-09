@@ -80,7 +80,7 @@ done
 | [GA4 Campaign Cross-Reference](ga4-campaign-cross-reference/) | Cross-analyze GA4 behavioral data with Google Ads campaign settings to find gaps |
 | [GA4 Cross-Analysis](ga4-cross-analysis/) | GA4 data collection framework for diagnosing lead quality and conversion path issues |
 | [GA4 Lead Quality Investigation](ga4-lead-quality-investigation/) | Cross-analyze GA4 behavioral data with Google Ads settings to diagnose low-quality leads (no-shows, bot traffic, geo mismatches) — 5 red-flag frameworks, hypothesis-driven verification, 3-tier prioritized fixes |
-| [Account Audit](account-audit/) | Comprehensive single-account health audit — generates structured HTML reports |
+| [Account Diagnostic](account-diagnostic/) | 40-point account inspection — like a mechanic's multi-point inspection: discrete GREEN/YELLOW/RED checks across 14 categories (pacing, conversion tracking, search-term waste, PMAX + Demand Gen ad-level automation, placements, more), scored into one verdict with estimated monthly waste. Read-only; console + CSV + optional color-coded Sheet *(supersedes the old Account Audit)* |
 | [Ads Checker](ads-checker/) | Creative-compliance audit — 10 checks (DKI, ad disapprovals, broken URLs, auto-applied recommendations, Fair-Housing-risk content, spelling, irrelevance, more) with run-over-run issue-history comparison and chronic-issue detection (3+ occurrences / 90 days). Read-only; severity-ranked Google Sheet output *(script ships next release — the skill includes the full spec today)* |
 
 ### Search Query & Negative Keyword Management

@@ -2,6 +2,31 @@
 
 All notable changes to this repository.
 
+## 2026-07-09 — New: Account Diagnostic
+
+[`account-diagnostic/`](account-diagnostic/) — 40-point account inspection
+(up to 44 checks with preset extras). Discrete GREEN/YELLOW/RED checks across
+14 categories, scored into one overall verdict with estimated monthly waste.
+Includes two checks most audits miss entirely: PMAX **video enhancement**
+automation (fetched by many tools, read by few) and Demand Gen **ad-level**
+asset automation (`ad_group_ad.ad_group_ad_asset_automation_settings` —
+invisible to campaign-scoped scans; five settings, most defaulting ON).
+Two vertical presets (`property-management`, `local-service`). Read-only;
+console + CSV output, optional color-coded Google Sheet tab via `--sheet-id`.
+Pairs with [`dgen-automation-disable/`](dgen-automation-disable/) to fix what
+check 44 flags.
+
+## 2026-07-09 — Retired: Account Audit
+
+`account-audit/` removed — superseded by
+[`account-diagnostic/`](account-diagnostic/). The 13-section narrative audit
+overlapped it on conversion health, pacing, impression share, QS, and
+search-term waste, while the diagnostic adds the config domains the audit
+skipped (account settings, PMAX/DGen automation detail, placement safety,
+extensions, negative conflicts) and replaces narrative sections with discrete
+scored checks. Root README row repointed. Skill count stays 42 (one retired,
+one added).
+
 ## 2026-07-06 — Updated: Conversion Tracking Health
 
 [`conversion-tracking-health/`](conversion-tracking-health/)'s
