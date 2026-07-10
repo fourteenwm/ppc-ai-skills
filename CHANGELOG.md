@@ -2,6 +2,39 @@
 
 All notable changes to this repository.
 
+## 2026-07-10 — Account Diagnostic: operator docs + 42-point branding
+
+[`account-diagnostic/`](account-diagnostic/) grows from a runnable script
+into a self-contained operator folder — the docs now carry the judgment
+layer, not just the run instructions:
+
+- **`rules.md`** — what happens after the report prints: invariants
+  (diagnosis only, never overrule a verdict, one account per run), triage
+  order (circuit breakers → dollar REDs → structural REDs → YELLOWs), a
+  false-alarm table (mid-month launches masquerading as pacing failures,
+  shared-list negatives invisible to check 35, conversion lag inflating
+  waste %, and more), preset selection, and a check→skill routing table
+  mapping every finding to its fix or deep-dive skill.
+- **`examples.md`** — three worked triage reads: dependency-ordered fixes
+  on a RED account, a pacing RED correctly read as a launch artifact, and
+  a "just fix everything it found" instruction declined into a routed,
+  human-gated punch list.
+- **`references/check-rubric.md`** — exact GREEN/YELLOW/RED criteria for
+  all 44 checks, dollar-impact formulas, the auto-red circuit breakers,
+  and the eight preset knobs (with guidance for rolling your own
+  vertical preset).
+- **SKILL.md** adds the post-run operator duties (present → triage →
+  route), an explicit "what this skill deliberately does NOT do"
+  boundary, and a files-in-this-skill map.
+- **Branding: 42-point.** The skill now titles itself by its standard-run
+  count — 42 checks (44 with the local-service preset) — matching the
+  count the console header has always printed. "40-point inspection"
+  survives as a trigger alias, and the README sample output switched to
+  synthetic figures.
+
+No engine changes: `scripts/run_diagnostic.py` behavior is untouched (the
+docstring and argparse title strings are the only lines that moved).
+
 ## 2026-07-10 — Release: Ads Checker ships its scripts
 
 [`ads-checker/`](ads-checker/) is no longer bring-your-own-script — both

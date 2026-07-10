@@ -1,12 +1,23 @@
 ---
 name: account-diagnostic
-description: 40-point Google Ads account inspection — discrete GREEN/YELLOW/RED checks across 14 categories (conversion tracking, pacing, impression share, quality score, search-term waste, keyword health, creative, RSA assets, account settings, PMAX config, negative keywords, placement safety, extensions, video & Demand Gen automation), scored into one overall verdict with estimated monthly waste. Auto-invoke when user says 'run diagnostic', 'inspect account', '40-point inspection', 'diagnostic for [account]', 'audit [account]', or 'account health check'.
+description: 42-point Google Ads account inspection (44 with the local-service preset) — discrete GREEN/YELLOW/RED checks across 14 categories (conversion tracking, pacing, impression share, quality score, search-term waste, keyword health, creative, RSA assets, account settings, PMAX config, negative keywords, placement safety, extensions, video & Demand Gen automation), scored into one overall verdict with estimated monthly waste, then triaged per rules.md. Auto-invoke when user says 'run diagnostic', 'inspect account', '40-point inspection', 'diagnostic for [account]', 'audit [account]', or 'account health check'.
 allowed-tools: [Bash, Read]
 ---
 
-# 40-Point Account Diagnostic
+# 42-Point Account Diagnostic
 
-Like a mechanic's multi-point vehicle inspection, but for Google Ads accounts. Every check lands on an explicit GREEN/YELLOW/RED verdict with a finding, a dollar impact where one can be estimated, and a "do this" action line — no narrative to interpret.
+Like a mechanic's multi-point vehicle inspection, but for Google Ads
+accounts. Every check lands on an explicit GREEN/YELLOW/RED verdict with a
+finding, a dollar impact where one can be estimated, and a "do this" action
+line — no narrative to interpret.
+
+One operator owns the workflow end to end: run the inspection → present the
+scored report → triage the findings (`rules.md`) → route each actionable
+finding to its fix skill. The diagnostic itself never changes an account.
+
+*Naming note: 42 checks on a standard run; the local-service preset adds two
+for 44. "40-point inspection" survives as a trigger because the instrument
+grew from its original 40 core checks.*
 
 ---
 
@@ -41,6 +52,8 @@ python scripts/run_diagnostic.py --cid 1234567890
                        existing Google Sheet (gspread service-account auth)
 ```
 
+Preset choice and the deeper tuning knobs: see `rules.md` → Preset selection.
+
 ---
 
 ## The Checks
@@ -63,7 +76,16 @@ python scripts/run_diagnostic.py --cid 1234567890
 | 41-42 | Local Service *(local-service preset only)* | Call extensions, location extensions |
 | 43-44 | Video & DGen Automation | PMAX video enhancements; Demand Gen **ad-level** asset automation |
 
-Check 44 matters because Demand Gen automation lives on the **ad** (`ad_group_ad.ad_group_ad_asset_automation_settings`), not the campaign — campaign-level audits structurally can't see it. Five settings are inspected per ad (design versions for images, generate-videos-from-assets, vertical conversion, shorter videos, landing-page preview), all but one of which default **ON**. Pair with the `dgen-automation-disable` skill to fix what this check flags.
+Per-check GREEN/YELLOW/RED criteria, dollar-impact formulas, and preset
+thresholds: [`references/check-rubric.md`](references/check-rubric.md).
+
+Check 44 matters because Demand Gen automation lives on the **ad**
+(`ad_group_ad.ad_group_ad_asset_automation_settings`), not the campaign —
+campaign-level audits structurally can't see it. Five settings are inspected
+per ad (design versions for images, generate-videos-from-assets, vertical
+conversion, shorter videos, landing-page preview), all but one of which
+default **ON**. Pair with the `dgen-automation-disable` skill to fix what
+this check flags.
 
 ---
 
@@ -87,6 +109,59 @@ Checks that don't apply (e.g. PMAX checks on an account with no PMAX) report N/A
 
 ---
 
+## After the run — operator duties
+
+The script's exit is the midpoint of this skill, not the end. On every run:
+
+1. **Present the verdict** — overall color, the GREEN/YELLOW/RED/N/A counts,
+   and estimated waste (always framed as a ceiling).
+2. **List the REDs** with their findings and dollar figures, largest first.
+3. **Read [`rules.md`](rules.md) before recommending anything** — apply the
+   triage order (circuit breakers → dollar REDs → structural REDs → YELLOWs)
+   and rule out the false-alarm patterns. A RED that's a launch artifact gets
+   contextualized, never rewritten.
+4. **Route each actionable finding** per the rules.md routing table — every
+   fix is its own skill with its own dry-run and human approval, or an
+   exactly-specified UI change. Order fixes by dependency (waste before
+   budget, automation off before creative refresh).
+5. When asked *why* a check fired, answer from
+   [`references/check-rubric.md`](references/check-rubric.md) — exact
+   thresholds, not paraphrase. [`examples.md`](examples.md) shows the
+   expected shape of a triage read-out.
+
+---
+
+## What this skill deliberately does NOT do
+
+- **No mutations, ever.** GAQL SELECT only. Fixing findings is a separate,
+  human-approved step through [`mutation-safety`](../mutation-safety/)-gated
+  skills — see the routing table in `rules.md`.
+- **No portfolio sweeps.** One account per run. Choosing which account to
+  inspect first is [`portfolio-health-prioritization`](../portfolio-health-prioritization/)'s job.
+- **No root-cause investigation.** The inspection says *what* is out of spec;
+  *why* is the deep-dive skills' job
+  ([`underspending-investigation`](../underspending-investigation/),
+  [`impression-share-diagnostics`](../impression-share-diagnostics/)).
+- **No auto-generated budget changes.** Pacing findings produce diagnosis
+  plus a conservative recommendation; budget execution belongs to humans.
+
+---
+
+## Files in this skill
+
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | This file — how to run + what the operator does with results |
+| `README.md` | Zero-context setup guide: install, prerequisites, usage |
+| `rules.md` | Triage decision logic — read after every run, before recommending |
+| `examples.md` | Worked triage reads, incl. a false alarm and a refusal edge case |
+| `references/check-rubric.md` | Per-check verdict criteria + the 8 preset knobs |
+| `scripts/run_diagnostic.py` | The inspection engine (read-only GAQL) |
+
+Runtime output lands in `data/` (gitignored), never inside the docs.
+
+---
+
 ## Output
 
 1. **Console report** — grouped by category, with icons, findings, and actions
@@ -105,4 +180,6 @@ Checks that don't apply (e.g. PMAX checks on an account with no PMAX) report N/A
 
 ## Safety
 
-Read-only. This skill runs GAQL SELECT queries exclusively — it never mutates an account. Fixing what it finds is a separate, human-approved step (see `mutation-safety`).
+Read-only. This skill runs GAQL SELECT queries exclusively — it never mutates
+an account. Fixing what it finds is a separate, human-approved step (see
+[`mutation-safety`](../mutation-safety/) and the routing table in `rules.md`).

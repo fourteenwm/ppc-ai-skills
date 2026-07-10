@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""40-Point Google Ads Account Diagnostic
+"""42-Point Google Ads Account Diagnostic
 
 Like a mechanic's multi-point inspection, but for Google Ads accounts.
-40 core checks, each GREEN/YELLOW/RED. One overall verdict.
+42 checks on a standard run, each GREEN/YELLOW/RED. One overall verdict.
 
-Extras beyond the core 40: checks 41-42 (call/location extensions,
-local-service preset only) and checks 43-44 (PMAX video enhancements +
-Demand Gen ad-level asset automation, all verticals).
+The 42 = the original 40 core checks + checks 43-44 (PMAX video
+enhancements + Demand Gen ad-level asset automation, all verticals). The
+local-service preset adds checks 41-42 (call/location extensions) for a
+44-check run.
 
 Output: console report + CSV (always); optionally writes a color-coded
 'Inspection' tab into an existing Google Sheet with --sheet-id.
@@ -1911,7 +1912,7 @@ def print_report(report):
 # ── Main ──────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description='40-Point Google Ads Account Diagnostic')
+    parser = argparse.ArgumentParser(description='42-Point Google Ads Account Diagnostic')
     parser.add_argument('--cid', required=True, help='Customer ID (no dashes)')
     parser.add_argument('--name', default='', help='Account name (display only)')
     parser.add_argument('--days', type=int, default=30, help='Lookback days (default: 30)')
