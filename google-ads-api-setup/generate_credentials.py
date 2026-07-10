@@ -62,6 +62,13 @@ def main():
     print(f"Your refresh token is: {credentials.refresh_token}")
     print(f"\nCopy this token into your google-ads.yaml file.")
     print("=" * 60)
+    print(
+        "\nIMPORTANT: If your OAuth consent screen is External and still in\n"
+        '"Testing" status, Google expires this token after 7 DAYS.\n'
+        "Fix it permanently: Cloud Console -> OAuth consent screen ->\n"
+        "Publish App (push to production), then re-run this script once.\n"
+        "Internal apps are not affected."
+    )
 
 
 if __name__ == "__main__":

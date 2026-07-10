@@ -1,6 +1,6 @@
 ---
 name: google-ads-api-setup
-description: One-time setup guide and scripts for getting Google Ads API access working. Auto-invoke when user says "set up Google Ads API", "generate credentials", "create google-ads.yaml", "OAuth setup", "test API connection", or hits authentication errors like "invalid_grant" or "The developer token is not approved". Prerequisite for every skill that queries or modifies Google Ads.
+description: One-time setup guide and scripts for getting Google Ads API access working. Auto-invoke when user says "set up Google Ads API", "generate credentials", "create google-ads.yaml", "OAuth setup", "test API connection", or hits authentication errors like "invalid_grant", "redirect_uri_mismatch", "The developer token is not approved", or a refresh token that keeps expiring every week. Prerequisite for every skill that queries or modifies Google Ads.
 allowed-tools: [Bash, Read, Write]
 ---
 
@@ -26,6 +26,8 @@ Auto-invoke when user says:
 
 Or when they hit common authentication errors:
 - `google.auth.exceptions.RefreshError: invalid_grant`
+- "My refresh token keeps expiring every 7 days"
+- `redirect_uri_mismatch`
 - `Request had invalid authentication credentials`
 - `The developer token is not approved`
 - `login_customer_id is required`
@@ -34,7 +36,7 @@ Or when they hit common authentication errors:
 
 ## What This Skill Does
 
-1. Walks the user through the 9-step Google Cloud Console + OAuth + Developer Token flow (see `README.md`)
+1. Walks the user through the 9-step Google Cloud Console + OAuth + Developer Token flow (see `README.md`), including the Internal-vs-External consent screen decision and publishing External apps to production so refresh tokens don't expire every 7 days
 2. Generates their refresh token via `generate_credentials.py`
 3. Verifies connectivity via `test_connection.py`
 4. Produces a working `google-ads.yaml` at their project root
@@ -49,12 +51,13 @@ Or when they hit common authentication errors:
 | `generate_credentials.py` | OAuth flow — prompts the user to authorize in a browser, prints the refresh token |
 | `test_connection.py` | Confirms `google-ads.yaml` works by listing accessible accounts |
 | `google-ads.example.yaml` | Template YAML with all required fields — users copy and fill in |
+| `diagrams/` | Workflow diagrams (Mermaid sources + rendered SVGs embedded in the README) |
 
 ---
 
 ## How to Run
 
-### Step 1 — Generate credentials (after OAuth setup in README steps 1-5)
+### Step 1 — Generate credentials (after README steps 1-6: OAuth client created, packages installed)
 
 ```bash
 python generate_credentials.py --client-secrets client_secret.json
@@ -84,11 +87,13 @@ Expected output: list of accounts under the MCC.
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `invalid_grant` | Refresh token expired or revoked | Re-run `generate_credentials.py` |
+| `invalid_grant` | External app left in "Testing" status (tokens expire in 7 days), or token revoked | Publish the app to production (README Step 3, Option B), then re-run `generate_credentials.py` |
+| `redirect_uri_mismatch` | OAuth client created as "Web application" instead of "Desktop app" | Delete the client, create a new one with type **Desktop app**, regenerate token |
 | `developer token is not approved` | New token awaiting Google approval | Check API Center in MCC; test tokens work for test accounts only |
+| `DEVELOPER_TOKEN_PROHIBITED` | Cloud project already made calls with a different MCC's dev token (each project locks to one token) | Create a fresh Cloud project + OAuth client, regenerate the refresh token, call from there |
 | `login_customer_id is required` | YAML missing the MCC ID | Add `login_customer_id: "1234567890"` (digits only) |
-| `ModuleNotFoundError: google.ads` | Package not installed | `pip install google-ads google-auth google-auth-oauthlib` |
-| `The caller does not have permission` | Account not linked to your MCC | Verify the CID is accessible from the MCC you're using |
+| `ModuleNotFoundError: google.ads` | Package not installed | `pip install google-ads google-auth google-auth-oauthlib google-auth-httplib2 pyyaml` |
+| `The caller does not have permission` | Account not linked to your MCC, or wrong Google account used in OAuth | Verify the CID is accessible from the MCC you're using; confirm which account authorized |
 
 See `README.md` for the full troubleshooting list.
 

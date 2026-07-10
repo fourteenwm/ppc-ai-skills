@@ -1,0 +1,32 @@
+flowchart LR
+    subgraph P1 ["GOOGLE CLOUD CONSOLE"]
+        direction TB
+        A(["Start — one-time,<br/>about 30 minutes"]) --> B["Create a project +<br/>enable the Ads API"]
+        B --> C{"Google Workspace<br/>org?"}
+        C -- "yes" --> D["Consent screen:<br/>INTERNAL — no expiry,<br/>no warnings"]
+        C -- "no" --> E["Consent screen:<br/>EXTERNAL + add self<br/>as test user"]
+        E --> F["PUBLISH the app —<br/>in Testing, tokens<br/>die every 7 days"]
+        D --> G["OAuth client:<br/>DESKTOP APP type —<br/>Web app fails later:<br/>redirect_uri_mismatch"]
+        F --> G
+        G --> H["Download<br/>client_secret.json"]
+    end
+
+    subgraph P2 ["GOOGLE ADS (MCC)"]
+        direction TB
+        I["Admin → API Center"] --> J["Copy developer token<br/>(each Cloud project<br/>locks to ONE token)"]
+    end
+
+    subgraph P3 ["TERMINAL — WIRE + VERIFY"]
+        direction TB
+        K["pip install the<br/>google-ads library"] --> L["generate_credentials<br/>script — browser<br/>sign-in, one time"]
+        L --> M["Refresh token printed"]
+        M --> N["Fill google-ads.yaml —<br/>five values, one file"]
+        N --> O["test_connection.py"]
+        O --> P{"Accounts listed?"}
+        P -- "yes" --> Q(["Done — every other<br/>skill builds on<br/>this file"])
+        P -- "no" --> R["Match the error to<br/>the troubleshooting<br/>table — each failure<br/>maps to a fix"]
+        R --> O
+    end
+
+    P1 -- "client_secret.json saved" --> P2
+    P2 -- "token copied" --> P3

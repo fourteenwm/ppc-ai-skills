@@ -9,7 +9,7 @@ client_secret: "YOUR_CLIENT_SECRET"
 # From Step 7 (generate_credentials.py output)
 refresh_token: "YOUR_REFRESH_TOKEN"
 
-# From Step 5 (Google Ads MCC → Tools → API Center)
+# From Step 5 (Google Ads MCC → Admin → API Center)
 developer_token: "YOUR_DEVELOPER_TOKEN"
 
 # Your MCC (Manager) account ID — digits only, no dashes

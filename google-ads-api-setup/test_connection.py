@@ -39,6 +39,11 @@ def main():
         print("Copy google-ads.example.yaml to google-ads.yaml and fill in your values.")
         sys.exit(1)
 
+    if not isinstance(config, dict):
+        print(f"Error: {args.config} is empty or not valid YAML.")
+        print("Copy google-ads.example.yaml to google-ads.yaml and fill in your values.")
+        sys.exit(1)
+
     # Check for placeholder values
     placeholders = ["YOUR_CLIENT_ID", "YOUR_CLIENT_SECRET", "YOUR_REFRESH_TOKEN",
                      "YOUR_DEVELOPER_TOKEN", "YOUR_MCC_ID"]
@@ -48,16 +53,24 @@ def main():
             print("Edit your google-ads.yaml and replace all YOUR_* values with real credentials.")
             sys.exit(1)
 
+    # Validate and normalize the MCC ID before the client library sees it
+    mcc_id = str(config.get("login_customer_id", "")).replace("-", "").strip()
+    if not mcc_id:
+        print("Error: login_customer_id is missing from your YAML.")
+        print('Add your MCC ID (digits only): login_customer_id: "1234567890"')
+        sys.exit(1)
+    if not (mcc_id.isdigit() and len(mcc_id) == 10):
+        print(f"Error: login_customer_id looks wrong: {config.get('login_customer_id')}")
+        print("It should be exactly 10 digits, no dashes (e.g., 1234567890).")
+        sys.exit(1)
+    config["login_customer_id"] = mcc_id
+
     # Try to connect
     print("Connecting to Google Ads API...")
 
     try:
         client = GoogleAdsClient.load_from_dict(config)
         service = client.get_service("GoogleAdsService")
-        customer_service = client.get_service("CustomerService")
-
-        # List accessible accounts
-        mcc_id = config.get("login_customer_id", "").replace("-", "")
         query = """
             SELECT
                 customer_client.id,
@@ -96,10 +109,13 @@ def main():
         # Provide helpful error messages
         if "invalid_grant" in error_msg.lower():
             print("Your refresh token has expired or been revoked.")
-            print("Re-run: python generate_credentials.py --client-secrets client_secret.json")
+            print("Most common cause: an External OAuth app left in 'Testing' status —")
+            print("Google expires those tokens after 7 days. Fix: Cloud Console ->")
+            print("OAuth consent screen -> Publish App, then regenerate the token:")
+            print("  python generate_credentials.py --client-secrets client_secret.json")
         elif "developer_token" in error_msg.lower():
             print("Your developer token may not be approved yet.")
-            print("Check: Google Ads → Tools & Settings → API Center")
+            print("Check: Google Ads -> Admin -> API Center")
         elif "authentication" in error_msg.lower():
             print("Check that client_id, client_secret, and refresh_token are correct in your YAML.")
         elif "permission" in error_msg.lower():

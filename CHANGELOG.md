@@ -2,6 +2,40 @@
 
 All notable changes to this repository.
 
+## 2026-07-10 — Google Ads API Setup: the 7-day token fix + diagrams
+
+[`google-ads-api-setup/`](google-ads-api-setup/) rewritten around the #1
+real-world failure this guide previously baked in: an External OAuth app
+left in "Testing" status gets refresh tokens Google expires after **7
+days** — setup works, then dies a week later with `invalid_grant`, on
+repeat. Step 3 is now a real Internal-vs-External fork, and the External
+branch ends with **Publish App → In production** so the token you generate
+never expires.
+
+- **README:** new "Before You Start" (same-Google-account rule) and
+  "Mental Model" (the five questions your yaml answers) sections; a ✅
+  check line after every step; Desktop-app-not-Web warning at OAuth client
+  creation (`redirect_uri_mismatch`); Google Ads path updated to the
+  current **Admin → API Center** UI (old wrench path kept as a
+  parenthetical, direct `/aw/apicenter` link added); troubleshooting grows
+  entries for `redirect_uri_mismatch`, `DEVELOPER_TOKEN_PROHIBITED`,
+  wrong-account/incognito, lost `client_secret.json`, and start-over.
+- **Corrected against Google's docs:** the developer-token pairing rule
+  now states the documented direction — each **Cloud project** locks
+  permanently to the first developer token that calls through it, not the
+  token to the project. Deleting a project never strands your token; the
+  `DEVELOPER_TOKEN_PROHIBITED` fix is a fresh Cloud project.
+- **Scripts:** `generate_credentials.py` prints the 7-day/publish warning
+  after issuing a token. `test_connection.py` validates and normalizes
+  `login_customer_id` before the client library sees it (missing, dashed,
+  or wrong-length IDs get a plain-English error instead of a stack trace),
+  guards against an empty yaml, and its `invalid_grant` hint names the
+  Testing-status cause.
+- **New `diagrams/`:** a hero sequence diagram and a three-phase setup
+  flowchart, embedded in the README with full alt text. Mermaid sources +
+  theme included; SVGs render with native text (zero `foreignObject`), so
+  they draw correctly in GitHub's sanitized `<img>` pipeline.
+
 ## 2026-07-10 — Account Diagnostic: operator docs + 42-point branding
 
 [`account-diagnostic/`](account-diagnostic/) grows from a runnable script

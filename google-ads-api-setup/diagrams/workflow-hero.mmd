@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor You as PPC Manager
+    participant Cloud as Google Cloud Console
+    participant Ads as Google Ads (MCC)
+    participant Term as Terminal<br/>(two included scripts)
+
+    You->>Cloud: Create a project +<br/>enable the Ads API
+    You->>Cloud: Consent screen —<br/>Internal or External
+    Note over You,Cloud: Workspace org? Internal.<br/>Everyone else: External +<br/>PUBLISH to production.<br/>In Testing, tokens<br/>expire every 7 days.
+    You->>Cloud: OAuth client —<br/>Desktop app type
+    Cloud-->>You: client_secret.json
+    You->>Ads: Admin → API Center
+    Ads-->>You: Developer token
+    You->>Term: generate_credentials.py
+    You->>Cloud: Browser opens — sign in<br/>+ grant access (one time)
+    Cloud-->>Term: Refresh token<br/>(long-lived login)
+    You->>Term: Fill google-ads.yaml —<br/>five values, one file
+    You->>Term: test_connection.py
+    Term->>Ads: List the accounts<br/>under the MCC
+    Ads-->>Term: Account list ✓
+    Note over Term,Ads: Connection verified — and it<br/>stays working: the app was<br/>published, not left in Testing.
