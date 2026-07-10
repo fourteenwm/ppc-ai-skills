@@ -22,20 +22,24 @@ Audit Google Ads accounts for creative compliance across 10 checks — DKI, auto
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/ads-checker
+mkdir -p .claude/skills/ads-checker/scripts
 curl -o .claude/skills/ads-checker/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/SKILL.md
 curl -o .claude/skills/ads-checker/README.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/README.md
+curl -o .claude/skills/ads-checker/scripts/ads_checker_audit.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/scripts/ads_checker_audit.py
+curl -o .claude/skills/ads-checker/scripts/read_latest_ads_checker.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/scripts/read_latest_ads_checker.py
 ```
 
 ---
 
-## Script Dependency (You Provide)
+## The Scripts (Ship With This Skill)
 
-This skill is docs-only — it drives two scripts you implement against your own data sources. The SKILL.md documents the data contract; adapt the scripts to your credentials, account registry, and Sheet.
+Both scripts are included and self-contained — Google Ads API + Google Sheets only, credentials from your `google-ads.yaml`.
 
-**1. `ads_checker_audit.py`** — given `--cid <CID>` or `--portfolio <name>` (and `--dry-run`), it:
+**1. [`scripts/ads_checker_audit.py`](scripts/ads_checker_audit.py)** — given `--cid <CID>`, `--cids <CID1,CID2>`, `--portfolio <name>`, or `--all` (plus `--sheet-id` for live runs, `--dry-run` to skip the write), it:
 
 - Queries the Google Ads API for each account's RSAs, assets, campaign settings, policy summaries, and recommendation subscriptions
 - Runs the 10 checks and computes an overall severity per account
@@ -43,18 +47,17 @@ This skill is docs-only — it drives two scripts you implement against your own
 - Detects chronic issues (3+ occurrences / 90 days) among HIGH/CRITICAL accounts
 - Writes results to a Google Sheet: a `Raw Output` detail tab, an optional per-portfolio tab, a `History` portfolio-trend tab, and an `Account History` per-account tab
 
-**2. `read_latest_ads_checker.py`** — given `--critical-only` (optionally `--portfolio <name>`, `--hours-back N`, `--json`), it reads the **cached** `Account History` rows from the last 24h and formats CRITICAL/HIGH accounts for a daily briefing. It does not call the Google Ads API.
+**2. [`scripts/read_latest_ads_checker.py`](scripts/read_latest_ads_checker.py)** — given `--sheet-id` and `--critical-only` (optionally `--portfolio <name>`, `--hours-back N`, `--json`), it reads the **cached** `Account History` rows from the last 24h and formats CRITICAL/HIGH accounts for a daily briefing. It does not call the Google Ads API.
 
-**Reference implementation hooks:**
+**Prerequisites:** `google-ads.yaml` at project root (see [google-ads-api-setup](../google-ads-api-setup/)) and `pip install google-ads gspread google-auth pyyaml requests pyspellchecker`. Optional: an `accounts.json` registry for name/portfolio resolution (schema in the script header) — portfolio names are whatever grouping labels your registry uses; without a registry, `--all` walks the MCC in your `google-ads.yaml`.
 
-- Google Ads API via `google-ads-python` (loads credentials from `google-ads.yaml`)
-- Google Sheets via `gspread` + an OAuth credential
-- A spell-check library (e.g. `pyspellchecker`) for the spelling check
-- An account registry for CID ↔ name ↔ portfolio lookups (your `accounts.json` or equivalent)
+**Adaptation hooks (edit the script headers' marked sections):**
+
+- The inappropriate-content blocklist ships with housing-vertical example sets (Fair Housing phrases, listing-aggregator competitor mentions) — swap in your vertical's compliance phrases and competitor list
+- The spelling exceptions list ships with common ad abbreviations plus a real-estate example block — extend for your vertical; account/brand names are added automatically from your registry
+- Chronic-issue account files are created under `./accounts/<portfolio>/<slug>.md` after an interactive prompt
 
 **The cached-output contract (do not break):** the `Account History` tab must carry `Audit Date` (`%Y-%m-%d %H:%M`), `Portfolio`, `CID`, `Account Name`, `Overall Severity`, and the per-issue `* Count` columns. The reader filters to the last 24h on `Audit Date`. Change the tab name, date format, or headers in one script and you must change them in the other, or the briefing section silently goes blank.
-
-A working reference implementation lives in the private brain this skill was extracted from; if you'd like a starter template to adapt, open an issue.
 
 ---
 
@@ -68,7 +71,7 @@ A working reference implementation lives in the private brain this skill was ext
 The skill will:
 
 1. Parse the scope into `--cid` / `--portfolio`
-2. Run `ads_checker_audit.py` (piping `"no"` so the optional chronic-issue prompt never blocks)
+2. Run `scripts/ads_checker_audit.py` (piping `"no"` so the optional chronic-issue prompt never blocks)
 3. Surface the severity breakdown, the changes-vs-last-run (NEW/INCREASED/RESOLVED), and any chronic accounts
 4. Point you at the Google Sheet output
 
@@ -108,7 +111,7 @@ Successfully wrote 1 rows to 'Raw Output' tab
 Appended 1 account rows to 'Account History' tab
 ```
 
-Daily-briefing reader (`read_latest_ads_checker.py --critical-only`):
+Daily-briefing reader (`scripts/read_latest_ads_checker.py --sheet-id YOUR_SHEET_ID --critical-only`):
 
 ```
 CRITICAL CREATIVE (Fix Immediately):

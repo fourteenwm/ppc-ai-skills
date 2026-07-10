@@ -1,6 +1,6 @@
 ---
 name: ads-checker
-description: Audit Google Ads accounts for creative compliance (10 checks) with intelligence integration (issue-history comparison, chronic-issue detection, daily-briefing integration). Auto-invoke when user says "run ads checker", "creative audit", "check ads for [portfolio]", "audit ads", or "ads checker for [account/portfolio]". Outputs to a Google Sheet with a severity breakdown. Read-only — no Google Ads mutations.
+description: Audit Google Ads accounts for creative compliance (10 checks) with intelligence integration (issue-history comparison, chronic-issue detection, daily-briefing integration). Ships both scripts (audit + briefing reader). Auto-invoke when user says "run ads checker", "creative audit", "check ads for [portfolio]", "audit ads", or "ads checker for [account/portfolio]". Outputs to a Google Sheet with a severity breakdown. Read-only — no Google Ads mutations.
 allowed-tools: [Read, Bash, Grep, Glob]
 ---
 
@@ -14,11 +14,11 @@ allowed-tools: [Read, Bash, Grep, Glob]
 
 ## What This Skill Wraps
 
-All audit logic and **all intelligence features** live in one script you provide — referred to here as `ads_checker_audit.py`. This skill is a procedural wrapper: it determines scope, runs the script, interprets the console output, and summarizes findings. **Do not reimplement the checks in the skill; the script is the single source of truth.**
+All audit logic and **all intelligence features** live in one script — [`scripts/ads_checker_audit.py`](scripts/ads_checker_audit.py), shipped with this skill. This skill is a procedural wrapper: it determines scope, runs the script, interprets the console output, and summarizes findings. **Do not reimplement the checks in the skill; the script is the single source of truth.**
 
-A small read-only companion script, `read_latest_ads_checker.py`, is consumed by a daily briefing to surface recent CRITICAL/HIGH findings (see "Cached-Output Contract" — a HARD constraint if you wire it into a briefing).
+A small read-only companion script, [`scripts/read_latest_ads_checker.py`](scripts/read_latest_ads_checker.py) (also shipped), is consumed by a daily briefing to surface recent CRITICAL/HIGH findings (see "Cached-Output Contract" — a HARD constraint if you wire it into a briefing).
 
-Both scripts are environment-specific (they hold your credentials, account registry, and Sheet ID). See the README's "Script Dependency (You Provide)" for the data contract each must satisfy.
+Both scripts are self-contained: credentials come from your `google-ads.yaml` (`--config`), the account registry from an `accounts.json` (`--accounts`, optional), and the output Sheet from `--sheet-id`. See the README's "The Scripts (Ship With This Skill)" section for the data contract and the adaptation hooks (custom registries, blocklist customization, briefing wiring).
 
 ---
 
@@ -43,40 +43,50 @@ Both scripts are environment-specific (they hold your credentials, account regis
 
 ---
 
+## Prerequisites
+
+- **`google-ads.yaml`** at project root (or `--config <path>`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it. Its OAuth credentials are reused for the Google Sheets writes; set `login_customer_id` to your MCC if you want `--all` to work without a registry.
+- **Python packages:** `pip install google-ads gspread google-auth pyyaml requests pyspellchecker`
+- **An audit Google Sheet** — create an empty spreadsheet and pass its ID via `--sheet-id`; the script creates its own tabs.
+- **Optional: `accounts.json`** at project root (or `--accounts <path>`) for name/portfolio resolution — schema documented in the script header.
+
+---
+
 ## Step 1 — Determine Scope
 
 Parse the request into a script flag:
 
 | Request | Scope | Flag |
 |---|---|---|
-| "Run ads checker" | All accounts | `--portfolio all` |
+| "Run ads checker" | All accounts | `--portfolio all` (or `--all`) |
 | "…for [Portfolio]" | One portfolio segment | `--portfolio <name>` |
 | "…for [CID]" | Single account | `--cid <CID>` |
 | "…for [Account Name]" | Look up CID, then single | `--cid <CID>` |
+| "…for [several accounts]" | A specific set | `--cids <CID1,CID2,…>` |
 
-**Account name → CID:** resolve via your account registry (an `accounts.json` or equivalent — the script's single source of truth). Account counts drift; don't hardcode them.
+**Account name → CID:** resolve via your `accounts.json` registry (default `./accounts.json`, override with `--accounts` — the script's single source of truth; its schema is documented in the script header). Portfolio names are whatever grouping labels your registry uses. Account counts drift; don't hardcode them. With no registry, `--all` walks the MCC in your `google-ads.yaml`.
 
 ---
 
 ## Step 2 — Run the Audit
 
-Run from the directory where the script's credentials file lives. **Always pipe `"no"` to stdin** so the optional chronic-issue file-creation prompt never blocks a non-interactive run (see "Chronic-Issue Handling"):
+Run from the directory where `google-ads.yaml` lives (or pass `--config`). **Always pipe `"no"` to stdin** so the optional chronic-issue file-creation prompt never blocks a non-interactive run (see "Chronic-Issue Handling"):
 
 ```bash
 # Single account by CID
-echo "no" | python ads_checker_audit.py --cid 1234567890
+echo "no" | python scripts/ads_checker_audit.py --cid 1234567890 --sheet-id YOUR_SHEET_ID
 
 # A portfolio segment
-echo "no" | python ads_checker_audit.py --portfolio <name>
+echo "no" | python scripts/ads_checker_audit.py --portfolio <name> --sheet-id YOUR_SHEET_ID
 
 # All accounts
-echo "no" | python ads_checker_audit.py --portfolio all
+echo "no" | python scripts/ads_checker_audit.py --portfolio all --sheet-id YOUR_SHEET_ID
 
 # Dry run (no Sheet write, no history comparison, no prompt)
-python ads_checker_audit.py --portfolio <name> --dry-run
+python scripts/ads_checker_audit.py --portfolio <name> --dry-run
 ```
 
-Add a small delay between accounts (e.g. 0.3s) to avoid API throttling on large portfolios.
+The script already sleeps 0.3s between accounts to avoid API throttling on large portfolios.
 
 ---
 
@@ -86,7 +96,7 @@ These run automatically on any non-`--dry-run` run. The skill surfaces them in t
 
 1. **Issue-history comparison** — for each account, compares current counts to the most recent prior row in the history tab and tags each issue type **NEW / INCREASED / DECREASED / RESOLVED / SAME**. First-ever audit of an account is `FIRST_RUN`.
 2. **Chronic-issue detection** — for HIGH/CRITICAL accounts, counts how many times each issue type appeared in the last 90 days. **3+ occurrences = chronic.**
-3. **Account-file creation** — optionally writes a per-account markdown file summarizing chronic issues (interactive; gated behind the stdin prompt).
+3. **Account-file creation** — optionally writes a per-account markdown file (`./accounts/<portfolio>/<account-slug>.md`) summarizing chronic issues (interactive; gated behind the stdin prompt).
 4. **Trend history** — appends a portfolio-level summary row and per-account rows to the history tabs every run.
 
 ### Chronic-Issue Handling (why we pipe `"no"`)
@@ -97,7 +107,7 @@ When chronic issues are detected the script prompts (`input()`) before writing r
 
 ## Cached-Output Contract (HARD CONSTRAINT)
 
-If you wire this into a daily briefing, the briefing runs `read_latest_ads_checker.py --critical-only`, which reads **cached** rows from a history tab — it does NOT re-run the audit. The contract:
+If you wire this into a daily briefing, the briefing runs `scripts/read_latest_ads_checker.py --sheet-id YOUR_SHEET_ID --critical-only`, which reads **cached** rows from a history tab — it does NOT re-run the audit. The contract:
 
 - **Tab:** a per-account history tab (e.g. `Account History`)
 - **Date column:** `Audit Date`, format `%Y-%m-%d %H:%M`, filtered to the last 24 hours
@@ -139,9 +149,9 @@ OUTPUT: <your audit sheet> — tabs: Raw Output · Account History · History
 
 | Setting | Value |
 |---|---|
-| Sheet ID | `<YOUR_SHEET_ID>` |
+| Sheet ID | passed via `--sheet-id` (required for live runs; both scripts take it) |
 | Tabs written | `Raw Output` (full detail), an optional per-portfolio tab, `History` (portfolio trend), `Account History` (per-account trend — the briefing source) |
-| Login customer ID | `<YOUR_MCC>` |
+| Login customer ID | read from `google-ads.yaml` (`login_customer_id`) |
 
 ---
 
@@ -149,10 +159,12 @@ OUTPUT: <your audit sheet> — tabs: Raw Output · Account History · History
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| `Error: --sheet-id is required` | Live run without an output Sheet | Pass `--sheet-id`, or use `--dry-run` |
 | Script hangs / crashes mid-run | Chronic-issue `input()` prompt | Ensure `echo "no" \|` is piped in (Step 2) |
 | History tab not updated | Crash before the Sheet write, or `--dry-run` used | Re-run without `--dry-run`, with `"no"` piped |
-| Sheet write error | OAuth token expired | Re-authenticate |
-| Spell-checker import error | Spell-check dependency not installed | Install your spell-check library (e.g. `pyspellchecker`) |
+| Sheet write error | OAuth token expired | Re-authenticate (see google-ads-api-setup) |
+| Spell-checker import error | Spell-check dependency not installed | `pip install pyspellchecker` |
+| `Error: --portfolio requires an accounts.json` | Named portfolio with no registry | Create `accounts.json`, or use `--cid`/`--cids`/`--all` |
 
 ---
 

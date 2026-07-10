@@ -2,6 +2,36 @@
 
 All notable changes to this repository.
 
+## 2026-07-10 — Release: Ads Checker ships its scripts
+
+[`ads-checker/`](ads-checker/) is no longer bring-your-own-script — both
+scripts it drives are now included under `ads-checker/scripts/`.
+
+**`ads_checker_audit.py`** — the full 10-check creative-compliance audit
+with the intelligence layer intact: issue-history comparison (NEW /
+INCREASED / DECREASED / RESOLVED / SAME per issue type), chronic-issue
+detection (3+ occurrences in 90 days), the interactive account-file prompt
+(the documented `echo "no" |` stdin contract is preserved exactly), and the
+severity-ranked Sheet output (`Raw Output`, optional per-portfolio tab,
+`History`, `Account History`). Scope comes from the standard CLI —
+`--cid`, `--cids`, `--portfolio <name>` against an `accounts.json` registry
+with user-defined portfolio labels, or `--all` (walks your MCC when no
+registry exists). Output goes to `--sheet-id`; credentials load from
+`--config google-ads.yaml`. The inappropriate-content blocklist and
+spelling-exception list ship as labeled starter sets (housing-vertical
+examples included) with brand terms auto-derived from your registry.
+
+**`read_latest_ads_checker.py`** — the companion daily-briefing reader,
+satisfying the documented cached-output contract as written: reads the
+`Account History` tab, filters `Audit Date` (`%Y-%m-%d %H:%M`) to the last
+24 hours, `--critical-only` / `--portfolio` / `--hours-back` / `--json`.
+Never calls the Google Ads API.
+
+SKILL.md and the skill README are updated for the shipped scripts
+(Prerequisites → google-ads-api-setup; the data-contract section now doubles
+as adaptation docs for custom registries, blocklists, and briefing wiring).
+BYO-script skills: 2 → 1 (rsa-single-account ships next).
+
 ## 2026-07-09 — Fixed: DGen Automation Disable (API v23)
 
 [`dgen-automation-disable/`](dgen-automation-disable/)'s
