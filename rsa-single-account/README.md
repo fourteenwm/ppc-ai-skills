@@ -22,35 +22,41 @@ Generate a complete, import-ready Responsive Search Ad set for **one** account �
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/rsa-single-account
+mkdir -p .claude/skills/rsa-single-account/scripts
 curl -o .claude/skills/rsa-single-account/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/SKILL.md
 curl -o .claude/skills/rsa-single-account/README.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/README.md
+for f in check_active_accounts.py get_account_website_url.py \
+         analyze_competitors_for_rsa.py get_search_campaign_structure.py \
+         scrape_website_firecrawl.py get_gmb_reviews.py write_rsa_to_sheet.py \
+         vertical_configs.json; do
+  curl -o ".claude/skills/rsa-single-account/scripts/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/scripts/$f"
+done
 ```
 
 ---
 
-## Script Dependency (You Provide)
+## The Scripts (Ship With This Skill)
 
-This skill is docs-only — it orchestrates small scripts you implement against your own data sources and credentials. The SKILL.md documents the workflow and data contract; adapt the scripts to your stack.
+All seven workflow scripts are included in [`scripts/`](scripts/) — generic and self-contained. Google Ads credentials come from your `google-ads.yaml`, API keys from environment variables, and the output Sheet from `--sheet-id`.
 
-- **`check_active_accounts.py`** — list active accounts (name ↔ CID) so a name resolves to a Customer ID
-- **`get_account_website_url.py`** — given a CID, return the business website from ad final URLs (+ business name for the review lookup)
-- **`analyze_competitors_for_rsa.py`** — given a service + location (+ optional vertical), query the SERP and summarize competitor USP saturation and gaps
-- **`get_search_campaign_structure.py`** — given a CID, return active Search campaigns + ad groups
-- **`scrape_website_firecrawl.py`** — scrape the site (Firecrawl) and extract services, credentials, features, hours, and specializations (LLM extraction)
-- **`get_gmb_reviews.py`** — Google-Business-Profile review fallback via SERP local results (rating, count, snippets)
-- **`write_rsa_to_sheet.py`** — clear + write the RSA rows to a Google Sheet
+- **[`check_active_accounts.py`](scripts/check_active_accounts.py)** — lists accounts with spend this month (name ↔ CID) so a name resolves to a Customer ID; reads an optional `accounts.json` registry, otherwise walks the MCC in your `google-ads.yaml` (`--name` filters, `--exclude` skips CIDs)
+- **[`get_account_website_url.py`](scripts/get_account_website_url.py)** — given a CID on stdin, returns the business website from ad final URLs (+ business name for the review lookup)
+- **[`analyze_competitors_for_rsa.py`](scripts/analyze_competitors_for_rsa.py)** — given a service + location (+ optional vertical), queries the SERP and summarizes competitor USP saturation and gaps; vertical keyword sets live in [`vertical_configs.json`](scripts/vertical_configs.json)
+- **[`get_search_campaign_structure.py`](scripts/get_search_campaign_structure.py)** — given a CID, returns active Search campaigns + ad groups
+- **[`scrape_website_firecrawl.py`](scripts/scrape_website_firecrawl.py)** — scrapes the site (Firecrawl) and extracts services, credentials, features, hours, and specializations (LLM extraction)
+- **[`get_gmb_reviews.py`](scripts/get_gmb_reviews.py)** — Google-Business-Profile review fallback via SERP local results (rating, count, snippets)
+- **[`write_rsa_to_sheet.py`](scripts/write_rsa_to_sheet.py)** — clears + writes the RSA rows to a Google Sheet (`--sheet-id`, bare ID or URL)
 
-**Reference implementation hooks:**
+**Prerequisites:** `google-ads.yaml` at project root (see [google-ads-api-setup](../google-ads-api-setup/)), `SERP_API_KEY` + `FIRECRAWL_API_KEY` + `ANTHROPIC_API_KEY` environment variables (a `.env` at project root works), and `pip install google-ads google-search-results firecrawl-py anthropic google-api-python-client google-auth pyyaml python-dotenv`.
 
-- Google Ads API via `google-ads-python` (credentials from `google-ads.yaml`)
-- Website scrape via Firecrawl + an LLM for structured extraction (keys via environment variables)
-- SERP competitive analysis + GBP reviews via a SERP API (key in a config you provide)
-- Google Sheets write via an OAuth credential you provide
+**Adaptation hooks:**
 
-A working reference implementation lives in the private brain this skill was extracted from; if you'd like a starter template to adapt, open an issue.
+- `vertical_configs.json` ships three **example** vertical keyword sets (auto_repair, plumbing, property_management) — copy a block and adjust the keywords for your vertical
+- The "campaign name contains Search" filter in `get_search_campaign_structure.py` is a production-safety convention — adapt the LIKE clause if you name campaigns differently
+- Each step's data contract is documented in the SKILL.md, so any script can be swapped for your own implementation (different SERP provider, different scraper) as long as the contract holds
 
 ---
 

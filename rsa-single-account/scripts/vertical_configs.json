@@ -1,0 +1,346 @@
+{
+  "_meta": {
+    "description": "Vertical-specific keyword sets for competitive analysis — three EXAMPLE verticals ship here; add your own by copying a block and adjusting the keywords",
+    "usage": "Load by vertical name via --vertical: auto_repair, plumbing, property_management (or any key you add)",
+    "schema": "usp_keywords maps SERP-ad text fragments to USP category labels; service_keywords and cta_keywords are plain match lists; saturation_threshold = competitor mentions before a USP counts as saturated"
+  },
+
+  "property_management": {
+    "display_name": "Property Management / Apartments",
+    "search_term_template": "apartments {location}",
+
+    "usp_keywords": {
+      "pet friendly": "Pet-Friendly",
+      "pets welcome": "Pet-Friendly",
+      "pet spa": "Pet Amenities",
+      "bark park": "Pet Amenities",
+      "dog park": "Pet Amenities",
+      "cat friendly": "Pet-Friendly",
+
+      "pool": "Pool",
+      "swimming pool": "Pool",
+      "saltwater pool": "Pool",
+      "heated pool": "Pool",
+      "rooftop pool": "Pool",
+
+      "fitness": "Fitness Center",
+      "gym": "Fitness Center",
+      "fitness center": "Fitness Center",
+      "24-hour fitness": "Fitness Center",
+      "24/7 fitness": "Fitness Center",
+
+      "granite": "Upgraded Finishes",
+      "quartz": "Upgraded Finishes",
+      "stainless": "Upgraded Finishes",
+      "stainless steel": "Upgraded Finishes",
+      "hardwood": "Upgraded Finishes",
+      "wood floor": "Upgraded Finishes",
+      "plank floor": "Upgraded Finishes",
+
+      "washer dryer": "In-Unit Laundry",
+      "in-unit laundry": "In-Unit Laundry",
+      "w/d": "In-Unit Laundry",
+      "full-size washer": "In-Unit Laundry",
+
+      "garage": "Parking",
+      "covered parking": "Parking",
+      "reserved parking": "Parking",
+      "parking included": "Parking",
+
+      "move-in special": "Move-In Specials",
+      "specials": "Move-In Specials",
+      "concession": "Move-In Specials",
+      "free month": "Move-In Specials",
+      "reduced deposit": "Move-In Specials",
+      "waived fee": "Move-In Specials",
+      "no deposit": "Move-In Specials",
+      "move in ready": "Move-In Specials",
+
+      "renovated": "Renovated/Updated",
+      "updated": "Renovated/Updated",
+      "upgraded": "Renovated/Updated",
+      "modern": "Renovated/Updated",
+      "newly renovated": "Renovated/Updated",
+      "remodeled": "Renovated/Updated",
+
+      "gated": "Security/Access",
+      "controlled access": "Security/Access",
+      "secure": "Security/Access",
+      "gated community": "Security/Access",
+      "key fob": "Security/Access",
+
+      "clubhouse": "Community Amenities",
+      "community room": "Community Amenities",
+      "lounge": "Community Amenities",
+      "resident lounge": "Community Amenities",
+      "business center": "Community Amenities",
+      "co-working": "Community Amenities",
+      "package locker": "Community Amenities",
+
+      "rooftop": "Views/Outdoor",
+      "skyline": "Views/Outdoor",
+      "city view": "Views/Outdoor",
+      "balcony": "Views/Outdoor",
+      "patio": "Views/Outdoor",
+      "terrace": "Views/Outdoor",
+      "outdoor space": "Views/Outdoor",
+
+      "walk-in closet": "Unit Features",
+      "storage": "Unit Features",
+      "high ceiling": "Unit Features",
+      "vaulted ceiling": "Unit Features",
+      "loft": "Unit Features",
+      "open floor plan": "Unit Features",
+      "spacious": "Unit Features",
+
+      "near transit": "Location/Transit",
+      "metro": "Location/Transit",
+      "marta": "Location/Transit",
+      "metrorail": "Location/Transit",
+      "bus line": "Location/Transit",
+      "walkable": "Location/Transit",
+      "walk to": "Location/Transit",
+      "near downtown": "Location/Transit",
+      "minutes from": "Location/Transit",
+
+      "luxury": "Positioning",
+      "upscale": "Positioning",
+      "high-end": "Positioning",
+      "premium": "Positioning",
+      "affordable": "Positioning",
+      "budget": "Positioning",
+      "value": "Positioning",
+
+      "furnished": "Lease Options",
+      "short-term": "Lease Options",
+      "corporate": "Lease Options",
+      "flexible lease": "Lease Options",
+      "month to month": "Lease Options",
+
+      "tour today": "CTA - Urgency",
+      "schedule tour": "CTA - Tour",
+      "schedule a tour": "CTA - Tour",
+      "book tour": "CTA - Tour",
+      "virtual tour": "CTA - Tour",
+      "call now": "CTA - Call",
+      "call today": "CTA - Call",
+      "apply now": "CTA - Apply",
+      "apply online": "CTA - Apply",
+      "check availability": "CTA - Availability",
+      "see floor plans": "CTA - Floor Plans",
+      "view photos": "CTA - Photos",
+      "limited availability": "Urgency",
+      "only a few left": "Urgency",
+      "leasing fast": "Urgency",
+      "don't miss": "Urgency"
+    },
+
+    "service_keywords": [
+      "studio",
+      "studios",
+      "1 bedroom",
+      "1 bed",
+      "one bedroom",
+      "2 bedroom",
+      "2 bed",
+      "two bedroom",
+      "3 bedroom",
+      "3 bed",
+      "three bedroom",
+      "apartment",
+      "apartments",
+      "townhome",
+      "townhouse",
+      "loft",
+      "penthouse",
+      "floor plan",
+      "floorplan"
+    ],
+
+    "cta_keywords": [
+      "schedule tour",
+      "schedule a tour",
+      "book tour",
+      "tour today",
+      "call now",
+      "call today",
+      "apply now",
+      "apply online",
+      "check availability",
+      "see floor plans",
+      "view photos",
+      "contact us",
+      "learn more",
+      "get pricing"
+    ],
+
+    "saturation_threshold": 3,
+    "unique_threshold": 1
+  },
+
+  "auto_repair": {
+    "display_name": "Auto Repair",
+    "search_term_template": "auto repair {location}",
+
+    "usp_keywords": {
+      "licensed": "Licensed/Certified",
+      "insured": "Licensed/Certified",
+      "certified": "Licensed/Certified",
+      "ase certified": "Licensed/Certified",
+      "master technician": "Licensed/Certified",
+
+      "free estimate": "Free Estimates",
+      "free quote": "Free Estimates",
+      "free inspection": "Free Estimates",
+      "free diagnostic": "Free Estimates",
+
+      "same day": "Same-Day Service",
+      "same-day": "Same-Day Service",
+      "while you wait": "Same-Day Service",
+      "quick service": "Same-Day Service",
+
+      "24/7": "24/7 Availability",
+      "24 hour": "24/7 Availability",
+      "emergency": "24/7 Availability",
+
+      "family owned": "Family Owned",
+      "family-owned": "Family Owned",
+      "locally owned": "Family Owned",
+      "local": "Family Owned",
+
+      "years experience": "Years of Experience",
+      "years in business": "Years of Experience",
+      "since 19": "Years of Experience",
+      "since 20": "Years of Experience",
+      "established": "Years of Experience",
+
+      "warranty": "Warranty/Guarantee",
+      "guarantee": "Warranty/Guarantee",
+      "guaranteed": "Warranty/Guarantee",
+      "lifetime warranty": "Warranty/Guarantee",
+
+      "best price": "Pricing Claims",
+      "low price": "Pricing Claims",
+      "affordable": "Pricing Claims",
+      "competitive": "Pricing Claims",
+      "fair price": "Pricing Claims",
+      "honest price": "Pricing Claims",
+
+      "satisfaction": "Satisfaction Guarantee",
+      "trusted": "Trust Signals",
+      "honest": "Trust Signals",
+      "reliable": "Trust Signals"
+    },
+
+    "service_keywords": [
+      "oil change",
+      "brake",
+      "brakes",
+      "tire",
+      "tires",
+      "engine",
+      "transmission",
+      "inspection",
+      "diagnostic",
+      "repair",
+      "maintenance",
+      "tune up",
+      "tune-up",
+      "alignment",
+      "battery",
+      "ac repair",
+      "air conditioning",
+      "check engine",
+      "exhaust",
+      "muffler"
+    ],
+
+    "cta_keywords": [
+      "call now",
+      "call today",
+      "book now",
+      "schedule",
+      "get quote",
+      "free quote",
+      "contact us",
+      "learn more",
+      "book appointment",
+      "request appointment"
+    ],
+
+    "saturation_threshold": 3,
+    "unique_threshold": 1
+  },
+
+  "plumbing": {
+    "display_name": "Plumbing",
+    "search_term_template": "plumber {location}",
+
+    "usp_keywords": {
+      "licensed": "Licensed/Certified",
+      "insured": "Licensed/Certified",
+      "bonded": "Licensed/Certified",
+      "certified": "Licensed/Certified",
+
+      "free estimate": "Free Estimates",
+      "free quote": "Free Estimates",
+
+      "same day": "Same-Day Service",
+      "same-day": "Same-Day Service",
+      "fast service": "Same-Day Service",
+
+      "24/7": "24/7 Availability",
+      "24 hour": "24/7 Availability",
+      "emergency": "24/7 Availability",
+      "after hours": "24/7 Availability",
+
+      "family owned": "Family Owned",
+      "locally owned": "Family Owned",
+      "local plumber": "Family Owned",
+
+      "years experience": "Years of Experience",
+      "years in business": "Years of Experience",
+
+      "warranty": "Warranty/Guarantee",
+      "guarantee": "Warranty/Guarantee",
+
+      "flat rate": "Pricing Claims",
+      "no hidden": "Pricing Claims",
+      "upfront pricing": "Pricing Claims",
+      "affordable": "Pricing Claims"
+    },
+
+    "service_keywords": [
+      "plumbing",
+      "plumber",
+      "drain",
+      "water heater",
+      "leak",
+      "pipe",
+      "sewer",
+      "clog",
+      "clogged",
+      "faucet",
+      "toilet",
+      "garbage disposal",
+      "water line",
+      "gas line",
+      "slab leak",
+      "repiping"
+    ],
+
+    "cta_keywords": [
+      "call now",
+      "call today",
+      "book now",
+      "schedule",
+      "get quote",
+      "free quote",
+      "contact us",
+      "request service"
+    ],
+
+    "saturation_threshold": 3,
+    "unique_threshold": 1
+  }
+}

@@ -2,6 +2,43 @@
 
 All notable changes to this repository.
 
+## 2026-07-10 — Release: RSA Single-Account ships its scripts
+
+[`rsa-single-account/`](rsa-single-account/) is no longer bring-your-own-script —
+all seven workflow scripts are now included under `rsa-single-account/scripts/`,
+one per pipeline step:
+
+- **`check_active_accounts.py`** (Step 1) — accounts with spend this month for
+  name→CID resolution; optional `accounts.json` registry (ads-checker schema),
+  MCC walk via your `google-ads.yaml` otherwise; `--name` filter, `--exclude`
+- **`get_account_website_url.py`** (Step 2) — the documented stdin-CID pipe
+  contract (`echo "<CID>" | ...`) preserved exactly; three-pass URL hunt ending
+  in a most-common-domain vote across ENABLED ad final URLs
+- **`analyze_competitors_for_rsa.py`** (Step 3) — SERP competitor-messaging
+  analysis with USP saturation + gap detection; `SERP_API_KEY` env var;
+  `vertical_configs.json` ships alongside with three labeled **example**
+  vertical keyword sets (auto_repair, plumbing, property_management) —
+  `--vertical` accepts any key you add
+- **`get_search_campaign_structure.py`** (Step 4) — active Search campaigns +
+  ad groups; the documented "campaign name contains 'Search'" production-safety
+  filter kept as written
+- **`scrape_website_firecrawl.py`** (Step 5) — Firecrawl scrape (homepage +
+  services/about) with LLM structured extraction of verified business facts;
+  `FIRECRAWL_API_KEY` + `ANTHROPIC_API_KEY` env vars; `--output` caches the
+  extraction for reuse across ad groups
+- **`get_gmb_reviews.py`** (Step 6) — GBP review fallback via SERP local
+  results, with the 4.5★ rating threshold and ≤30-char social-proof headline
+  formatting; `SERP_API_KEY` env var
+- **`write_rsa_to_sheet.py`** (Step 8) — clears + writes the import-ready RSA
+  rows; `--sheet-id` (bare ID or URL); Sheets auth from a `token-sheets.json`
+  if present, else OAuth reuse from `google-ads.yaml`
+
+All scripts are read-only on Google Ads. SKILL.md and the skill README are
+updated for the shipped scripts (new Prerequisites section →
+google-ads-api-setup; the per-step data contracts now double as adaptation
+docs for swapping in your own SERP provider or scraper). BYO-script skills:
+1 → 0 — every script-driven skill in the repo now ships its scripts.
+
 ## 2026-07-10 — Google Ads API Setup: the 7-day token fix + diagrams
 
 [`google-ads-api-setup/`](google-ads-api-setup/) rewritten around the #1
