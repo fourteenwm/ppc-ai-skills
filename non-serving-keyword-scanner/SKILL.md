@@ -14,6 +14,12 @@ Identifies keywords across all your accounts that have received **zero impressio
 
 **Approach:** Human-in-the-Loop - Generates report only, no auto-pausing.
 
+## Prerequisites
+
+- **Credentials:** `google-ads.yaml` at project root — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one. The sheet-writing step reuses this same file's OAuth credentials for the Sheets API — its refresh token must carry the `spreadsheets` + `drive.readonly` scopes, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+- **Output sheet:** any Google Sheet you own — you pass its ID via `--sheet-id`
+- **Python packages:** `pip install google-ads gspread google-auth pyyaml`
+
 ## What It Scans
 
 **Included:**
@@ -28,9 +34,8 @@ Identifies keywords across all your accounts that have received **zero impressio
 
 ## Output
 
-**Google Sheet:** Run Rate Issues Analysis
-**Tab:** "Non-Serving Keywords"
-**Sheet ID:** `YOUR_SHEET_ID`
+**Google Sheet:** any spreadsheet you own — pass its ID with `--sheet-id`
+**Tab:** "Non-Serving Keywords" (created if missing, cleared and rewritten each run; override with `--tab-name`)
 
 **Columns:**
 | Column | Description |
@@ -49,10 +54,7 @@ Identifies keywords across all your accounts that have received **zero impressio
 ## How to Run
 
 ```bash
-# Scan all accounts listed in accounts.md (default)
-python scripts/non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID
-
-# Scan a single account
+# Scan a single account — fastest first run
 python scripts/non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID
 
 # Scan multiple accounts
@@ -61,20 +63,36 @@ python scripts/non_serving_keyword_scan.py --cids "1234567890,2345678901" --shee
 # Scan all enabled accounts under your MCC (walks customer_client)
 python scripts/non_serving_keyword_scan.py --all --sheet-id YOUR_SHEET_ID
 
+# Scan a curated account list (copy accounts.example.md to accounts.md and edit)
+python scripts/non_serving_keyword_scan.py --accounts accounts.md --sheet-id YOUR_SHEET_ID
+
 # Custom threshold (e.g., 90 days instead of default 180)
-python scripts/non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID --days 90
+python scripts/non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID --days 90
 
 # Custom tab name
-python scripts/non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID --tab-name "Dead Keywords 90d"
+python scripts/non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID --tab-name "Dead Keywords 90d"
 ```
 
 **Required CLI args:** `--sheet-id` (Google Sheet ID for output)
 
-**Account selection (mutually exclusive, defaults to `--accounts accounts.md`):**
-- `--cid CID` — single account
+**Account selection — three modes (mutually exclusive; with no account flag the script defaults to `--accounts accounts.md`):**
+- `--cid CID` — single account (fastest first run)
 - `--cids CID1,CID2,...` — multiple accounts
 - `--all` — every enabled account under your MCC's `login_customer_id`
-- `--accounts PATH` — path to accounts.md (default: `./accounts.md`)
+- `--accounts PATH` — curated markdown list (default: `./accounts.md`); a starter file ships with this skill as `accounts.example.md` — copy it and edit
+
+Running without a usable account source (e.g., the default mode with no `accounts.md` present) prints this mode list instead of a traceback.
+
+**Accounts file format** (see the shipped `accounts.example.md`) — one `### CID:` header per account, then one or more `- Name` lines; the FIRST name is the display name, extra lines are optional aliases:
+
+```markdown
+### CID: 123-456-7890
+- Example Client A
+
+### CID: 234-567-8901
+- Example Client B
+- Example Client B (alias)
+```
 
 **Optional flags:**
 - `--days N` — zero-impression threshold (default: 180)
@@ -97,8 +115,8 @@ Total accounts scanned: N
 Accounts with non-serving keywords: 23
 Total non-serving keywords found: 156
 
-Results written to Google Sheet:
-https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=XXXXXXX
+Results written to:
+https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit
 ```
 
 ## After Running
@@ -126,6 +144,9 @@ https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=XXXXXXX
 
 ## Troubleshooting
 
+**"Accounts file not found" / "No accounts parsed"**
+- Pick an account source: `--cid`, `--cids`, `--all`, or `--accounts` (copy `accounts.example.md` to `accounts.md` and edit)
+
 **"No keywords found"**
 - Check if Search campaigns exist and are enabled
 - Verify date range is correct (180 days)
@@ -134,6 +155,9 @@ https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=XXXXXXX
 - Script continues with other accounts
 - Check if account is accessible under MCC
 
+**403 / "insufficient authentication scopes" writing the sheet**
+- Your `google-ads.yaml` refresh token predates the Sheets scopes — re-run the `google-ads-api-setup` generator once and paste the new refresh_token
+
 **"Sheet not updating"**
 - Verify gspread authentication is current
 - Check Sheet ID is correct
@@ -141,11 +165,9 @@ https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=XXXXXXX
 ## Related Skills
 
 - `conversion-tracking-health` - Similar portfolio-wide audit pattern
-- `google-ads-query-patterns` - GAQL templates
-- `google-sheets-lookups` - Sheet access patterns
+- `gaql-query-patterns` - GAQL templates
 
 ## Future Enhancements
 
-- Add `--days` flag for configurable threshold (90, 180, 365)
-- Add `--portfolio` flag to scan specific portfolio only
-- Add "Pause Selected" mode with MutationGuard approval
+- Add `--portfolio` flag to scan a specific portfolio only
+- Add "Pause Selected" mode gated by the `mutation-safety` approval flow

@@ -10,10 +10,10 @@ Scans all accounts in a portfolio for keywords with zero impressions in the last
 
 ## What's Inside
 
-- Portfolio-wide scan across all accounts under your MCC
+- Three account-source modes: explicit CIDs (`--cid`/`--cids`), whole-MCC walk (`--all`), or a curated accounts file (starter template ships as `accounts.example.md`)
 - Filters to Search campaigns only, with enabled campaigns/ad groups/keywords
 - Excludes known exceptions (dynamic pricing ad groups like "special"/"specials")
-- Outputs to Google Sheet with account name, CID, campaign, ad group, keyword, and match type
+- Outputs to any Google Sheet you own, with account name, CID, campaign, ad group, keyword, and match type
 - Human-in-the-loop design: generates report only, never auto-pauses keywords
 - Progress output showing per-account results as the scan runs
 
@@ -30,18 +30,31 @@ The `.mmd` sources for both diagrams live in `diagrams/` — they're
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/non-serving-keyword-scanner
+mkdir -p .claude/skills/non-serving-keyword-scanner/scripts
 curl -o .claude/skills/non-serving-keyword-scanner/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/SKILL.md
+curl -o .claude/skills/non-serving-keyword-scanner/scripts/non_serving_keyword_scan.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/scripts/non_serving_keyword_scan.py
+curl -o .claude/skills/non-serving-keyword-scanner/accounts.example.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/accounts.example.md
 ```
+
+First run (single account, no other files needed beyond your credentials):
+
+```bash
+python .claude/skills/non-serving-keyword-scanner/scripts/non_serving_keyword_scan.py \
+  --cid 1234567890 --sheet-id YOUR_SHEET_ID
+```
+
+To scan a curated list instead, copy `accounts.example.md` to `./accounts.md` and edit — one `### CID: 123-456-7890` header per account with one or more `- Name` lines under it (first name is the display name). `--all` walks every enabled account under your MCC. Run with no usable account source and the script prints the three modes instead of a traceback.
 
 ---
 
 ## Prerequisites
 
-- Google Ads API credentials (YAML config) with MCC access
-- Google Sheets API credentials (`gspread` authentication)
-- Python with `google-ads` and `gspread` packages
+- Google Ads API credentials (`google-ads.yaml` at project root) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one; MCC access required for `--all`
+- The sheet-writing step reuses that same `google-ads.yaml` OAuth token — its refresh token needs the `spreadsheets` + `drive.readonly` scopes, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+- Python with `google-ads`, `gspread`, `google-auth`, and `pyyaml` packages
 
 ---
 

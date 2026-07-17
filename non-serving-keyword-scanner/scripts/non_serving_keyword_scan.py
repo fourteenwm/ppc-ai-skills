@@ -7,10 +7,7 @@ Scans Google Ads accounts for keywords with 0 impressions over a threshold perio
 Human-in-the-loop by design: generates a report only, never auto-pauses.
 
 Usage:
-    # Scan all accounts listed in accounts.md (expects file at ./accounts.md)
-    python non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID
-
-    # Scan a single account by CID
+    # Scan a single account by CID (fastest first run)
     python non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID
 
     # Scan multiple accounts (comma-separated CIDs)
@@ -19,15 +16,19 @@ Usage:
     # Scan all accounts under the MCC (walks customer_client resource)
     python non_serving_keyword_scan.py --all --sheet-id YOUR_SHEET_ID
 
-    # Custom threshold and tab name
-    python non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID --days 90 --tab-name "Dead Keywords 90d"
-
-    # Different accounts.md location
+    # Scan a curated account list (default mode; expects ./accounts.md —
+    # copy accounts.example.md from this skill and edit)
+    python non_serving_keyword_scan.py --sheet-id YOUR_SHEET_ID
     python non_serving_keyword_scan.py --accounts /path/to/my/accounts.md --sheet-id YOUR_SHEET_ID
 
+    # Custom threshold and tab name
+    python non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID --days 90 --tab-name "Dead Keywords 90d"
+
 Prerequisites:
-    - google-ads.yaml at project root (Google Ads API + Sheets scopes on the refresh token)
-    - accounts.md at project root if using default scan-all mode (see accounts.md format below)
+    - google-ads.yaml at project root (Google Ads API + Sheets scopes on the refresh
+      token; the google-ads-api-setup skill's generator grants all of them)
+    - accounts.md at project root only if using the curated-list default mode
+      (accounts.example.md ships with this skill; format also below)
     - pip install google-ads gspread google-auth pyyaml
 
 accounts.md format:
@@ -60,6 +61,26 @@ if sys.platform == 'win32':
 # Ad groups to exclude (case-insensitive) — typically dynamic pricing ad groups
 # where keywords cycle in and out of the account regularly.
 EXCLUDED_AD_GROUPS = ["special", "specials"]
+
+ACCOUNT_SOURCE_HELP = """\
+Account sources — three modes, pick one:
+  1. Explicit CIDs (fastest first run):  --cid 1234567890
+                                         --cids "1234567890,2345678901"
+  2. Whole MCC:                          --all
+     (every enabled account under login_customer_id in google-ads.yaml)
+  3. Curated list file:                  --accounts my-accounts.md
+     (default mode reads ./accounts.md; copy accounts.example.md from
+      this skill and edit — format:)
+       ### CID: 123-456-7890
+       - Account Display Name"""
+
+
+def exit_with_account_source_help(reason: str):
+    """Print friendly account-source guidance instead of a traceback, then exit."""
+    print(f"ERROR: {reason}")
+    print()
+    print(ACCOUNT_SOURCE_HELP)
+    sys.exit(1)
 
 
 def parse_accounts_file(accounts_path: Path) -> list[tuple[str, str]]:
@@ -286,6 +307,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Scan Google Ads accounts for keywords with 0 impressions over a threshold period.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=ACCOUNT_SOURCE_HELP,
     )
 
     # Account selection (mutually exclusive)
@@ -341,8 +363,14 @@ def main():
         accounts = get_mcc_accounts(ads_client, login_cid)
     else:
         accounts_path = Path(args.accounts)
+        if not accounts_path.exists():
+            exit_with_account_source_help(f"Accounts file not found: {accounts_path}")
         print(f"Loading accounts from {accounts_path}...")
         accounts = parse_accounts_file(accounts_path)
+        if not accounts:
+            exit_with_account_source_help(
+                f"No accounts parsed from {accounts_path} — is it in the documented format?"
+            )
 
     print(f"Found {len(accounts)} account(s) to scan\n")
 
@@ -389,13 +417,22 @@ def main():
 
     if all_results:
         print("\nWriting results to Google Sheet...")
-        write_to_sheet(
-            sheets_client,
-            args.sheet_id,
-            args.tab_name,
-            all_results,
-            args.days,
-        )
+        try:
+            write_to_sheet(
+                sheets_client,
+                args.sheet_id,
+                args.tab_name,
+                all_results,
+                args.days,
+            )
+        except gspread.exceptions.APIError as ex:
+            if "403" in str(ex) or "PERMISSION_DENIED" in str(ex):
+                print("ERROR: Google Sheets refused the request (403).")
+                print(f"Most likely the refresh token in {args.config} was minted without")
+                print("the Sheets scopes. Re-run the google-ads-api-setup generator once")
+                print("and paste the new refresh_token into your google-ads.yaml.")
+                sys.exit(1)
+            raise
         print(f"\nResults written to:")
         print(f"https://docs.google.com/spreadsheets/d/{args.sheet_id}/edit")
     else:
