@@ -32,6 +32,13 @@ Usage (with manual pipe-delimited ad copy - FALLBACK ONLY):
         --video-ids "XAT3n5wXV1o|UJnLVhDRc54" \
         --remarketing-segments "Account;All visitors (AdWords);All Users of GA" \
         --output "data/pmax-builds/acme-plumbing-pmax.csv"
+
+Prerequisites:
+    - Sheet mode (--sheet-id): google-ads.yaml at project root (or --config <path>)
+      with the Sheets scopes on its refresh token -- see the google-ads-api-setup
+      skill; pip install gspread google-auth pyyaml
+    - Manual mode (--headlines/--long-headlines/--descriptions): no Google
+      credentials needed
 """
 
 import argparse
@@ -45,7 +52,6 @@ from pathlib import Path
 TOTAL_COLUMNS = 115
 SCRIPT_DIR = Path(__file__).parent
 TEMPLATES_DIR = SCRIPT_DIR.parent / "templates"
-PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent.parent
 
 # 115 column headers matching Google Ads Editor PMax export format
 HEADER = [
@@ -123,7 +129,44 @@ def extract_video_id(url_or_id):
     return url_or_id.strip()
 
 
-def read_ad_copy_from_sheet(sheet_id):
+def get_sheets_client(config_path):
+    """Create a gspread client using the OAuth credentials from google-ads.yaml.
+
+    House pattern shared by this catalog's Sheets-reading skills (see
+    non-serving-keyword-scanner for another worked example): the refresh token
+    in google-ads.yaml must include these scopes — the google-ads-api-setup
+    generator grants them by default:
+        - https://www.googleapis.com/auth/spreadsheets
+        - https://www.googleapis.com/auth/drive.readonly
+    """
+    import gspread
+    import yaml
+    from google.oauth2.credentials import Credentials
+
+    if not os.path.exists(config_path):
+        print(f"ERROR: Credentials not found at {config_path}")
+        print("See the google-ads-api-setup skill for how to create google-ads.yaml")
+        sys.exit(1)
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        ads_config = yaml.safe_load(f)
+
+    credentials = Credentials(
+        token=None,
+        refresh_token=ads_config.get("refresh_token"),
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=ads_config.get("client_id"),
+        client_secret=ads_config.get("client_secret"),
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.readonly",
+        ],
+    )
+
+    return gspread.authorize(credentials)
+
+
+def read_ad_copy_from_sheet(sheet_id, config_path):
     """Read headlines, long headlines, and descriptions directly from Google Sheet.
 
     Sheet format (confirmed):
@@ -140,39 +183,22 @@ def read_ad_copy_from_sheet(sheet_id):
 
     Returns dict with headlines, long_headlines, descriptions lists.
     """
-    from google.oauth2.credentials import Credentials
-    from google.auth.transport.requests import Request
-    from googleapiclient.discovery import build
+    import gspread
 
-    token_path = PROJECT_ROOT / "credentials" / "token.json"
-    oauth_path = PROJECT_ROOT / "credentials" / "oauth-client.json"
+    sheets_client = get_sheets_client(config_path)
 
-    with open(token_path) as f:
-        token_data = json.load(f)
-    with open(oauth_path) as f:
-        installed = json.load(f)["installed"]
-
-    creds = Credentials(
-        token=token_data.get("access_token"),
-        refresh_token=token_data.get("refresh_token"),
-        token_uri="https://oauth2.googleapis.com/token",
-        client_id=installed["client_id"],
-        client_secret=installed["client_secret"],
-        scopes=token_data.get("scope", "").split(),
-    )
-    if creds.expired:
-        creds.refresh(Request())
-
-    sheets = build("sheets", "v4", credentials=creds)
-
-    # Read column A rows 1-35 — full cell content, no truncation
-    result = (
-        sheets.spreadsheets()
-        .values()
-        .get(spreadsheetId=sheet_id, range="A1:A35")
-        .execute()
-    )
-    values = result.get("values", [])
+    # Read column A rows 1-35 from the first tab — full cell content
+    try:
+        worksheet = sheets_client.open_by_key(sheet_id).get_worksheet(0)
+        values = worksheet.get("A1:A35")
+    except gspread.exceptions.APIError as e:
+        if "403" in str(e) or "PERMISSION_DENIED" in str(e):
+            print("ERROR: Google Sheets refused the request (403).")
+            print(f"Most likely the refresh token in {config_path} was minted without")
+            print("the Sheets scopes. Re-run the google-ads-api-setup generator once")
+            print("and paste the new refresh_token into your google-ads.yaml.")
+            sys.exit(1)
+        raise
 
     def cell(row_num):
         """Get cell value by 1-based row number."""
@@ -352,6 +378,8 @@ def main():
 
     # Ad copy: either --sheet-id OR manual --headlines/--long-headlines/--descriptions
     parser.add_argument("--sheet-id", default=None, help="Google Sheet ID for ad copy (reads rows directly)")
+    parser.add_argument("--config", default="google-ads.yaml",
+                        help="Path to google-ads.yaml (default: ./google-ads.yaml); only used with --sheet-id")
     parser.add_argument("--headlines", default=None, help="Pipe-delimited headlines (up to 15) -- fallback if no --sheet-id")
     parser.add_argument("--long-headlines", default=None, help="Pipe-delimited long headlines (up to 5)")
     parser.add_argument("--descriptions", default=None, help="Pipe-delimited descriptions (up to 5)")
@@ -372,7 +400,7 @@ def main():
 
     # Load ad copy -- prefer sheet, fall back to CLI args
     if args.sheet_id:
-        ad_copy = read_ad_copy_from_sheet(args.sheet_id)
+        ad_copy = read_ad_copy_from_sheet(args.sheet_id, args.config)
     elif args.headlines and args.long_headlines and args.descriptions:
         ad_copy = {
             "headlines": [h.strip() for h in args.headlines.split("|")],

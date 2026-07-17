@@ -1,4 +1,5 @@
 {
+  "_comment": "MULTIFAMILY/APARTMENT DEFAULTS - swap these search themes for your own vertical's terms before building. See 'Vertical Note' in SKILL.md.",
   "generic": [
     "apartments for rent",
     "luxury apartments",

@@ -1,4 +1,5 @@
 {
+  "_comment": "MULTIFAMILY/APARTMENT DEFAULTS - Renters / Moving-Soon audiences. Swap for your own vertical's audience taxonomy before building. See 'Vertical Note' in SKILL.md.",
   "interest_categories": "Real Estate>Residential Properties>Residential Properties (For Rent)>Apartments (For Rent);Real Estate>Residential Properties>Residential Properties (For Rent)>Apartments (For Rent)>Furnished Apartments;Real Estate>Residential Properties>Residential Properties (For Rent)>Apartments (For Rent)>Unfurnished Apartments",
   "life_events": "Moving>Moving Soon",
   "detailed_demographics": "Homeownership Status>Renters"
