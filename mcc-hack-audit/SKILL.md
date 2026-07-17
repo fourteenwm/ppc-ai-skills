@@ -43,10 +43,10 @@ If you'd rather not see long-standing trusted MCCs in the suspicious list, the s
 
 ## Prerequisites
 
-- Google Ads API credentials YAML with MCC access (`google-ads.yaml`)
+- Google Ads API credentials YAML with MCC access (`google-ads.yaml`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one
 - Your `login_customer_id` set in the YAML — the script auto-detects your tree from this
 - Python packages: `google-ads`, `pyyaml`
-- Optional: `gspread` if you want Sheets upload
+- Optional: `gspread` if you want Sheets upload — auth is `gspread.service_account()`: service-account JSON at gspread's default location (`~/.config/gspread/service_account.json`), target sheet shared with the service account's email; or adapt `maybe_upload_to_sheets()` to reuse the `google-ads.yaml` OAuth credentials like this repo's other Sheets-writing skills
 
 ## How to Run
 

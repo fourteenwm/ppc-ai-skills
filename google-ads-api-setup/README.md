@@ -16,6 +16,7 @@ Get your Google Ads API connection working from scratch. This is the prerequisit
 - The ability to query any account under your MCC
 - A test script that confirms everything works
 - Credentials that **keep working** — not ones that expire after 7 days
+- One token that also covers **Google Sheets** — the skills in this catalog that write reports to Sheets reuse it straight from your `google-ads.yaml`, no second OAuth setup
 
 ---
 
@@ -176,10 +177,12 @@ Run the credential generator script included in this folder:
 python generate_credentials.py --client-secrets client_secret.json
 ```
 
+The consent screen will ask for three permissions in one go: **Google Ads**, **Google Sheets**, and **Drive (read-only)**. The Ads scope is the API connection itself. The Sheets and Drive-read scopes are there because the skills in this catalog that write reports to Google Sheets (non-serving-keyword-scanner, ads-checker, rsa-refresh, sqr-pipeline, and others) reuse this same refresh token from your `google-ads.yaml` — one token, no second OAuth flow. Scopes are fixed the moment a token is minted, so granting all three now is what makes that work.
+
 1. Your browser opens automatically (the URL also prints in the terminal as a fallback — paste it into a browser yourself if nothing opens)
 2. Sign in with the Google account that has Google Ads access
 3. **External apps:** you'll see **"Google hasn't verified this app"** — click **Advanced → Go to [your app name] (unsafe)**. This is expected: it's *your own* app, you trust it. (Internal apps skip this screen entirely.)
-4. Grant the requested permissions
+4. Grant the requested permissions — if Google shows **individual checkboxes** (Ads / Sheets / Drive), **tick all of them**. The script warns you if any were skipped.
 5. The terminal shows: `Your refresh token is: 1//0xxxxxxx...`
 6. **Copy this token** — you'll need it in the next step
 
@@ -187,7 +190,9 @@ python generate_credentials.py --client-secrets client_secret.json
 
 **Common mistake:** The "unverified app" warning scares people off. Since you created this app yourself, it's safe to continue.
 
-✅ **Check:** The terminal printed a refresh token starting with `1//`.
+✅ **Check:** The terminal printed a refresh token starting with `1//`, with no missing-permission warning.
+
+> **Did this setup before 2026-07-17?** Your existing token carries only the Ads scope — it keeps working for everything Ads-only, but skills that write to Google Sheets will fail with 403 errors. Re-run this step once (a refresh token can't gain scopes after the fact) and paste the new `refresh_token` into your `google-ads.yaml`. Nothing else in your setup changes.
 
 ---
 
@@ -269,6 +274,11 @@ One of:
 - The Google account you authorized with in Step 7 doesn't have access to this MCC. Check your MCC → Accounts to verify, and confirm which account you signed in with.
 - Your `login_customer_id` still has dashes in it. Digits only: `1234567890`.
 
+### A skill's Google Sheets step fails with 403 / "insufficient authentication scopes" (but the connection test passes)
+Your refresh token doesn't carry the Sheets scopes. Two causes:
+1. **The token predates 2026-07-17**, when this generator started requesting the Sheets + Drive-read scopes alongside Ads. Re-run Step 7 and update `refresh_token` in your YAML.
+2. **Consent checkboxes were left unticked.** If Google showed individual permission checkboxes during authorization, all of them must be ticked. Re-run Step 7 and tick everything — the script warns at the end if a permission is missing.
+
 ### "ModuleNotFoundError: No module named 'google.ads'"
 Run `pip install google-ads` again. If using a virtual environment, make sure it's activated.
 
@@ -287,7 +297,7 @@ Delete the OAuth client (Credentials page → trash icon). Delete the project (I
 
 - **Never commit** `google-ads.yaml` or `client_secret.json` to git
 - Add both to your `.gitignore`
-- Your refresh token grants full access to your Google Ads accounts — treat it like a password
+- Your refresh token grants full access to your Google Ads accounts — plus, with the scopes from Step 7, read/write access to your Google Sheets and read access to your Drive file listing. Treat it like a password
 - If you suspect a token is compromised, revoke it at [myaccount.google.com/permissions](https://myaccount.google.com/permissions)
 
 ---

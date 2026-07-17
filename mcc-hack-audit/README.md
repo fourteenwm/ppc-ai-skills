@@ -34,10 +34,10 @@ curl -o .claude/skills/mcc-hack-audit/scripts/mcc_hack_audit.py \
 
 ## Prerequisites
 
-- Google Ads API credentials YAML with MCC access (`google-ads.yaml`)
+- Google Ads API credentials YAML with MCC access (`google-ads.yaml`) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one
 - `login_customer_id` set in the YAML — the script reads this to detect your tree
 - Python packages: `google-ads`, `pyyaml`
-- Optional: `gspread` if you want Google Sheets upload (`pip install gspread google-auth`)
+- Optional: `gspread` if you want Google Sheets upload (`pip install gspread google-auth`). The upload authenticates via `gspread.service_account()` — put a service-account JSON at gspread's default location (`~/.config/gspread/service_account.json`) and share the target sheet with that service account's email, or adapt `maybe_upload_to_sheets()` to reuse the OAuth credentials from your `google-ads.yaml` the way this repo's other Sheets-writing skills do (see ads-checker for a worked example)
 
 ---
 

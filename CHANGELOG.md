@@ -2,6 +2,34 @@
 
 All notable changes to this repository.
 
+## 2026-07-17 — Google Ads API Setup: one token now covers Sheets too
+
+[`google-ads-api-setup/`](google-ads-api-setup/)'s `generate_credentials.py`
+now requests three scopes by default — `adwords` + `spreadsheets` +
+`drive.readonly` (previously `adwords` only). Why: this catalog's house
+pattern reuses the `google-ads.yaml` refresh token for Google Sheets output —
+non-serving-keyword-scanner, ads-checker, rsa-refresh, rsa-single-account,
+sqr-pipeline, and others all authenticate their Sheets writes with that same
+token. A token minted with only the Ads scope passes the connection test,
+then 403s at exactly the Sheets step of those skills. Scopes are fixed at
+consent time, so the generator now grants everything the catalog needs up
+front.
+
+- **Already set up?** If your refresh token predates this change, re-run the
+  generator once (`python generate_credentials.py --client-secrets
+  client_secret.json`) and paste the new `refresh_token` into your
+  `google-ads.yaml`. Nothing else changes — `test_connection.py` and every
+  Ads-only skill behave identically with the wider token.
+- The generator now also survives Google's granular-consent screen (a partial
+  grant no longer crashes the flow) and warns when any requested permission
+  was left unticked. SKILL.md + README document the token's coverage, the
+  re-run note, and a new Sheets-403 troubleshooting entry.
+- [`mcc-hack-audit/`](mcc-hack-audit/) (drive-by): its optional Sheets upload
+  now documents its auth path — `gspread.service_account()` reading a
+  service-account JSON from gspread's default location, or adapt the upload
+  to the yaml-reuse pattern — and its Prerequisites gain the standard
+  [`google-ads-api-setup`](google-ads-api-setup/) pointer.
+
 ## 2026-07-10 — Release: RSA Single-Account ships its scripts
 
 [`rsa-single-account/`](rsa-single-account/) is no longer bring-your-own-script —
