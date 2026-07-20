@@ -25,16 +25,20 @@ When invoked via `Task(subagent_type="general-purpose", prompt="Use the underspe
 
 ## Auto-Load Domain Knowledge Skills
 
-**CRITICAL:** At the start of every investigation, auto-invoke these companion skills via the Skill tool to load the frameworks, formulas, and decision trees:
+**CRITICAL:** At the start of every investigation, auto-invoke these three companion skills via the Skill tool to load the frameworks, formulas, and decision trees:
 
-1. `campaign-line-filtering` — Which campaigns to analyze based on account designation (Pmax / Demand Gen / Search by name suffix)
-2. `portfolio-pacing-rules` — Pacing thresholds and budget management philosophy for your portfolios
-3. `google-sheets-lookups` — Reference for budget and pacing data sources
-4. `google-ads-query-patterns` — GAQL patterns for data extraction
-5. `impression-share-diagnostics` — Root-cause diagnosis framework for Search campaigns
-6. `budget-recommendation-calculator` — Conservative budget calculation methodology
+1. `portfolio-pacing-rules` — Pacing thresholds and budget management philosophy for your portfolios
+2. `impression-share-diagnostics` — Root-cause diagnosis framework for Search campaigns
+3. `budget-recommendation-calculator` — Conservative budget calculation methodology
 
-Do this BEFORE analyzing script output. These six companion skills are each shipped as standalone skills in this repo.
+Do this BEFORE analyzing script output. All three are shipped as standalone skills in this repo; the investigation will not work correctly without them.
+
+**Optional reference (also in this repo):** `gaql-query-patterns` — GAQL templates for spend, impression share, and settings queries. The shipped script already handles all data extraction, so load it only when extending the script or running ad-hoc follow-up queries.
+
+**Inlined frameworks (bring your own conventions):** The protocol's other two frameworks come from internal, portfolio-specific skills that don't publish — they encode one shop's account-naming conventions and pacing-sheet layouts. Their diagnostic content is fully inlined in the steps below, so nothing is missing; supply your own conventions where the steps call for them:
+
+- **Campaign-line filtering** (Step 2) — decide which campaigns are in scope per your own account-naming convention.
+- **Pacing-data lookups** (Step 1) — point the recent-optimizations check at your own budget/pacing data source (see "Script Contract" for the extension hooks).
 
 ---
 
@@ -70,13 +74,13 @@ The script:
 3. Pulls impression share metrics (Search IS, Budget Lost IS, Rank Lost IS) with a threshold-based root-cause readout per campaign (Pmax is flagged separately — its Search IS metrics are not meaningful)
 4. Computes month-to-date pacing (MTD spend vs. expected spend at today's day-of-month, variance %) from campaign daily budgets — or from the true contracted budget when `--monthly-budget` is supplied
 
-The script handles data collection. The skill's job is to read/interpret the script output, apply the diagnostic frameworks from the auto-loaded companion skills, and synthesize findings into actionable recommendations. To wire the script into your own pacing dashboard or optimization logs, see "Script Contract" below.
+The script handles data collection. The skill's job is to read/interpret the script output, apply the diagnostic frameworks (the auto-loaded companion skills plus the inlined steps below), and synthesize findings into actionable recommendations. To wire the script into your own pacing dashboard or optimization logs, see "Script Contract" below.
 
 ---
 
 ### Step 1: Recent Optimizations Check
 
-**Reference Skill:** `google-sheets-lookups`
+**Data source (yours):** your budget-change / optimization log — see "Script Contract" → Optimization log. If you don't keep one, `change-history-checker` in this repo answers the same question from the API's change history.
 
 **Goal:** Determine if recent budget changes explain the underspending.
 
@@ -95,7 +99,7 @@ The script handles data collection. The skill's job is to read/interpret the scr
 
 ### Step 2: Campaign Spend Pattern Analysis
 
-**Reference Skill:** `campaign-line-filtering`
+**Framework (inlined):** campaign-line filtering — decide which of the account's campaigns are in scope per your own account-naming convention.
 
 **Goal:** Understand which campaigns are spending and how budgets are structured.
 
@@ -114,7 +118,7 @@ The script handles data collection. The skill's job is to read/interpret the scr
 
 **Skill analysis:**
 
-- Filter the campaign list by line designation per `campaign-line-filtering` (Pmax / Demand Gen / Search by account name suffix)
+- Filter the campaign list by line designation per your account-naming convention (e.g., a name suffix marking the account's line: Pmax / Demand Gen / Search)
 - Set aside ENDED / REMOVED campaigns when diagnosing current pacing
 - Note unusual patterns (paused campaigns with spend, shared-budget imbalances)
 - Identify primary spending campaigns
@@ -255,7 +259,7 @@ The skill is NOT required to run all steps. Use judgment:
 
 ## Tools Used
 
-- **Skill** — Auto-invoke the six domain knowledge companion skills (CRITICAL — use at start)
+- **Skill** — Auto-invoke the three required companion skills (CRITICAL — use at start)
 - **Read** — Read sheet exports, read script output
 - **Bash** — Run the investigation script
 - **Grep / Glob** — Find supporting scripts if a deep dive is needed
@@ -324,7 +328,7 @@ Step 1: Recent Optimizations
 
 Step 2: Campaign Spend Analysis
 {Filtered campaigns, budget structure, utilization %}
-{Note: Apply line-designation filtering per campaign-line-filtering}
+{Note: Apply line-designation filtering per your campaign-naming convention (Step 2)}
 
 Step 3: Impression Share Analysis
 {IS metrics per campaign, interpreted using impression-share-diagnostics decision tree}
@@ -376,9 +380,9 @@ Confidence Level: {High | Medium | Low}
 
 Investigation is successful if:
 
-1. ✅ All six domain-knowledge companion skills auto-invoked at the start
+1. ✅ All three required companion skills auto-invoked at the start
 2. ✅ Clear root cause identified with evidence
-3. ✅ Diagnostic frameworks from the companion skills applied correctly
+3. ✅ Diagnostic frameworks from the companion skills and inlined steps applied correctly
 4. ✅ Specific, actionable recommendations (exact budget amounts, not "increase budget")
 5. ✅ WHY the underspending is happening is explained (not just WHAT)
 6. ✅ Diagnosis backed by data from script output
@@ -388,7 +392,7 @@ Investigation is successful if:
 
 ## Important Notes
 
-- **Auto-invoke companion skills FIRST** — load all six frameworks before analyzing script output
+- **Auto-invoke companion skills FIRST** — load the three required companion skills before analyzing script output
 - **Be autonomous** — don't ask for permission at each step, just investigate
 - **Be adaptive** — if Step 1 explains everything (ramp-up period), stop there
 - **Be specific** — "Increase budget from $1,000 to $1,065 (+6.5%)" not just "increase budget"
@@ -410,15 +414,19 @@ The orchestrator launches N parallel `Task(subagent_type="general-purpose", …)
 
 ---
 
-## Companion Skills (Required)
+## Companion Skills
 
-All six are shipped in this repo as standalone skills:
+**Required — all three in this repo.** The core diagnostic frameworks live inside them; the investigation will not work correctly without these:
 
-- `campaign-line-filtering` — account-suffix → campaign-line filtering rules
 - `portfolio-pacing-rules` — pacing thresholds and budget management philosophy (configure for your portfolios)
-- `google-sheets-lookups` — sheet read patterns for pacing dashboards
-- `google-ads-query-patterns` — GAQL templates for spend, IS, pacing, settings queries
 - `impression-share-diagnostics` — IS decision tree and Pmax / Display caveats
 - `budget-recommendation-calculator` — conservative budget calc methodology with decision tree
 
-Install all six alongside this skill for full functionality.
+**Optional — also in this repo:**
+
+- `gaql-query-patterns` — GAQL templates for spend, IS, pacing, and settings queries (useful when extending the shipped script)
+- `change-history-checker` — API-based recent-changes lookup for Step 1 if you don't keep an optimization log
+
+**Bring your own:** campaign-line filtering conventions (Step 2) and budget/pacing data sources (Step 1) are inlined in the protocol steps — adapt them to your account-naming and reporting infrastructure.
+
+Install the three required companions alongside this skill for full functionality.

@@ -8,7 +8,7 @@ Diagnose root causes of Google Ads account underspending and produce a specific,
 
 ## What's Inside
 
-- Six-framework diagnostic protocol (campaign filtering → pacing rules → sheet lookups → GAQL → impression share → budget calc) auto-loaded at investigation start
+- Six-framework diagnostic protocol (campaign filtering → pacing rules → pacing-data lookups → GAQL → impression share → budget calc) — the three core frameworks ship as required companion skills in this repo and auto-load at investigation start; the rest are inlined in the protocol or optional references
 - Adaptive investigation — stop early if Step 1 explains the issue, pivot if data suggests a different path
 - Decision tree for budget-too-low vs. quality-issues vs. low-demand vs. ramp-up scenarios
 - Conservative budget calculation methodology with a hard 10% increase cap per single change
@@ -31,15 +31,22 @@ curl -o .claude/skills/underspending-investigation/scripts/investigate_underspen
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/scripts/investigate_underspend.py
 ```
 
-Then install the six companion skills (also in this repo):
+Then install the three required companion skills (also in this repo):
 
 ```bash
-for skill in campaign-line-filtering portfolio-pacing-rules google-sheets-lookups \
-             google-ads-query-patterns impression-share-diagnostics budget-recommendation-calculator; do
+for skill in portfolio-pacing-rules impression-share-diagnostics budget-recommendation-calculator; do
   mkdir -p .claude/skills/$skill
   curl -o .claude/skills/$skill/SKILL.md \
     https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/$skill/SKILL.md
 done
+```
+
+Optional — the GAQL reference used when extending the shipped script:
+
+```bash
+mkdir -p .claude/skills/gaql-query-patterns
+curl -o .claude/skills/gaql-query-patterns/SKILL.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/gaql-query-patterns/SKILL.md
 ```
 
 ---
@@ -79,7 +86,7 @@ The SKILL.md's "Script Contract" section documents how to adapt the script to yo
 
 The skill will:
 
-1. Auto-load the six companion skills via the Skill tool
+1. Auto-load the three required companion skills via the Skill tool
 2. Run `scripts/investigate_underspend.py "Example Property - Pmax"`
 3. Apply the diagnostic decision trees to the script output
 4. Produce a standardized investigation report with root cause, evidence, and a specific budget recommendation (or no-action call)
@@ -157,16 +164,15 @@ Confidence Level: Medium
 
 ## Companion Skills
 
-This skill auto-loads six companion skills via the Skill tool. All are in this repo:
+This skill auto-loads three required companion skills via the Skill tool. All three are in this repo, and the investigation will not work correctly without them — the core diagnostic frameworks live inside:
 
-- `campaign-line-filtering`
 - `portfolio-pacing-rules`
-- `google-sheets-lookups`
-- `google-ads-query-patterns`
 - `impression-share-diagnostics`
 - `budget-recommendation-calculator`
 
-The investigation will not work correctly without these; the diagnostic frameworks live inside them.
+Optional, also in this repo: `gaql-query-patterns` (GAQL templates, useful when extending the shipped script) and `change-history-checker` (API-based recent-changes lookup for the recent-optimizations step).
+
+The protocol's other two frameworks — campaign-line filtering and pacing-data lookups — come from internal, portfolio-specific skills that don't publish; their diagnostic content is fully inlined in SKILL.md, so nothing is missing. Supply your own account-naming conventions and budget/pacing data sources.
 
 ---
 
