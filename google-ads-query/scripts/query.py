@@ -1,22 +1,37 @@
 #!/usr/bin/env python3
 """
-Unified Google Ads Query Script
+Google Ads Query -> CSV
 
-Queries Google Ads API and saves results to CSV.
-Implements the CSV-first pattern for context-efficient analysis.
+Queries the Google Ads API using a shipped GAQL template and saves results
+to CSV. Implements the CSV-first pattern for context-efficient analysis:
+data lands in a file, only the file path and row count print.
 
 Usage:
-    python query.py --profile agency_1 --account example-account --resource search-terms --days 30
+    # Bare CID -- no other files needed beyond your credentials
+    python query.py --cid 1234567890 --resource search-terms --days 30
+
+    # Account name or alias, resolved via an optional accounts.json registry
+    python query.py --account "riverside flats" --resource campaigns
+
+Credentials:
+    google-ads.yaml at project root (override with --config) -- see the
+    google-ads-api-setup skill for creating it. Querying client accounts
+    through a manager account requires login_customer_id in the yaml.
+
+accounts.json (optional; default ./accounts.json, override with --accounts):
+    A name->CID registry so you can say "riverside flats" instead of pasting
+    CIDs. Copy accounts.example.json from this skill's folder and edit.
+    Bare --cid runs never read it.
 
 Output:
-    Saves CSV to data/google-ads/[profile]/YYYYMMDD-[account]-[resource].csv
-    Prints only file path and row count (minimal context usage)
+    data/YYYYMMDD-[account]-[resource].csv in the current directory
+    (override with --output). Read-only: this script only ever runs
+    SELECT queries; it never mutates anything.
 """
 
 import argparse
 import csv
 import json
-import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -26,29 +41,48 @@ from google.ads.googleads.errors import GoogleAdsException
 from google.ads.googleads.util import get_nested_attr
 import proto
 
-
-def get_project_root():
-    """Get the PPC Power project root directory."""
-    # Script is at .claude/skills/google-ads-query/scripts/query.py
-    return Path(__file__).parent.parent.parent.parent.parent
+SKILL_DIR = Path(__file__).resolve().parent.parent
 
 
-def load_accounts(profile):
-    """Load accounts.json for the specified profile."""
-    root = get_project_root()
-    accounts_path = root / 'credentials' / profile / 'accounts.json'
+def load_ads_client(config_path):
+    """Load Google Ads client from yaml config."""
+    if not Path(config_path).exists():
+        print(f"ERROR: Credentials not found at {config_path}", file=sys.stderr)
+        print("See the google-ads-api-setup skill for how to create google-ads.yaml",
+              file=sys.stderr)
+        sys.exit(1)
+    return GoogleAdsClient.load_from_storage(str(config_path))
 
-    if not accounts_path.exists():
-        raise FileNotFoundError(f"Accounts file not found: {accounts_path}")
 
-    with open(accounts_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+def normalize_cid(cid):
+    """Strip dashes from a customer ID and validate it's 10 digits."""
+    digits = str(cid).replace('-', '').strip()
+    if not (digits.isdigit() and len(digits) == 10):
+        raise ValueError(
+            f"'{cid}' is not a valid customer ID (expected 10 digits, dashes ok)"
+        )
+    return digits
 
-    return data
+
+def load_accounts(accounts_path):
+    """Load the optional accounts.json registry."""
+    path = Path(accounts_path)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Accounts registry not found: {accounts_path}\n"
+            "--account needs a registry mapping names to CIDs. Either:\n"
+            "  - copy accounts.example.json (in this skill's folder) to "
+            "accounts.json and edit, or\n"
+            "  - skip the registry and pass the account's CID directly: "
+            "--cid 1234567890"
+        )
+
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 def resolve_account(accounts_data, account_query):
-    """Resolve account name/alias to account info."""
+    """Resolve account name/alias to (key, info) via the registry."""
     query_lower = account_query.lower().strip()
     accounts = accounts_data.get('accounts', {})
 
@@ -56,10 +90,8 @@ def resolve_account(accounts_data, account_query):
     if query_lower in accounts:
         return query_lower, accounts[query_lower]
 
-    # Try alias match
+    # Try name/alias match
     for key, info in accounts.items():
-        if query_lower == key:
-            return key, info
         if query_lower == info.get('name', '').lower():
             return key, info
         if query_lower in [a.lower() for a in info.get('aliases', [])]:
@@ -75,7 +107,7 @@ def resolve_account(accounts_data, account_query):
     if len(matches) == 1:
         return matches[0]
 
-    # No match found - raise with suggestions
+    # No unique match - raise with suggestions
     if matches:
         suggestions = [f"  - {k} ({v.get('name')})" for k, v in matches[:5]]
         raise ValueError(
@@ -83,7 +115,6 @@ def resolve_account(accounts_data, account_query):
             "\n".join(suggestions)
         )
     else:
-        # Show first 5 accounts as suggestions
         suggestions = list(accounts.keys())[:5]
         raise ValueError(
             f"Account '{account_query}' not found. Available accounts include:\n  - " +
@@ -92,12 +123,15 @@ def resolve_account(accounts_data, account_query):
 
 
 def load_gaql_template(resource):
-    """Load GAQL template for the specified resource."""
-    root = get_project_root()
-    template_path = root / '.claude' / 'skills' / 'google-ads-query' / 'references' / f'{resource}.gaql'
+    """Load the GAQL template shipped alongside this script."""
+    template_path = SKILL_DIR / 'references' / f'{resource}.gaql'
 
     if not template_path.exists():
-        raise FileNotFoundError(f"GAQL template not found: {template_path}")
+        available = sorted(p.stem for p in (SKILL_DIR / 'references').glob('*.gaql'))
+        raise FileNotFoundError(
+            f"No GAQL template for resource '{resource}'.\n"
+            "Available resources: " + ", ".join(available)
+        )
 
     return template_path.read_text(encoding='utf-8')
 
@@ -123,9 +157,8 @@ def format_value(value):
         return value
 
 
-def execute_query(credentials_path, customer_id, mcc_id, query):
+def execute_query(client, customer_id, query):
     """Execute GAQL query and return results as list of dicts."""
-    client = GoogleAdsClient.load_from_storage(credentials_path)
     ga_service = client.get_service("GoogleAdsService")
 
     # Add PARAMETERS to omit unselected resource names
@@ -194,55 +227,69 @@ def save_to_csv(results, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Query Google Ads and save to CSV')
-    parser.add_argument('--profile', required=True, help='Profile name (e.g. agency_1 or agency_2)')
-    parser.add_argument('--account', required=True, help='Account name or alias')
-    parser.add_argument('--resource', required=True, help='Resource type (e.g., search-terms)')
-    parser.add_argument('--days', type=int, default=30, help='Number of days (default: 30)')
-    parser.add_argument('--output', help='Output file path (auto-generated if not specified)')
+    parser = argparse.ArgumentParser(
+        description='Query Google Ads and save to CSV (read-only)')
+    target = parser.add_mutually_exclusive_group(required=True)
+    target.add_argument('--cid',
+                        help='Customer ID to query (10 digits, dashes ok)')
+    target.add_argument('--account',
+                        help='Account name or alias, resolved via the accounts.json registry')
+    parser.add_argument('--resource', required=True,
+                        help='Resource type (e.g. search-terms; see references/resources.md)')
+    parser.add_argument('--days', type=int, default=30,
+                        help='Number of days to query (default: 30)')
+    parser.add_argument('--output',
+                        help='Output CSV path (default: data/YYYYMMDD-[account]-[resource].csv)')
+    parser.add_argument('--config', default='google-ads.yaml',
+                        help='Path to google-ads.yaml (default: ./google-ads.yaml)')
+    parser.add_argument('--accounts', default='accounts.json',
+                        help='Path to accounts.json registry (default: ./accounts.json; '
+                             'only read when --account is used)')
 
     args = parser.parse_args()
 
-    root = get_project_root()
-
     try:
-        # Load credentials
-        credentials_path = root / 'credentials' / args.profile / 'google-ads.yaml'
-        if not credentials_path.exists():
-            print(f"ERROR: Credentials not found: {credentials_path}", file=sys.stderr)
-            sys.exit(1)
+        # Resolve the target account to a CID + filename slug
+        if args.cid:
+            customer_id = normalize_cid(args.cid)
+            account_slug = customer_id
+        else:
+            accounts_data = load_accounts(args.accounts)
+            account_key, account_info = resolve_account(accounts_data, args.account)
+            customer_id = normalize_cid(account_info['id'])
+            account_slug = account_key
 
-        # Load accounts
-        accounts_data = load_accounts(args.profile)
-        mcc_id = accounts_data.get('_meta', {}).get('mcc_id')
-
-        # Resolve account
-        account_key, account_info = resolve_account(accounts_data, args.account)
-        customer_id = account_info['id']
-
-        # Load GAQL template
+        # Load GAQL template and substitute the date range
         gaql_template = load_gaql_template(args.resource)
-
-        # Calculate date range and substitute
         start_date, end_date = calculate_date_range(args.days)
-        gaql = gaql_template.replace('{DATE_RANGE}', f"BETWEEN '{start_date}' AND '{end_date}'")
+        gaql = gaql_template.replace(
+            '{DATE_RANGE}', f"BETWEEN '{start_date}' AND '{end_date}'")
 
         # Generate output path if not specified
         if args.output:
             output_path = Path(args.output)
         else:
             date_str = datetime.now().strftime('%Y%m%d')
-            output_path = root / 'data' / 'google-ads' / args.profile / f'{date_str}-{account_key}-{args.resource}.csv'
+            output_path = Path('data') / f'{date_str}-{account_slug}-{args.resource}.csv'
 
-        # Execute query (returns list of dicts)
-        results = execute_query(str(credentials_path), customer_id, mcc_id, gaql)
+        # Execute query (read-only SELECT)
+        client = load_ads_client(args.config)
+        results = execute_query(client, customer_id, gaql)
 
         # Save to CSV
         row_count = save_to_csv(results, output_path)
 
         # Output minimal info (for context efficiency)
-        rel_path = output_path.relative_to(root)
-        print(f"File: {rel_path}")
+        if row_count == 0:
+            print("Rows: 0 (no file written - query returned nothing; "
+                  "try a longer --days window)")
+            return
+
+        try:
+            display_path = output_path.relative_to(Path.cwd())
+        except ValueError:
+            display_path = output_path
+        print(f"File: {display_path}")
         print(f"Rows: {row_count}")
 
     except ValueError as e:
@@ -252,7 +299,7 @@ def main():
         print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
     except GoogleAdsException as ex:
-        print(f"ERROR: Google Ads API error:", file=sys.stderr)
+        print("ERROR: Google Ads API error:", file=sys.stderr)
         for error in ex.failure.errors:
             print(f"  - {error.message}", file=sys.stderr)
         sys.exit(1)

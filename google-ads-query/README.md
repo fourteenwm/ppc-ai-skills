@@ -9,10 +9,10 @@ Query Google Ads API data with natural language commands and save results to CSV
 ## What's Inside
 
 - Natural language command parsing: "Get [resource] for [account] [days]d"
-- 8 pre-built GAQL templates: search terms, campaigns, keywords, ad groups, conversions, budgets, assets, geo performance
+- 8 pre-built GAQL templates: search terms, campaigns, keywords, ad groups, conversions, budgets, assets, geo performance — plus drop-in support for your own `.gaql` files
 - CSV-first pattern: data saves to file, only path and row count return to conversation
-- Account name resolution with fuzzy matching and suggestions
-- Profile lock enforcement — must select credentials before any query runs
+- Works with bare CIDs out of the box; optional `accounts.json` registry adds name/alias resolution with fuzzy matching and suggestions (starter template ships as `accounts.example.json`)
+- Read-only by design: SELECT queries only, never mutations
 - Standard file naming convention for organized data exports
 
 ---
@@ -20,18 +20,38 @@ Query Google Ads API data with natural language commands and save results to CSV
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/google-ads-query
+mkdir -p .claude/skills/google-ads-query/scripts .claude/skills/google-ads-query/references
 curl -o .claude/skills/google-ads-query/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/SKILL.md
+curl -o .claude/skills/google-ads-query/accounts.example.json \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/accounts.example.json
+curl -o .claude/skills/google-ads-query/scripts/query.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/scripts/query.py
+curl -o .claude/skills/google-ads-query/references/resources.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/references/resources.md
+for t in search-terms campaigns keywords ad-groups conversions budgets assets geo; do
+  curl -o .claude/skills/google-ads-query/references/$t.gaql \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/references/$t.gaql
+done
 ```
+
+First run (no other files needed beyond your credentials):
+
+```bash
+python .claude/skills/google-ads-query/scripts/query.py \
+  --cid 1234567890 --resource campaigns --days 30
+```
+
+The CSV lands in `./data/`. To query by account name instead of CID, copy `accounts.example.json` to `./accounts.json` and edit — then `--account "riverside flats"` resolves names, aliases, and partial matches.
 
 ---
 
 ## Prerequisites
 
-- Google Ads API credentials (YAML config)
-- Python with `google-ads` package
-- Account list file (JSON) mapping account names/aliases to CIDs
+- Google Ads API credentials (`google-ads.yaml` at project root, or `--config <path>`) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one; querying client accounts through a manager account requires `login_customer_id` in the yaml
+- Python with the `google-ads` package (`pip install google-ads`)
+
+Pairs with [gaql-query-patterns](../gaql-query-patterns/) when you outgrow the shipped templates — write a custom query there, save it as a ninth `.gaql` file here.
 
 ---
 

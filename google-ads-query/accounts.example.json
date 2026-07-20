@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "what": "Optional name->CID registry for query.py's --account flag. Bare --cid runs never read this file.",
+    "how": "Copy to accounts.json in the directory you run the script from (or pass any path via --accounts), then replace the placeholders with your own accounts.",
+    "schema": {
+      "accounts": "map of slug -> account entry; the slug is matchable and becomes the CSV filename segment",
+      "accounts.<slug>.id": "10-digit customer ID (dashes ok) - REQUIRED",
+      "accounts.<slug>.name": "display name, matched case-insensitively",
+      "accounts.<slug>.aliases": "optional list of extra names that resolve to this account"
+    }
+  },
+  "accounts": {
+    "riverside-flats": {
+      "id": "1234567890",
+      "name": "Riverside Flats",
+      "aliases": ["riverside", "rf"]
+    },
+    "cedar-point-lofts": {
+      "id": "0987654321",
+      "name": "Cedar Point Lofts",
+      "aliases": ["cedar point"]
+    }
+  }
+}
