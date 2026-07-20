@@ -20,9 +20,8 @@ This skill transforms markdown reports (competitive analysis, ad recon, performa
 
 ## Prerequisites
 
-1. Google Sheets API credentials configured
-2. OAuth token at `./token.json` (project root). See the [google-ads-api-setup skill](../google-ads-api-setup/) for OAuth setup — add the Sheets and optionally Drive scopes.
-3. Target Google Drive folder ID (optional, configured per client)
+1. **Credentials:** `google-ads.yaml` at project root — see the [google-ads-api-setup skill](../google-ads-api-setup/) if you don't have one. The script reuses this same file's OAuth credentials for the Sheets API — its refresh token must carry the `spreadsheets` scope, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+2. **Python packages:** `pip install google-api-python-client google-auth pyyaml`
 
 ## Workflow
 
@@ -100,12 +99,13 @@ Alert/Red: #ea4335
 
 ### Step 5: Create Google Sheet
 
-Use the create_spreadsheet.py script:
+Use the create_spreadsheet.py script from your project root (where `google-ads.yaml` lives):
 
 ```bash
-cd "."
-python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Report Name" --folder FOLDER_ID
+python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Report Name"
 ```
+
+Pass `--config path/to/google-ads.yaml` if your credentials live elsewhere. The sheet is created in the Drive root of the authorized account — move it into a client folder in Drive afterward if needed. The script returns the spreadsheet ID and URL as JSON; use the ID for the data-population and formatting calls that follow.
 
 **Naming Convention:**
 ```
@@ -179,33 +179,19 @@ Charts must be positioned BELOW all data (row 24+), never overlapping.
 
 | Error | Action |
 |-------|--------|
-| No credentials | Provide setup instructions |
+| No credentials | Point at the [google-ads-api-setup skill](../google-ads-api-setup/) |
+| 403 / PERMISSION_DENIED | Refresh token predates the Sheets scope — re-run the api-setup generator once, paste the new `refresh_token` into `google-ads.yaml` |
 | File not found | Ask user to verify path |
 | API quota | Suggest waiting or manual copy |
 | Parse failure | Fall back to raw text layout |
 
 ## Integration
 
-Works with these your workspace outputs:
-- Ad Recon Hybrid analysis reports
-- Competitive analysis from SERP API
+Feeds naturally from other skills' markdown outputs:
+- Competitive analysis reports
 - Extension audit reports
 - Performance assessments
-
-## Configuration
-
-Client folder IDs should be stored in:
-`./client_folders.json` (project root)
-
-```json
-{
- "default_folder": "FOLDER_ID",
- "clients": {
- "example-client": "FOLDER_ID",
- "client-name": "FOLDER_ID"
- }
-}
-```
+- Search query / keyword analysis summaries
 
 ## Maintenance
 

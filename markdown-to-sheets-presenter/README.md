@@ -22,18 +22,24 @@ Transforms markdown reports (competitive analysis, performance reviews, ad recon
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/markdown-to-sheets-presenter
+mkdir -p .claude/skills/markdown-to-sheets-presenter/scripts .claude/skills/markdown-to-sheets-presenter/templates
 curl -o .claude/skills/markdown-to-sheets-presenter/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/SKILL.md
+curl -o .claude/skills/markdown-to-sheets-presenter/SETUP.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/SETUP.md
+curl -o .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/scripts/create_spreadsheet.py
+curl -o .claude/skills/markdown-to-sheets-presenter/templates/professional-blue-theme.json \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/templates/professional-blue-theme.json
 ```
 
 ---
 
 ## Prerequisites
 
-- Google Sheets API credentials with write access
-- OAuth token for the Google account that will own the sheet
-- Google Drive folder ID for the target location (optional, for organized storage)
+- `google-ads.yaml` at project root — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one; the script reuses that same file's OAuth token for the Sheets API (refresh token needs the `spreadsheets` scope, which the setup skill's generator grants by default — token predates that? re-run the generator once)
+- Python with `google-api-python-client`, `google-auth`, and `pyyaml` packages
+- Sheets are created in the Drive root of the authorized account — move them into client folders in Drive afterward if you organize that way
 
 ---
 

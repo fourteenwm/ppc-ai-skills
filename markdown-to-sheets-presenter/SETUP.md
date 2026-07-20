@@ -1,20 +1,36 @@
 # Markdown to Sheets Presenter - Setup Guide
 
-## Status: Ready to Use
+## Prerequisites
 
-An existing `./token.json` (or `sheets_token.json`) with the Sheets scope works with this skill.
+One credential file: `google-ads.yaml` at your project root. If you don't
+have one, the [google-ads-api-setup skill](../google-ads-api-setup/) walks
+you through creating it — its generator mints the refresh token with the
+`spreadsheets` scope this skill needs, alongside the Ads scopes the rest of
+the catalog uses.
 
-**Simple mode (default):** Creates sheets in Drive root — works now
-**Folder mode (optional):** Creates in specific folders — requires Drive scope upgrade
+Set up before 2026-07-17? Re-run the generator once and paste the new
+`refresh_token` into your `google-ads.yaml` — earlier tokens were Ads-only
+and will 403 at the Sheets step.
+
+Python packages:
+
+```bash
+pip install google-api-python-client google-auth pyyaml
+```
 
 ---
 
 ## Quick Test
 
+From your project root (where `google-ads.yaml` lives):
+
 ```bash
-cd "."
 python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Test Report"
 ```
+
+You should get JSON with the new sheet's ID and URL. The sheet is created
+in the Drive root of the account that authorized the token — move it into
+a folder in Drive if you organize by client.
 
 ---
 
@@ -24,85 +40,29 @@ python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py
 
 ```
 "Make this competitive analysis presentable for the client"
-"Export this ad recon to Google Sheets"
+"Export this report to Google Sheets"
 "Create a Google Sheet from this report"
 ```
 
 ### From Command Line
 
 ```bash
-# Simple (creates in Drive root)
 python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Report Name"
 
-# With folder (requires Drive scope - see below)
-python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Report Name" --client example-client
-```
-
----
-
-## Optional: Add Folder Support
-
-To create sheets in specific Drive folders (by client), you need Drive scope.
-
-### Step 1: Update your OAuth scopes
-
-In your OAuth setup script, update the scopes from:
-```python
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-```
-
-To:
-```python
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
-          'https://www.googleapis.com/auth/drive.file']
-```
-
-### Step 2: Re-authenticate
-
-```bash
-# Delete old token
-rm ./token.json
-
-# Re-run your OAuth setup script
-python setup_sheets_auth.py
-```
-
-### Step 3: Configure client folders
-
-Create `./client_folders.json` at project root:
-
-```json
-{
- "clients": {
- "example-client": "FOLDER_ID_FROM_DRIVE_URL",
- "client-name": "FOLDER_ID_FROM_DRIVE_URL"
- }
-}
-```
-
-**To get folder IDs:**
-1. Open Google Drive
-2. Navigate to the target folder
-3. Copy the ID from the URL: `drive.google.com/drive/folders/THIS_IS_THE_ID`
-
-### Step 4: Test folder creation
-
-```bash
-python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Test" --client example-client
+# Credentials somewhere else?
+python .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py "Report Name" --config credentials/google-ads.yaml
 ```
 
 ---
 
 ## Troubleshooting
 
-### "Drive scope not available"
-- Follow the "Add Folder Support" steps above
-- Delete sheets_token.json and re-authenticate
+### "Credentials not found at google-ads.yaml"
+- Run from the directory that holds `google-ads.yaml`, or pass `--config path/to/google-ads.yaml`
+- No file yet? See the [google-ads-api-setup skill](../google-ads-api-setup/)
 
-### "Client not found"
-- Add client to `./client_folders.json`
-- Check for typos in client name
+### "Google Sheets refused the request (403)"
+- Your refresh token predates the Sheets scope — re-run the api-setup generator once and paste the new `refresh_token` into `google-ads.yaml`
 
-### "Token expired"
-- The script auto-refreshes tokens
-- If still failing, delete `./token.json` and re-run your OAuth setup script
+### "Can't find the sheet in Drive"
+- It's created in the Drive root of the Google account that authorized the token — check that account, then move the sheet wherever you like
