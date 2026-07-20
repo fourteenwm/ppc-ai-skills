@@ -22,9 +22,23 @@ An 8-phase competitive analysis workflow that combines website intelligence, ad 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/competitor-analysis-v2
+mkdir -p .claude/skills/competitor-analysis-v2/scripts \
+         .claude/skills/competitor-analysis-v2/prompts \
+         .claude/skills/competitor-analysis-v2/templates
 curl -o .claude/skills/competitor-analysis-v2/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/SKILL.md
+curl -o .claude/skills/competitor-analysis-v2/scripts/screenshot.cjs \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/scripts/screenshot.cjs
+for f in website-extraction.md strategic-analysis.md tactical-scan.md \
+         gap-identification.md client-verification.md angle-development.md \
+         analysis-framework.md; do
+  curl -o ".claude/skills/competitor-analysis-v2/prompts/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/prompts/$f"
+done
+for f in client-gift.md ads-angle-brief.md template.css; do
+  curl -o ".claude/skills/competitor-analysis-v2/templates/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/templates/$f"
+done
 ```
 
 ---
@@ -32,8 +46,8 @@ curl -o .claude/skills/competitor-analysis-v2/SKILL.md \
 ## Prerequisites
 
 - Playwright (`npm install playwright`) for automated screenshots and PDF generation
-- Google Ads API credentials (if analyzing competitor ads)
 - Web scraping capability (Firecrawl or WebFetch) for website content extraction
+- Competitor ad copy from a SERP tool — optional, only for the ad-scoring phase (paste ads in, or skip it)
 
 ---
 

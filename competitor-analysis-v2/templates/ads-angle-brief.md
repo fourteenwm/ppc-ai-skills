@@ -13,7 +13,7 @@ Tactical document for the PRACTITIONER (you). Constrained, operational.
 
 **Date:** [Date]
 **Market:** [Industry/Location]
-**Profile:** [Agency B / your agency]
+**Prepared by:** [your agency]
 
 ---
 
@@ -156,18 +156,16 @@ If you're going to say it in the ad, the landing page MUST support it:
 
 ---
 
-## Portfolio-Specific Notes
+## Vertical-Specific Notes
 
-### Agency B (Auto Repair)
-- Always verify claims against Example SaaS website data
+### Auto Repair
+- Always verify claims against the client's website data
 - Check ad-copy-verification-standard compliance
-- Reference auto-shop-extension-standards for extension ideas
 - Common angles: Trust, Speed, Expertise, Value
 
-### your agency (Property Management)
-- Check Fair Housing compliance for ALL targeting suggestions
+### Property Management
+- Check Fair Housing compliance for ALL targeting suggestions (see the fair-housing-compliance skill)
 - Never mention demographic targeting in recommendations
-- Reference pm-standard-conversions for tracking
 - Common angles: Location, Amenities, Lifestyle, Value
 
 ---
@@ -183,5 +181,5 @@ Before using this brief:
 - [ ] Campaign-to-angle map completed
 - [ ] Compliance watch-outs reviewed
 - [ ] Ad-to-page rules defined
-- [ ] Agency B: ad-copy-verification-standard checked
-- [ ] your agency: Fair Housing compliance checked
+- [ ] ad-copy-verification-standard checked
+- [ ] Property management: Fair Housing compliance checked

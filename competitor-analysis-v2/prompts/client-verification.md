@@ -2,7 +2,7 @@
 
 You are verifying client capabilities before making any ad copy recommendations.
 
-**CRITICAL REQUIREMENT:** This phase is MANDATORY before any ad angle recommendations. Complies with Agency B ad copy verification standard.
+**CRITICAL REQUIREMENT:** This phase is MANDATORY before any ad angle recommendations. Complies with the ad copy verification standard.
 
 ---
 
@@ -382,7 +382,7 @@ Return results in this exact format:
 
 ### Compliance with Ad Copy Verification Standard
 
-**✅ This analysis complies with Agency B's ad copy verification standard by:**
+**✅ This analysis complies with the ad copy verification standard by:**
 - Using ONLY information explicitly found on client website
 - Including source citations for all claims
 - Flagging unverifiable gaps clearly

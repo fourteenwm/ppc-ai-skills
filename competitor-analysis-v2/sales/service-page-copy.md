@@ -119,7 +119,7 @@ Get Competitive Intelligence
 
 ## For Property Management (Internal Use)
 
-### Positioning for Portfolio 1 / Portfolio 2 / Portfolio 3
+### Positioning for Property Management Clients
 
 This isn't marketing copy - it's how to frame the deliverable when presenting to clients.
 

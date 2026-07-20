@@ -1,7 +1,7 @@
 ---
 name: competitor-analysis-v2
 description: Comprehensive competitive analysis combining website intelligence, 22-attribute ad copy framework, automated screenshots via Playwright, and verification rigor. Auto-invoke when user says "analyze competitors", "competitor report", "competitive intelligence", "market positioning analysis", or "client gift". Outputs Strategic Client Gift OR tactical Ads Angle Brief.
-allowed-tools: [Bash, Read, WebFetch]
+allowed-tools: [Bash, Read, Write, WebFetch, WebSearch, Task]
 ---
 
 # Competitor Analysis v2
@@ -19,7 +19,7 @@ Comprehensive competitive analysis combining:
 - **Two Output Types** - Strategic Client Gift OR tactical Ads Angle Brief
 - **Verification Rigor** - All recommendations verified against client website
 
-**Credentials Required:** Working `google-ads.yaml` if you want any Google Ads-side queries (otherwise the skill operates in website-only mode).
+**Credentials Required:** None. The whole workflow runs on Playwright plus web fetches. Competitor ad copy for the optional ad-scoring phase comes from a SERP tool or is pasted in — no Google Ads API access needed.
 
 ---
 
@@ -33,12 +33,13 @@ Comprehensive competitive analysis combining:
 - "Client gift for [client]"
 - "Market positioning analysis"
 
-### Use cases by portfolio:
+### Use cases:
 
-| Portfolio | Primary Use | Output |
-|-----------|-------------|--------|
-| **Agency B** | White-label deliverable for partner agency clients | Client Gift + Ads Brief |
-| **Agency A** | Client relationship tool for Portfolio 1/Portfolio 2/Portfolio 3 | Client Gift (as gift) |
+| Use case | Output |
+|----------|--------|
+| White-label deliverable for a partner agency's clients | Client Gift + Ads Brief |
+| Relationship/retention tool for your own managed accounts | Client Gift (as a gift) |
+| Positioning input before an ad copy build | Ads Brief |
 
 ---
 
@@ -52,7 +53,6 @@ Comprehensive competitive analysis combining:
 - Client URL
 - Industry/market
 - 5 competitor URLs (or request search assistance)
-- Profile: Agency B or Agency A
 - Output type: "Client Gift" | "Ads Brief" | "Both"
 ```
 
@@ -60,8 +60,6 @@ Comprehensive competitive analysis combining:
 1. Use WebSearch to find 8-10 competitors in the same market
 2. Present options with brief descriptions
 3. Get approval on 5 to analyze
-
-**Profile Lock:** Automatically lock to indicated profile before proceeding.
 
 ---
 
@@ -265,13 +263,13 @@ Which output would you like?
 2. Ads Angle Brief - Tactical document for you (1 page, markdown)
 3. Both - Full analysis with both outputs
 
-For Agency B white-label work, "Both" is recommended.
-For Agency A client relationships, "Client Gift" is recommended.
+For white-label partner work, "Both" is recommended.
+For a client-relationship gift, "Client Gift" alone is usually right.
 ```
 
 ---
 
-## Portfolio-Specific Behavior
+## Common Use Cases
 
 ### Use Case: White-Label Partner Work
 
@@ -297,7 +295,6 @@ For Agency A client relationships, "Client Gift" is recommended.
 ## Quality Checklist
 
 Before delivery:
-- [ ] Profile locked (Agency B or Agency A)
 - [ ] All 6 screenshots captured successfully
 - [ ] Website content extracted for all 6 URLs
 - [ ] Client verification completed (Phase 6)
@@ -329,64 +326,55 @@ Before delivery:
 - `templates/template.css` - PDF styling
 
 **Sales:**
-- `sales/pricing-guide.md` - Pricing tiers (Agency B wholesale + retail)
-- `sales/service-page-copy.md` - Marketing copy
+- `sales/service-page-copy.md` - Marketing copy templates for offering this as a service
 
 ---
 
 ## Integration
 
 ### Ad Copy Verification Standard
-This skill enforces `.claude/skills/ad-copy-verification-standard/SKILL.md`:
+This skill enforces the `ad-copy-verification-standard` skill from this catalog (install it alongside):
 - All claims verified from client website
 - Source citations required
 - "Cannot recommend" list for unverifiable gaps
 
-### Profile Lock
-Requires `.claude/skills/profile-lock/SKILL.md`:
-- Must specify Agency B or Agency A before starting
-- Credentials locked for any Google Ads API calls
-
 ### Related Skills
-- `ad-recon-hybrid` - Predecessor (deprecated, use this instead)
-- `agency_b-rsa-generator` - Use after this for ad copy creation
-- `fair-housing-compliance` - Required for Agency A property management
+- `ad-copy-generation-framework` - 23-element RSA copywriting framework for turning verified angles into copy
+- `rsa-single-account` - Full single-account RSA build; use after this when the brief feeds ad creation
+- `fair-housing-compliance` - Required when the client is property management / housing
 
 ---
 
 ## Example Usage
 
-### Full Analysis (Agency B)
+### Full Analysis
 
 **User:** "Run competitor analysis for Smith Auto Repair"
 
 **Claude:**
-1. "Which profile - Agency B or Agency A?" → Agency B
-2. "Which output - Client Gift, Ads Brief, or Both?" → Both
-3. "Client URL?" → smithautorepair.com
-4. "Competitor URLs (or should I search)?" → [5 URLs provided]
-5. Runs 8-phase workflow
-6. Delivers Client Gift PDF + Ads Brief markdown
+1. "Which output - Client Gift, Ads Brief, or Both?" → Both
+2. "Client URL?" → smithautorepair.com
+3. "Competitor URLs (or should I search)?" → [5 URLs provided]
+4. Runs 8-phase workflow
+5. Delivers Client Gift PDF + Ads Brief markdown
 
-### Quick Gift (Agency A)
+### Quick Gift
 
-**User:** "Create a client gift for Portfolio 1 - Example Property"
+**User:** "Create a client gift for Example Property"
 
 **Claude:**
-1. Locks to Agency A profile
-2. Output: Client Gift only
-3. Runs phases 1-3, 5-7 (skips ad analysis)
-4. Delivers strategic Client Gift PDF
+1. Output: Client Gift only
+2. Runs phases 1-3, 5-7 (skips ad analysis)
+3. Delivers strategic Client Gift PDF
 
 ---
 
 ## Version History
 
-- **v2.0** (2026-01) - Combined ad-recon-hybrid + competitor-report
-- **v1.0** (2025-12) - Original ad-recon-hybrid (22-attribute framework)
+- **v2.0** (2026-01) - Merged the 22-attribute ad analysis framework and the strategic competitor report into a single 8-phase workflow
+- **v1.0** (2025-12) - Original 22-attribute ad copy analysis framework
 
 ---
 
-**Compliance:** Enforces Agency B ad copy verification standard
-**Profiles:** Agency B, Agency A
+**Compliance:** All recommendations pass the ad copy verification standard — no unverified claims
 **Outputs:** Client Gift, Ads Angle Brief, or Both

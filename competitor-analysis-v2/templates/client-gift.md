@@ -258,15 +258,14 @@ The question is: Who will fill it first?
 
 ---
 
-## Portfolio-Specific Adjustments
+## Vertical-Specific Adjustments
 
-### Agency B (Auto Repair)
+### Auto Repair
 - Emphasize local market dynamics
 - Include review/rating comparisons prominently
 - Focus on trust and transparency themes
-- Reference Example SaaS competitive landscape if relevant
 
-### your agency (Property Management)
+### Property Management
 - Emphasize portfolio positioning
 - Include amenity and lifestyle comparisons
 - Focus on resident experience themes

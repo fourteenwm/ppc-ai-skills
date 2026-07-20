@@ -2,6 +2,33 @@
 
 All notable changes to this repository.
 
+## 2026-07-20 — Competitor Analysis v2: generic single-operator workflow
+
+[`competitor-analysis-v2/`](competitor-analysis-v2/)'s SKILL.md was written
+around an internal multi-agency profile system this catalog doesn't ship — a
+profile-lock requirement, agency/portfolio machinery gating the phases and the
+QA checklist, and references to two skills that don't exist here. The README
+already described the real workflow; SKILL.md now matches it: one operator,
+their own client, their own competitor site list, no profile ceremony, and no
+Google Ads credentials required (competitor ads for the optional scoring phase
+come from a SERP tool or are pasted in — the analysis itself runs on Playwright
+plus web fetches).
+
+- Cross-references now point at real catalog siblings:
+  [`ad-copy-generation-framework`](ad-copy-generation-framework/),
+  [`rsa-single-account`](rsa-single-account/),
+  [`fair-housing-compliance`](fair-housing-compliance/), and the
+  [`ad-copy-verification-standard`](ad-copy-verification-standard/) the
+  workflow enforces.
+- `sales/pricing-guide.md` removed — an internal business document, never part
+  of the analysis workflow.
+- Leftover internal agency/portfolio labels in the prompts, templates, and
+  sales copy were genericized (analysis content unchanged; the screenshot
+  script is byte-identical).
+- The README install block now fetches the full skill folder — screenshot
+  script, all 7 prompts, all 3 templates — instead of SKILL.md alone, so the
+  workflow's file references resolve after install.
+
 ## 2026-07-17 — Google Ads API Setup: one token now covers Sheets too
 
 [`google-ads-api-setup/`](google-ads-api-setup/)'s `generate_credentials.py`

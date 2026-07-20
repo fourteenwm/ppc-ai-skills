@@ -296,7 +296,7 @@ Return results in this exact format:
 
 ### Compliance with Ad Copy Verification Standard
 
-**✅ All recommendations comply with Agency B's ad copy verification standard:**
+**✅ All recommendations comply with the ad copy verification standard:**
 - Every claim is sourced from client website (Phase 4)
 - Source citations included for all claims
 - No assumptions based on industry standards
