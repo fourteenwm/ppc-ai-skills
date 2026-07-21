@@ -22,9 +22,19 @@ Refreshes Responsive Search Ad copy by scraping the business website, identifyin
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/rsa-refresh
+mkdir -p .claude/skills/rsa-refresh/scripts .claude/skills/rsa-refresh/references
 curl -o .claude/skills/rsa-refresh/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/SKILL.md
+curl -o .claude/skills/rsa-refresh/scripts/rsa_refresh_generator.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/scripts/rsa_refresh_generator.py
+curl -o .claude/skills/rsa-refresh/scripts/rsa_baseline_snapshot.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/scripts/rsa_baseline_snapshot.py
+curl -o .claude/skills/rsa-refresh/references/pm-headline-structure.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/references/pm-headline-structure.md
+curl -o .claude/skills/rsa-refresh/references/description-voice-lifting.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/references/description-voice-lifting.md
+curl -o .claude/skills/rsa-refresh/references/hallucination-filter.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-refresh/references/hallucination-filter.md
 ```
 
 ---
@@ -32,8 +42,8 @@ curl -o .claude/skills/rsa-refresh/SKILL.md \
 ## Prerequisites
 
 - Firecrawl API key (`FIRECRAWL_API_KEY` environment variable) for website scraping
-- Google Ads API credentials (YAML config)
-- Google Sheets API credentials (for output)
+- Google Ads API credentials (`google-ads.yaml` at project root) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one
+- Sheets output uses `token-sheets.json` OR that same `google-ads.yaml` OAuth token — its refresh token needs the `spreadsheets` scope, which the setup skill's generator grants by default (token predates that? re-run the generator once)
 
 ---
 

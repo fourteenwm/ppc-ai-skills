@@ -55,8 +55,8 @@ This merges AI copy with existing ad structure and writes to Google Sheets with 
 - BEST and GOOD assets (and all customizer assets) are preserved
 
 ## Prerequisites
-- `google-ads.yaml` at project root (Google Ads API credentials)
-- `token-sheets.json` at project root **OR** a refresh token in `google-ads.yaml` with the spreadsheets scope
+- `google-ads.yaml` at project root (Google Ads API credentials) — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one
+- `token-sheets.json` at project root **OR** a refresh token in `google-ads.yaml` with the spreadsheets scope (the setup skill's generator grants `spreadsheets` + `drive.readonly` by default — token predates that? re-run the generator once)
 - `FIRECRAWL_API_KEY` environment variable (set in `.env` or shell — get a key at firecrawl.dev)
 - `pip install google-ads gspread google-auth pyyaml python-dotenv firecrawl-py requests beautifulsoup4 playwright`
 

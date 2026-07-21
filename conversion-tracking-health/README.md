@@ -20,18 +20,22 @@ Audits conversion tracking health across an entire Google Ads portfolio, identif
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/conversion-tracking-health
+mkdir -p .claude/skills/conversion-tracking-health/scripts
 curl -o .claude/skills/conversion-tracking-health/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/conversion-tracking-health/SKILL.md
+curl -o .claude/skills/conversion-tracking-health/scripts/portfolio_conversion_audit.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/conversion-tracking-health/scripts/portfolio_conversion_audit.py
+curl -o .claude/skills/conversion-tracking-health/scripts/last_conversion_dates_by_action.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/conversion-tracking-health/scripts/last_conversion_dates_by_action.py
 ```
 
 ---
 
 ## Prerequisites
 
-- Google Ads API credentials (YAML config)
-- Python with `google-ads` package
-- Account portfolio file mapping account names to CIDs
+- Google Ads API credentials (`google-ads.yaml` at project root, or `--config <path>`) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one
+- Python with the `google-ads` package
+- Optional: a CSV portfolio file (`cid,name` per row, no header) for named portfolio runs — single `--cid` and `--cids` runs need no extra files
 
 ---
 

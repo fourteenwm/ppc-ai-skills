@@ -8,8 +8,9 @@ Query Google Ads account change history for any date range — not limited to th
 
 ## What's Inside
 
-- Full script template for querying `change_status` across any date range
+- Shipped script (`scripts/check_change_history.py`) for querying `change_status` across any date range
 - Filters by resource type (campaigns, keywords, extensions, budgets, ads, bid strategies)
+- `--detailed` mode showing asset details for extension changes; `--list-accounts` for finding CIDs under your MCC
 - Groups results by date and resource type for readable summaries
 - Reference table of all resource types and status values
 - Common query recipes: "What extensions did I update?", "What keywords did I add/remove?", "What campaign settings changed?"
@@ -19,17 +20,19 @@ Query Google Ads account change history for any date range — not limited to th
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/change-history-checker
+mkdir -p .claude/skills/change-history-checker/scripts
 curl -o .claude/skills/change-history-checker/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/change-history-checker/SKILL.md
+curl -o .claude/skills/change-history-checker/scripts/check_change_history.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/change-history-checker/scripts/check_change_history.py
 ```
 
 ---
 
 ## Prerequisites
 
-- Google Ads API credentials (YAML config)
-- Python with `google-ads` package
+- Google Ads API credentials (`google-ads.yaml` at project root) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one
+- Python with `google-ads` and `pyyaml` packages
 
 ---
 

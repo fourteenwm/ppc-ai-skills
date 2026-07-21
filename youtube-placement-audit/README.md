@@ -16,6 +16,20 @@ Two scripts that work together:
 
 ---
 
+## Installation
+
+```bash
+mkdir -p .claude/skills/youtube-placement-audit/scripts
+curl -o .claude/skills/youtube-placement-audit/SKILL.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/SKILL.md
+curl -o .claude/skills/youtube-placement-audit/scripts/youtube_placement_audit.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/scripts/youtube_placement_audit.py
+curl -o .claude/skills/youtube-placement-audit/scripts/youtube_channel_extractor.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/scripts/youtube_channel_extractor.py
+```
+
+---
+
 ## Quick Start
 
 ### 1. Install dependencies

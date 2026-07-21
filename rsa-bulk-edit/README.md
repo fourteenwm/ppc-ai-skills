@@ -21,18 +21,20 @@ Find-and-replace text across RSA ads in one or more Google Ads accounts, outputt
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/rsa-bulk-edit
+mkdir -p .claude/skills/rsa-bulk-edit/scripts
 curl -o .claude/skills/rsa-bulk-edit/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-bulk-edit/SKILL.md
+curl -o .claude/skills/rsa-bulk-edit/scripts/rsa_bulk_edit.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-bulk-edit/scripts/rsa_bulk_edit.py
 ```
 
 ---
 
 ## Prerequisites
 
-- Google Ads API credentials (YAML config)
-- Google Sheets API credentials (for writing output)
-- Python with `google-ads` and Google Sheets client packages
+- Google Ads API credentials (`google-ads.yaml` at project root) — see [google-ads-api-setup](../google-ads-api-setup/) if you don't have one
+- The `--sheet-id` output step reuses that same `google-ads.yaml` OAuth token — its refresh token needs the `spreadsheets` scope, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+- Python with `google-ads`, `gspread`, `google-auth`, and `pyyaml` packages
 
 ---
 

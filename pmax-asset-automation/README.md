@@ -19,9 +19,11 @@ Audit and fix Performance Max campaign asset automation settings. Opts out of Go
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/pmax-asset-automation
+mkdir -p .claude/skills/pmax-asset-automation/scripts
 curl -o .claude/skills/pmax-asset-automation/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/SKILL.md
+curl -o .claude/skills/pmax-asset-automation/scripts/audit_pmax_asset_automation.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/scripts/audit_pmax_asset_automation.py
 ```
 
 ---

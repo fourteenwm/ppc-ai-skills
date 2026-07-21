@@ -49,6 +49,11 @@ Results grouped worst-first:
 2. 🚨 **Stale** (30+ days)
 3. ⚠️ **Warning** (15-30 days)
 
+## Prerequisites
+
+- **`google-ads.yaml`** at project root (or `--config <path>`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it
+- Python with the `google-ads` package (`pip install google-ads`)
+
 ## Execution Workflow
 
 ### Step 1: Identify Accounts to Audit
@@ -106,7 +111,7 @@ RESULTS - PROBLEMATIC CONVERSIONS ONLY
 
 Account Name                        | Conversion Action              | Last Activity
 ----------------------------------- | ------------------------------ | ---------------
-Example Account Name                 | Form_Contact-Submit_BC         | Never fired
+Example Account Name                 | Contact Form Submit            | Never fired
 Example Another Account              | Phone Call                     | Never fired
 ...
 
@@ -121,7 +126,7 @@ Example Account Name                 | Contact                        | 84 days 
 
 Account Name                        | Conversion Action              | Last Activity
 ----------------------------------- | ------------------------------ | ---------------
-Example Account Name                 | Form_Contact-Submit_BC         | 26 days ago
+Example Account Name                 | Contact Form Submit            | 26 days ago
 ...
 
 ====================================================================================================
@@ -159,7 +164,7 @@ Total problematic conversions: 173
 - No spend filter (includes all accounts)
 
 **This Python Skill:**
-- Runs on-demand from PPC Brain
+- Runs on-demand from your workspace
 - Filters by spend (only active accounts)
 - Shows 173 problematic conversion actions across 160 accounts
 - More granular - counts individual conversion actions, not just accounts
@@ -299,11 +304,11 @@ Audit runs are saved to your project's output folder (e.g., `./data/audits/` or 
 - CSV export option
 - Email/Slack alerts for critical issues
 - Trend analysis (track changes over time)
-- Integration with Run Rate Issues Analysis sheet
+- Integration with your budget/pacing tracking sheet
 - Automated fix suggestions
 
 **Dependencies:**
-- `google-ads.yaml` at project root - Google Ads API credentials (override with `--config`)
+- `google-ads.yaml` at project root - Google Ads API credentials (override with `--config`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one
 - Python environment with `google-ads` library installed
 
 ## Version History
@@ -319,5 +324,5 @@ Audit runs are saved to your project's output folder (e.g., `./data/audits/` or 
 
 ---
 
-**Script Location:** `scripts/portfolio_conversion_audit.py` (provide your own — see Phase 3 inlining notes)
+**Script Location:** `scripts/portfolio_conversion_audit.py` (ships with this skill, alongside the single-account deep-dive `scripts/last_conversion_dates_by_action.py`)
 **Trigger:** Say "conversion tracking audit for [portfolio]" or "check conversion health"

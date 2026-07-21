@@ -15,6 +15,11 @@ Find and replace text across RSA ads, outputting to Google Sheet in Google Ads E
 - "edit RSA ads at scale"
 - "bulk RSA changes"
 
+## Prerequisites
+
+- **`google-ads.yaml`** at project root — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one. The `--sheet-id` output step reuses this same file's OAuth credentials for the Sheets API — its refresh token must carry the `spreadsheets` scope, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+- Python packages: `pip install google-ads gspread google-auth pyyaml`
+
 ## Usage
 
 ### Single Account

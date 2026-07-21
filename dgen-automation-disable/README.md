@@ -21,9 +21,11 @@ Bulk-disable ad-level asset automation settings across Demand Gen campaigns — 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/dgen-automation-disable
+mkdir -p .claude/skills/dgen-automation-disable/scripts
 curl -o .claude/skills/dgen-automation-disable/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/SKILL.md
+curl -o .claude/skills/dgen-automation-disable/scripts/fix_dgen_ad_automation.py \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/scripts/fix_dgen_ad_automation.py
 ```
 
 ---

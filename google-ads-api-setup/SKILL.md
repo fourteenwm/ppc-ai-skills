@@ -121,16 +121,9 @@ See `README.md` for the full troubleshooting list.
 
 ## Installation
 
+Clone the repo so you get the full folder — both scripts, the example yaml, and the diagrams the README embeds:
+
 ```bash
-mkdir -p .claude/skills/google-ads-api-setup
-curl -o .claude/skills/google-ads-api-setup/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-api-setup/SKILL.md
-curl -o .claude/skills/google-ads-api-setup/README.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-api-setup/README.md
-curl -o .claude/skills/google-ads-api-setup/generate_credentials.py \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-api-setup/generate_credentials.py
-curl -o .claude/skills/google-ads-api-setup/test_connection.py \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-api-setup/test_connection.py
-curl -o .claude/skills/google-ads-api-setup/google-ads.example.yaml \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-api-setup/google-ads.example.yaml
+git clone https://github.com/fourteenwm/ppc-ai-skills.git
+cp -r ppc-ai-skills/google-ads-api-setup .claude/skills/google-ads-api-setup
 ```

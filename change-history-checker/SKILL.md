@@ -8,6 +8,11 @@ allowed-tools: [Bash, Read]
 
 Check Google Ads account change history for any date range (not limited to 30 days).
 
+## Prerequisites
+
+- **`google-ads.yaml`** at project root — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it
+- Python with the `google-ads` package (`pip install google-ads pyyaml`)
+
 ## When to Use
 
 Auto-invoke when:
@@ -94,88 +99,16 @@ query = '''
 '''
 ```
 
-## Full Script Template
+## Shipped Script
 
-Save to `scripts/check_change_history.py`:
+`scripts/check_change_history.py` ships with this skill (the README install block fetches it) and implements the query patterns above, plus:
 
-```python
-#!/usr/bin/env python3
-"""Check account change history for any date range."""
+- `--types` — filter to specific resource types
+- `--detailed` / `-d` — show asset details (sitelink text, callout text, snippet headers) for extension changes
+- `--list-accounts` — list all client accounts under your MCC (uses `login_customer_id` from `google-ads.yaml`)
+- Run with no arguments to print usage help instead of a traceback
 
-from google.ads.googleads.client import GoogleAdsClient
-import argparse
-from datetime import datetime, timedelta
-
-def check_changes(customer_id: str, start_date: str, end_date: str, resource_types: list = None):
-    """Query change history for an account.
-
-    Args:
-        customer_id: Google Ads customer ID (no dashes)
-        start_date: Start date YYYY-MM-DD
-        end_date: End date YYYY-MM-DD
-        resource_types: Optional list of resource types to filter
-    """
-    client = GoogleAdsClient.load_from_storage('google-ads.yaml')
-    ga_service = client.get_service('GoogleAdsService')
-
-    # Build resource type filter
-    type_filter = ''
-    if resource_types:
-        types_str = ', '.join(f"'{t}'" for t in resource_types)
-        type_filter = f'AND change_status.resource_type IN ({types_str})'
-
-    query = f'''
-        SELECT
-            change_status.resource_name,
-            change_status.resource_type,
-            change_status.resource_status,
-            change_status.last_change_date_time
-        FROM change_status
-        WHERE change_status.last_change_date_time >= '{start_date}'
-        AND change_status.last_change_date_time <= '{end_date}'
-        {type_filter}
-        ORDER BY change_status.last_change_date_time DESC
-        LIMIT 500
-    '''
-
-    response = ga_service.search(customer_id=customer_id, query=query)
-
-    # Group by date and type
-    changes = {}
-    for row in response:
-        date = row.change_status.last_change_date_time[:10]
-        resource_type = row.change_status.resource_type.name
-        status = row.change_status.resource_status.name
-
-        key = f'{date}|{resource_type}'
-        if key not in changes:
-            changes[key] = {'count': 0, 'statuses': []}
-        changes[key]['count'] += 1
-        if status not in changes[key]['statuses']:
-            changes[key]['statuses'].append(status)
-
-    # Print summary
-    print(f"\nChanges from {start_date} to {end_date}:\n")
-    current_date = None
-    for key in sorted(changes.keys(), reverse=True):
-        date, resource_type = key.split('|')
-        if date != current_date:
-            print(f"\n{date}:")
-            current_date = date
-        info = changes[key]
-        statuses = ', '.join(info['statuses'])
-        print(f"  {resource_type}: {info['count']} changes ({statuses})")
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('customer_id', help='Customer ID (no dashes)')
-    parser.add_argument('--start', required=True, help='Start date YYYY-MM-DD')
-    parser.add_argument('--end', required=True, help='End date YYYY-MM-DD')
-    parser.add_argument('--types', nargs='+', help='Resource types to filter')
-    args = parser.parse_args()
-
-    check_changes(args.customer_id, args.start, args.end, args.types)
-```
+Results are grouped by date and resource type with change counts and statuses.
 
 ## Usage Examples
 
@@ -185,6 +118,9 @@ python scripts/check_change_history.py 1234567890 --start 2025-11-01 --end 2025-
 
 # Filter to extension changes only
 python scripts/check_change_history.py 1234567890 --start 2025-11-01 --end 2025-11-30 --types ASSET CUSTOMER_ASSET
+
+# Show asset details (sitelinks, callouts, snippets) for extension changes
+python scripts/check_change_history.py 1234567890 --start 2025-11-01 --end 2025-11-30 --detailed
 ```
 
 ### Inline Python
@@ -237,7 +173,13 @@ for row in response:
 
 ## Finding Account IDs
 
-If you need to find account IDs first:
+If you need to find account IDs first, the shipped script does this for you:
+
+```bash
+python scripts/check_change_history.py --list-accounts
+```
+
+The underlying query pattern:
 
 ```python
 # Query MCC for all client accounts
