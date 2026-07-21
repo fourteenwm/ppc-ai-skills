@@ -8,7 +8,7 @@ allowed-tools: [Bash, Read]
 
 **Purpose:** Collect and structure GA4 + Google Ads data for cross-platform analysis. Reusable data collection engine for lead quality investigations, conversion analysis, and audience insights.
 
-**Type:** Data collection skill (no autonomous decision-making)
+**Type:** Data collection skill (no autonomous decision-making). Primarily a **protocol** — it defines what to collect from each platform and the structured JSON contract to return it in. One collection script ships with this skill; the rest you implement against the Script Contract below.
 
 ---
 
@@ -28,6 +28,52 @@ Use this skill when you need:
 
 ---
 
+## Prerequisites
+
+- **`google-ads.yaml`** with valid OAuth credentials — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it. The shipped script loads the yaml from the working directory you run it from; querying client accounts through a manager account requires `login_customer_id` in the yaml.
+- Python with the `google-ads` package (`pip install google-ads`)
+- For the GA4-side scripts you implement: the `google-analytics-data` package and GA4 Data API access to your property
+
+---
+
+## Script Contract
+
+One script ships in this skill's `scripts/` folder; four are yours to implement. Every collection step below names which side of that line it sits on — the only command you can run as-is is the shipped one.
+
+### Shipped: `scripts/query_campaign_settings.py`
+
+Given a customer ID and campaign name, prints the campaign configuration used for cross-referencing against GA4 behavior: status, budget, bidding strategy (with CPA/ROAS targets), geographic targeting (locations, radius, presence vs interest), URL expansion setting, device bid adjustments, and network settings.
+
+Usage: `python scripts/query_campaign_settings.py <customer_id> "<campaign_name>"` (run from a directory containing your `google-ads.yaml`).
+
+### You Implement (Contract Provided)
+
+These four are environment-specific — they depend on which GA4 property ID, event names, and dimensions your account uses, and on where your credentials and registries live — so they're documented as contracts rather than shipped as generic scripts:
+
+1. **`query_campaign_performance.py`** — given a customer ID and campaign name, return campaign spend, conversions, conversion value, and ROAS for the date range. (The [google-ads-query](../google-ads-query/) skill in this repo ships a campaign-performance GAQL template that satisfies this contract.)
+2. **`query_ga4_campaign_conversions.py`** — given a GA4 property ID, campaign name, and event name, return the conversion summary: total conversions, total users, conversion rate.
+3. **`query_ga4_user_segments.py`** — given the same inputs, return user segments: cities, devices, browsers, hourly distribution.
+4. **`query_ga4_landing_pages.py`** — given the same inputs, return landing pages with conversion counts, users, and a high-intent vs low-intent categorization.
+
+**GA4-side implementation notes:**
+
+1. Install `google-analytics-data` (`pip install google-analytics-data`)
+2. Reuse the same OAuth credentials as the Google Ads API (just add the
+   `https://www.googleapis.com/auth/analytics.readonly` scope to your refresh
+   token).
+3. Query the GA4 Data API (`runReport`) for:
+   - `landing_pages`: dimensions `[sessionDefaultChannelGrouping, landingPage]`,
+     metrics `[conversions, sessions, totalUsers]`, filter on the Google Ads
+     campaign as source/medium or session campaign ID.
+   - `user_segments`: dimensions like `[city, deviceCategory, browser, hour]`,
+     metrics `[conversions, totalUsers]`, filter on your event of interest.
+   - `conversion_summary`: metrics `[conversions, totalUsers, sessions]` filtered
+     to the specific event name (e.g. `contact_form_submission`).
+
+See GA4 Data API reference: https://developers.google.com/analytics/devguides/reporting/data/v1
+
+---
+
 ## Required Inputs
 
 1. **Customer ID** - Google Ads customer ID (e.g., `[CUSTOMER_ID]`)
@@ -37,8 +83,8 @@ Use this skill when you need:
 5. **Date Range** (optional) - Defaults to last 14 days
 
 **Where to find these:**
-- Customer ID: from your accounts mapping (provide your own `accounts.md`)
-- GA4 Property ID: from your GA4 properties reference (provide your own list)
+- Customer ID: from your account registry (your own CID → account name mapping)
+- GA4 Property ID: from your GA4 property registry (your own list of property IDs by account)
 - Campaign Name: Query Google Ads or ask user
 - Event Name: Query GA4 events or ask user
 
@@ -47,32 +93,27 @@ Use this skill when you need:
 ## What This Skill Does
 
 ### Step 1: Verify Inputs
-- Check that GA4 property exists in `ga4_properties.md`
+- Check the GA4 property ID against your GA4 property registry
 - Verify customer ID is valid
 - Confirm campaign exists in Google Ads account
 
 ### Step 2: Collect Google Ads Data
-Run these queries:
-```bash
-# Campaign performance
-python query_campaign_performance.py <customer_id> "<campaign_name>"
 
-# Campaign settings (geo, bid strategy, device, budget)
-python query_campaign_settings.py <customer_id> "<campaign_name>"
+Campaign settings (geo, bid strategy, device, budget) — the shipped script:
+
+```bash
+python scripts/query_campaign_settings.py <customer_id> "<campaign_name>"
 ```
+
+Campaign performance (spend, conversions, conversion value, ROAS) — your `query_campaign_performance.py` per the Script Contract above.
 
 ### Step 3: Collect GA4 Data
-Run these queries:
-```bash
-# Overall conversion events for the campaign
-python query_ga4_campaign_conversions.py <ga4_property_id> "<campaign_name>" "<event_name>"
 
-# User segments (geo, device, timing)
-python query_ga4_user_segments.py <ga4_property_id> "<campaign_name>" "<event_name>"
+All three pulls use the GA4 scripts you implement per the Script Contract above:
 
-# Landing pages
-python query_ga4_landing_pages.py <ga4_property_id> "<campaign_name>" "<event_name>"
-```
+- Overall conversion summary for the campaign — `query_ga4_campaign_conversions.py`
+- User segments (geo, device, timing) — `query_ga4_user_segments.py`
+- Landing pages — `query_ga4_landing_pages.py`
 
 ### Step 4: Structure Output
 Return data in this format:
@@ -164,19 +205,6 @@ Use the ga4-cross-analysis skill to collect data for Customer ID [CUSTOMER_ID],
 campaign "Pmax: Example Campaign", GA4 property [GA4_PROPERTY_ID], event "contact_form_submission"
 ```
 
-### From Python Script:
-```python
-# Future: Skills will be importable
-from skills import ga4_cross_analysis
-
-data = ga4_cross_analysis.run(
- customer_id="[CUSTOMER_ID]",
- campaign_name="Pmax: Example Campaign",
- ga4_property_id="[GA4_PROPERTY_ID]",
- event_name="contact_form_submission"
-)
-```
-
 ---
 
 ## Output Format Options
@@ -221,46 +249,12 @@ Agent needs full dataset for analysis
 
 ---
 
-## Scripts Used by This Skill
-
-**Location:** `scripts/`
-
-**Included:**
-- `query_campaign_settings.py` - Fetch Google Ads campaign configuration (bidding strategy, targeting, networks, etc.) for cross-referencing against GA4 behavior.
-
-**Not included (protocol only):**
-
-This skill is primarily a **protocol** for how to combine Google Ads campaign
-settings with GA4 behavioral data. The GA4-side queries (landing pages, user
-segments, conversion breakdowns) depend on which GA4 property ID, event names,
-and dimensions your account uses, so they're documented as query patterns rather
-than shipped as generic scripts.
-
-To implement the GA4-side queries yourself:
-
-1. Install `google-analytics-data` (`pip install google-analytics-data`)
-2. Reuse the same OAuth credentials as the Google Ads API (just add the
-   `https://www.googleapis.com/auth/analytics.readonly` scope to your refresh
-   token).
-3. Query the GA4 Data API (`runReport`) for:
-   - `landing_pages`: dimensions `[sessionDefaultChannelGrouping, landingPage]`,
-     metrics `[conversions, sessions, totalUsers]`, filter on the Google Ads
-     campaign as source/medium or session campaign ID.
-   - `user_segments`: dimensions like `[city, deviceCategory, browser, hour]`,
-     metrics `[conversions, totalUsers]`, filter on your event of interest.
-   - `conversion_summary`: metrics `[conversions, totalUsers, sessions]` filtered
-     to the specific event name (e.g. `contact_form_submission`).
-
-See GA4 Data API reference: https://developers.google.com/analytics/devguides/reporting/data/v1
-
----
-
 ## Error Handling
 
 ### If GA4 Property Not Found:
 ```
-Error: GA4 property [GA4_PROPERTY_ID] not found in ga4_properties.md
-Suggestion: Check property ID or add to ga4_properties.md
+Error: GA4 property [GA4_PROPERTY_ID] not found in your property registry
+Suggestion: Check the property ID or add it to your registry
 ```
 
 ### If Campaign Not Found:
@@ -277,45 +271,26 @@ Suggestion: Try longer date range or check event name
 
 ---
 
-## Integration with Agents
+## Used By
 
-Agents that use this skill:
-- `ga4-lead-quality-investigation-agent` - Lead quality analysis
-- (Future) `conversion-funnel-analysis-agent` - Funnel analysis
-- (Future) `audience-insights-agent` - Audience optimization
+- [ga4-lead-quality-investigation](../ga4-lead-quality-investigation/) — the lead quality investigation skill in this repo auto-invokes this skill as its data collection step.
 
-**How agents use it:**
-1. Agent identifies need for GA4 + Google Ads data
-2. Agent invokes skill with required parameters
-3. Agent receives structured JSON
-4. Agent analyzes data and generates recommendations
-
----
-
-## Maintenance Notes
-
-### When to Update This Skill:
-- New GA4 dimensions become available
-- New campaign settings need verification
-- Additional data sources added (e.g., Google Search Console)
-
-### Future Enhancements:
-- Add Google Search Console data integration
-- Add historical comparison (period-over-period)
-- Add anomaly detection (statistical outliers)
-- Cache results for performance (15-minute TTL)
+**How a consuming skill or agent uses it:**
+1. Identifies the need for GA4 + Google Ads data
+2. Invokes this skill with the required inputs
+3. Receives structured JSON per the Step 4 contract
+4. Analyzes the data and generates recommendations
 
 ---
 
 ## Related Documentation
 
-- Your own GA4 properties reference (a list of GA4 Property IDs by account)
-- Your own accounts mapping (CID → account name)
-- Your own scripts/ folder for query implementations
-- Your own examples folder for sample analyses
+- [google-ads-api-setup](../google-ads-api-setup/) — create the `google-ads.yaml` credentials file
+- [google-ads-query](../google-ads-query/) — general-purpose GAQL pulls (covers the campaign-performance contract)
+- GA4 Data API reference: https://developers.google.com/analytics/devguides/reporting/data/v1
 
 ---
 
 **Created:** October 24, 2025
-**Last Updated:** October 24, 2025
+**Last Updated:** July 21, 2026
 **Status:** Active
