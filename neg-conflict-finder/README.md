@@ -31,7 +31,7 @@ A Google Sheet with one row per conflict:
 
 | Account Name | Conflicting Negative Keyword | Level & Location | Blocked Positive Keywords |
 |---|---|---|---|
-| Acme Co | "free" | Shared List: GS Negatives | "free shipping calculator", "free trial sign up" |
+| Acme Co | "free" | Shared List: Global Negatives | "free shipping calculator", "free trial sign up" |
 | Acme Co | [reviews] | Campaign: Brand - Search | [acme reviews] |
 | Beta LLC | "diy" | Ad Group: Bathroom Remodel | "diy bathroom remodel cost" |
 
@@ -86,7 +86,7 @@ This script is a derivative of Google's official Negative Keyword Conflict refer
 - **MCC-wide instead of single-account** — iterates labeled accounts under the manager account
 - **MCC-level shared list support** — pulls lists owned by the manager and checks them against every child account they're applied to
 - **Account-level negative keywords** — added detection (with graceful degradation when Google's API field path is unstable)
-- **Phrase-vs-exact blocking fix** — the original equality check missed real conflicts like phrase-neg `"amberglen"` blocking exact-pos `[apartments amberglen]`. Replaced with subsequence match that mirrors Google's actual blocking behavior.
+- **Phrase-vs-exact blocking fix** — the original equality check missed real conflicts like phrase-neg `"acme"` blocking exact-pos `[acme apartments]`. Replaced with subsequence match that mirrors Google's actual blocking behavior.
 - **Shared-list keyword-loss fix** — earlier versions had a cache-skip bug that silently dropped every keyword after the first in a given list. Fixed.
 - **Optional spend filter** — skip dormant accounts that have a label but zero recent spend, to cut noise from cancelled or paused budgets.
 

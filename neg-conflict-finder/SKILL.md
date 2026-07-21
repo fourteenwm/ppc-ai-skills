@@ -34,7 +34,7 @@ Runs as a Google Ads Script inside an MCC. For each labeled account it:
 |--------|-------------|
 | Account Name | Google Ads account name |
 | Conflicting Negative Keyword | The negative that's blocking |
-| Level & Location | Where the negative lives (e.g., "Shared List: GS Negatives", "Campaign: Brand - Search") |
+| Level & Location | Where the negative lives (e.g., "Shared List: Global Negatives", "Campaign: Brand - Search") |
 | Blocked Positive Keywords | The positive keyword(s) being blocked |
 
 ## Setup

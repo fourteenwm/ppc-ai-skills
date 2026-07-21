@@ -44,7 +44,7 @@
  *  - 4.0: Three changes:
  *         (a) Fixed PHRASE-negative-vs-EXACT-positive detection. The previous
  *             logic required exact text equality, which missed real conflicts
- *             like phrase-neg "amberglen" vs exact-pos [apartments amberglen].
+ *             like phrase-neg "acme" vs exact-pos [acme apartments].
  *             The negative still fully blocks every query the exact positive
  *             can match. Now uses isSubsequence() for ALL positive match types
  *             under a phrase negative, matching Google Ads' actual blocking
@@ -64,7 +64,7 @@
  *             created by the first row caused every subsequent keyword in that
  *             list to be skipped. Result: every shared list ended up with only
  *             its first keyword, and ~99% of shared-list conflicts (incl. big
- *             lists like "GS Negatives - MCC") disappeared from the output. Now
+ *             lists like "Global Negatives - MCC") disappeared from the output. Now
  *             only skips when the list was actually MCC-seeded (isMccList: true).
  *             MCC-seeded entries are now marked with `isMccList: true` so the
  *             skip is precise.
@@ -885,7 +885,7 @@ function negativeBlocksPositive(negative, positive) {
     // applies to phrase/broad positives.
     //
     // Example caught by this fix that v3 missed:
-    //   PHRASE neg "amberglen" vs EXACT pos [apartments amberglen]  → conflict
+    //   PHRASE neg "acme" vs EXACT pos [acme apartments]  → conflict
     if (negative.matchType === 'PHRASE') {
         return isSubsequence(negative.raw, positive.raw);
     }

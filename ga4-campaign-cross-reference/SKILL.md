@@ -486,12 +486,10 @@ Use this checklist for every investigation:
 - **client-communication-standards** - Formatting for "What Was Ruled Out" sections
 
 **Related Documentation:**
-- Example PMAX GA4 Analysis (example of hypothesis → verification → finding)
-- GA4 Cross-Analysis System Overview
-- Campaign settings query guide
+- The Real-World Example section above — a full hypothesis → verification → finding walkthrough
+- **ga4-cross-analysis** (in this repo) — system overview of the full workflow; ships `scripts/query_campaign_settings.py` for the campaign-settings verification step
 
 ---
 
 **Created:** 2025-11-01
-**Extracted From:** ga4-lead-quality-investigation-agent.md (Cross-Reference Analysis & Verification steps)
 **Status:** Active

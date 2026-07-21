@@ -175,7 +175,7 @@ I'll adapt this pattern to your specific needs...
 Create new code based on the example, but adapted for:
 - User's specific account/campaign structure
 - Our authentication (google-ads.yaml)
-- Our safety systems (MutationGuard if mutations)
+- Our safety systems (the mutation-safety skill if mutations)
 - Our naming conventions
 - Our error handling standards
 
@@ -192,7 +192,7 @@ google-ads-python/examples/advanced_operations/add_performance_max_campaign.py
 
 Adapted for:
 - Example portfolio structure
-- MutationGuard safety system
+- mutation-safety approval workflow
 - CSV-driven batch creation
 """
 ```
@@ -293,7 +293,7 @@ Adapted for:
 ## When NOT to Use This Skill
 
 Skip this skill when:
-- Writing simple GAQL queries (we have plenty of patterns in `/queries/`)
+- Writing simple GAQL queries (the **gaql-query-patterns** skill covers these)
 - Reading/debugging existing scripts
 - Running existing agents
 - Making minor modifications to working code
@@ -303,7 +303,7 @@ Skip this skill when:
 ## Integration with Other Skills
 
 This skill works well with:
-- **mutation-safety** - Examples show mutations, MutationGuard wraps them safely
+- **mutation-safety** - Examples show mutations, its two-step approval wraps them safely
 - **fair-housing-compliance** - Examples show targeting, compliance checks constraints
 - **client-communication-standards** - Examples gather data, standards format reports
 

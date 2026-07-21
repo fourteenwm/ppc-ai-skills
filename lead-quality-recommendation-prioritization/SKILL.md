@@ -139,7 +139,6 @@ Add content exclusions for blog/informational URLs to focus spend on property/co
 2. Go to "Content" → "Exclusions" → "Excluded content"
 3. Add the following URL patterns:
  - `*acme-plumbing.com/blog/*`
- - `*acme-plumbing.com/blog/*`
  - `*acme-plumbing.com/news/*`
 4. Save changes
 
@@ -496,12 +495,10 @@ Clear action plan with specific next steps, verified recommendations, and docume
 - **budget-recommendation-calculator** - Similar prioritization framework for budget changes
 
 **Related Documentation:**
-- Example PMAX GA4 Analysis (example of full recommendation structure)
-- GA4 Cross-Analysis System Overview
-- Client communication examples
+- The Real-World Example section above — a full recommendation structure, end to end
+- **ga4-cross-analysis** (in this repo) — system overview of the workflow these recommendations conclude
 
 ---
 
 **Created:** 2025-11-01
-**Extracted From:** ga4-lead-quality-investigation-agent.md (Prioritize Recommendations & Output sections)
 **Status:** Active

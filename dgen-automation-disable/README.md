@@ -10,7 +10,7 @@ Bulk-disable ad-level asset automation settings across Demand Gen campaigns — 
 
 - Bulk disable of 5 DGen ad-level automation settings across DemandGenMultiAssetAd and DemandGenVideoResponsiveAd types
 - Dry-run preview by default — shows exactly what will change before anything happens
-- Two-step MutationGuard approval workflow with unique approval codes
+- Two-step approval workflow with unique approval codes (the mutation-safety pattern)
 - Per-account error handling — one failure doesn't stop the batch
 - Dual logging: local JSONL file and Google Sheets mutation log
 - Supports single account, portfolio filter, or all accounts

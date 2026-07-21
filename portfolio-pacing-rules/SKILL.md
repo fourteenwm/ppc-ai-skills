@@ -95,7 +95,7 @@ allowed-tools: [Read]
 
 ### Portfolio C
 **Strategic Context:**
-- Mid-tier accounts (NYC metro area)
+- Mid-tier accounts (single metro area)
 - Similar constraints to Portfolio B (±8% pacing tolerance)
 - 3 accounts total
 
@@ -153,11 +153,9 @@ allowed-tools: [Read]
 - Creating performance reports or summaries
 
 ### Data Sources Referenced:
-- Google Sheets: "Run Rate Issues Analysis"
- - Dashboard (see config/sheet-ids.yaml) - Portfolio A + Portfolio C
- - Dashboard (see config/sheet-ids.yaml) - Portfolio B portfolio
+- Your own budget/pacing tracking sheet — one pacing dashboard tab per portfolio (the Pacing Calculation section below shows what it needs to contain)
 - Google Ads API: Campaign performance data
-- portfolio context files: Strategic context and constraints
+- Your own portfolio context files — strategic context and constraints
 
 ---
 
@@ -232,5 +230,4 @@ Where:
 
 **Created:** 2025-10-28
 **Last Updated:** 2025-11-01
-**Extracted From:** portfolio context files (Section II + III), underspending-investigation-agent.md
 **Status:** Active

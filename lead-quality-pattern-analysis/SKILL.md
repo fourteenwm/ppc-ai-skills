@@ -41,13 +41,13 @@ Identify if conversions are coming from high-intent pages (property/product page
 **Step 1: Categorize Landing Pages**
 
 **High-Intent Pages (Conversion-Focused):**
-- Service detail pages (e.g., `/services/`, `/properties/`, `/pricing/`)
-- Product pages (e.g., `/contact/`, `/request-quote/`, `/contact/`)
+- Service detail pages (e.g., `/services/`, `/properties/`)
+- Product pages (e.g., `/contact/`, `/request-quote/`)
 - Pricing pages (e.g., `/pricing/`, `/specials/`)
-- Community/amenity pages (e.g., `/about/`, `/gallery/`)
+- Community/amenity pages (e.g., `/amenities/`, `/gallery/`)
 
 **Low-Intent Pages (Informational/Blog):**
-- Blog posts (e.g., `/blog/`, `/blog/`, `/news/`)
+- Blog posts (e.g., `/blog/`, `/news/`)
 - Resource centers (e.g., `/resources/`, `/guides/`)
 - General information (e.g., `/about/`, `/faq/`)
 - Category pages (e.g., `/neighborhoods/`, `/lifestyle/`)
@@ -242,19 +242,19 @@ From GA4:
 - **Single hour dominance** (>50% in one hour) - Placement or bot issue
 
 **⚠️ MODERATE Patterns:**
-- **Late night elevated** (11 business - 6 AM >40%) - Check for international traffic
+- **Late night elevated** (11 PM - 6 AM >40%) - Check for international traffic
 - **Weekend-only pattern** - May indicate specific placement or audience
 
 **ℹ️ MONITORING Patterns:**
-- **Business hours heavy** (9 AM - 6 business >60%) - Normal for B2B/services
-- **Evening peak** (6 business - 11 business >50%) - Normal for consumer/residential
+- **Business hours heavy** (9 AM - 6 PM >60%) - Normal for B2B/services
+- **Evening peak** (6 PM - 11 PM >50%) - Normal for consumer/residential
 
 **Step 4: Compare to Industry Benchmarks**
 
 **Service Business - Expected Pattern:**
-- Peak: 6 business - 11 business (after work hours) - 40-50%
-- Business hours: 9 AM - 6 business - 30-40%
-- Late night: 11 business - 6 AM - 5-15%
+- Peak: 6 PM - 11 PM (after work hours) - 40-50%
+- Business hours: 9 AM - 6 PM - 30-40%
+- Late night: 11 PM - 6 AM - 5-15%
 - Early morning: 6 AM - 9 AM - 5-10%
 
 **Red Flag Threshold:**

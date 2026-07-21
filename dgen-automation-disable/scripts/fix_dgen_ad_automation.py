@@ -96,7 +96,7 @@ AD_TYPE_SETTINGS = {
 
 
 # ---------------------------------------------------------------------------
-# Inline MutationGuard — deterministic approval codes
+# Inline two-step approval (mutation-safety pattern) — deterministic approval codes
 # ---------------------------------------------------------------------------
 
 def compute_approval_code(all_changes) -> str:
