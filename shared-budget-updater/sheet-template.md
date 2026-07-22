@@ -9,7 +9,7 @@ The Shared Budget Updater uses a single Google Sheet tab. Default name:
 |--------|--------|------|-------|
 | A | Customer ID | string | Google Ads customer ID — dashes ok (`123-456-7890` works) |
 | B | Shared Budget ID | string (digits) | The shared budget's ID under that customer |
-| C | New Budget Amount | number | Dollars — `$` and `,` ok (`$1,234.56` works) |
+| C | New Budget Amount | number | The budget's new **daily** amount in dollars — `$` and `,` ok (`$1,234.56` works) |
 | D | Done | workflow-owned | `x` = processed; empty = pending. **Never fill this by hand** |
 
 Example:
@@ -28,6 +28,9 @@ Example:
   re-pushes that row on the next run (useful, but do it deliberately).
 - Failed rows keep an empty column D and retry automatically on the next run.
 - Amounts of $0 or less are skipped with an alert and never sent to the API.
+- **Column C is the daily amount** (what the Ads UI shows in the budget
+  column), not a monthly target — the monthly-to-daily conversion judgment
+  lives in `rules.md`.
 - The first row is the header row — the workflow reads from row 2 onward.
 - Finding the Shared Budget ID: in Google Ads, **Tools → Shared library →
   Shared budgets** — the `budgetId` appears in the URL when you open one, or

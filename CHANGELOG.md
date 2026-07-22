@@ -2,6 +2,55 @@
 
 All notable changes to this repository.
 
+## 2026-07-22 — Shared Budget Updater: the operator layer and the write contract
+
+[`shared-budget-updater/`](shared-budget-updater/) already shipped its
+invariants, a triage table, worked examples, and workflow diagrams. What
+was missing was the judgment an operator needs around a tool that *changes
+live budgets*: whether a failed row is safe to run again, what number
+belongs in a row in the first place, and how to work the daily window.
+
+- `rules.md` grew a sharpened invariant (**there is no sanity-check layer**
+  — the workflow writes the row's number absolutely, so the approval gate
+  is the entire defense) and three judgment sections: **the shared-budget
+  math** (column C is the *daily* amount; monthly ÷ 30.4; the pairing
+  interlock — pushing a daily budget without updating the Guardian's
+  monthly tab makes its next alert more likely, and correct),
+  **safe-rerun reasoning** (absolute overwrites make reruns benign;
+  crash-mid-run recovery, stale pending rows, clearing an `x`, duplicate
+  rows, pending-edit = new approval), and **cadence** (the daily latency is
+  a review window; when manual dispatch is legitimate; no draft state).
+  The triage table gained an account-level policy-block row.
+- NEW `references/update-contract.md` — the exact write contract sourced
+  from the code: the mutation surface (amount-only, blind overwrite,
+  dollars→micros), row lifecycle (batch-mark-after-loop and what a
+  mid-run crash leaves behind), the ingestion ladder (which skips are
+  silent, and why a malformed amount alerts instead), the consolidated
+  alert shape, the error taxonomy and both retry envelopes, how to read
+  run state cold from the tab + Actions log, the env-var table, and the
+  production-twins parity set. SKILL.md hands those facts over and keeps
+  workflow + routing.
+- SKILL.md now routes what triage surfaces:
+  [`google-ads-query`](google-ads-query/) for read-only ID verification,
+  [`budget-recommendation-calculator`](budget-recommendation-calculator/)
+  for sizing, [`portfolio-pacing-rules`](portfolio-pacing-rules/) for pace
+  context, [`change-history-checker`](change-history-checker/) for
+  Ads-side receipts, [`budget-guardian`](budget-guardian/) as the tripwire
+  pairing — plus a new "Production twins & behavior parity" section.
+  `rules.md` and `examples.md` wire the same routes inline.
+- README: install file list names the doc layer explicitly; the triage
+  pointer now covers the judgment sections and the contract.
+  `sheet-template.md` states that column C is the daily amount.
+- Two code changes, each deliberately ported from the production twins
+  after hunk-by-hunk review: `workflows/_shared/sheets_retry.py` now also
+  retries HTTP 429 rate-limit errors and takes 4 attempts (matching
+  budget-guardian's copy — the two bundles' `_shared/` helpers are
+  identical again), and the Slack alert gained a remediation-hint line via
+  the new `workflows/_shared/mutate_error_hints.py` — known account-level
+  policy blocks (currently the EU political advertising declaration)
+  arrive with the fix attached instead of a bare error code. Generic
+  hardening on both; all other workflow code byte-untouched.
+
 ## 2026-07-22 — Budget Guardian: the operator layer
 
 [`budget-guardian/`](budget-guardian/) already shipped its invariants, a

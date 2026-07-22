@@ -6,7 +6,8 @@
 mutate resource was not found.
 
 **Reasoning:** NOT_FOUND is sheet-data class per the triage table. A read-only
-lookup of shared budgets under that CID shows budget 9876453 exists but
+lookup of shared budgets under that CID (an ad-hoc pull via
+[`google-ads-query`](../google-ads-query/)) shows budget 9876453 exists but
 9876543 does not - two digits transposed in column B.
 
 **Decision:** Report the exact correction ("row 12 column B should be
@@ -25,7 +26,9 @@ would add alert noise for no benefit - the five processed rows are marked done
 and will be skipped, and the retry proves nothing tomorrow's run won't.
 
 **Decision:** No action. Confirm after the next run that row 7's column D
-turned `x`. Restraint is the correct call for a first transient failure.
+turned `x` (the Ads-side receipt, if you want one, is the budget's change
+history — [`change-history-checker`](../change-history-checker/)).
+Restraint is the correct call for a first transient failure.
 
 ## 3. Edge case: a $0 row intended to "pause spend"
 

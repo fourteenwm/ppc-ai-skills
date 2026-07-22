@@ -71,16 +71,33 @@ GitHub Actions (daily cron)
 6. For alert triage after deployment: `rules.md` (decision table) and
    `examples.md` (worked decisions)
 
+## When a row fails — where it routes
+
+Triage itself lives in [`rules.md`](rules.md) (read it before acting on any
+failed row; [`examples.md`](examples.md) shows worked reads). What triage
+surfaces routes to siblings:
+
+| Trigger | Load |
+|---------|------|
+| NOT_FOUND / bad IDs — verify a CID + shared budget ID read-only | [`google-ads-query`](../google-ads-query/) |
+| "What should this budget actually be?" — sizing the number in a row | [`budget-recommendation-calculator`](../budget-recommendation-calculator/) |
+| "Is this spend pace normal for this book?" — variance context | [`portfolio-pacing-rules`](../portfolio-pacing-rules/) |
+| "Did the push land? Who changed this budget?" — Ads-side receipts, out-of-band edits | [`change-history-checker`](../change-history-checker/) |
+| Watching what gets spent against the pushed budgets | [`budget-guardian`](../budget-guardian/) — the tripwire pairing; its alerts route through its own triage |
+| "Why did the run do that?" — exact mutation surface, row lifecycle, parse rules | [`references/update-contract.md`](references/update-contract.md) |
+
 ## Files in this skill
 
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | This file |
 | `README.md` | Full setup guide with step-by-step deployment |
-| `rules.md` | Failure-alert triage rules + operating invariants |
+| `rules.md` | Judgment layer: failed-row triage, safe-rerun reasoning, the shared-budget math, cadence |
 | `examples.md` | Worked triage decisions, including edge cases |
+| `references/update-contract.md` | Exact run mechanics: mutation surface, row lifecycle, parse ladder, alert shape, error taxonomy, env vars, parity set |
 | `requirements.txt` | Python dependencies |
-| `sheet-template.md` | The uploader tab's column structure + semantics |
+| `sheet-template.md` | The uploader tab's column structure + semantics — copy this to build your tab |
+| `diagrams/` | Mermaid sources + rendered SVGs for the README's two workflow diagrams |
 | `.github/workflows/shared-budget-updater.yml` | GitHub Actions daily cron config |
 | `workflows/shared_budget_updater/main.py` | Entry point — row loop, $0 guard, exit-0 semantics |
 | `workflows/shared_budget_updater/ads_api.py` | Google Ads REST mutate + retry + error taxonomy |
@@ -89,20 +106,15 @@ GitHub Actions (daily cron)
 | `workflows/_shared/google_auth.py` | Google Sheets OAuth helper |
 | `workflows/_shared/google_ads_auth.py` | Google Ads API OAuth helper |
 | `workflows/_shared/sheets_retry.py` | Retry helper for transient Sheets errors |
+| `workflows/_shared/mutate_error_hints.py` | Remediation hints for known mutate-blocking error codes |
 
 ## Configuration
 
-All identity-bearing values are loaded from environment variables. Nothing is
-hardcoded.
-
-| Env var | Purpose |
-|---------|---------|
-| `UPDATER_SHEET_ID` | Google Sheet ID where the uploader tab lives (required) |
-| `SHEET_TAB` | Tab name (default: `Shared Budget Uploader`) |
-| `GOOGLE_TOKEN_PATH` | Path to your Google Sheets OAuth user token JSON |
-| `GOOGLE_ADS_YAML_PATH` | Path to your Google Ads API YAML config |
-| `SLACK_WEBHOOK_URL` | Incoming webhook for failure alerts |
-| `SLACK_USER_MENTION` | Optional — Slack user/group to @-mention on alerts (e.g. `<@U12345>`) |
+All identity-bearing values are loaded from environment variables — nothing
+is hardcoded. The full env-var table, including which missing values crash
+the run and which quietly degrade it, lives in
+[`references/update-contract.md`](references/update-contract.md);
+`README.md` Step 5 maps each one to a GitHub Actions secret.
 
 ## Tested against
 
@@ -125,3 +137,14 @@ hardcoded.
   signal. The yml `failure()` alert only fires on crashes.
 - **No LLM in the loop.** Pure read-transform-mutate; Claude helps you deploy
   and triage, never executes budget changes itself.
+
+## Production twins & behavior parity
+
+This bundle is the generic replica of two production installs of the same
+architecture (two separate account books, one codebase pattern). The copies
+stay in **behavioral sync** on the parity set — the exact set, and the
+by-design divergences (env names + sheet wiring, Slack branding, fallback
+mention), are defined in
+[`references/update-contract.md`](references/update-contract.md) § Parity
+with the production twins. Drift between the copies is reviewed against
+that set, never byte-synced.

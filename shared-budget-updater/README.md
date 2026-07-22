@@ -138,8 +138,10 @@ mention format is `<@U01ABC23DEF>` — you'll set it as the
 `SLACK_USER_MENTION` secret in Step 5. Leave it out for no @-mentions.
 
 **Prefer email, Discord, or Teams instead?** The notification layer is one
-self-contained file: `workflows/shared_budget_updater/slack.py`. The rest of
-the code calls a single function:
+file: `workflows/shared_budget_updater/slack.py` (plus an optional helper it
+imports, `workflows/_shared/mutate_error_hints.py`, which attaches a
+remediation hint to known policy-block error codes). The rest of the code
+calls a single function:
 
 ```python
 def send_row_failures(webhook_url: str, failed: list[dict], processed_count: int):
@@ -154,7 +156,9 @@ webhook, etc.).
 
 1. Create a **private** GitHub repo (you'll be storing credential secrets)
 2. Copy ALL of this skill folder's contents into the repo root (`SKILL.md`,
-   `README.md`, `requirements.txt`, `.github/`, `workflows/`, etc.) and push
+   `README.md`, `rules.md`, `examples.md`, `sheet-template.md`,
+   `references/`, `diagrams/`, `requirements.txt`, `.github/`,
+   `workflows/`) and push
 3. Open the **Actions** tab — you should see "Shared Budget Updater" listed
 
 **Add repository secrets** (Settings → Secrets and variables → Actions → New
@@ -229,10 +233,15 @@ the underlying issue (usually the row data) and let the schedule heal it.
 
 ### Alert triage
 
-`rules.md` has the error-code → action table; `examples.md` walks three real
-decisions. Short version: transient errors need nothing; sheet-data errors
-(INVALID_AMOUNT, NOT_FOUND) get fixed in the sheet by a human; permission
-errors mean your OAuth or account access broke — investigate immediately.
+`rules.md` has the error-code → action table plus the judgment calls around
+a mutating tool — what number goes in a row, when a row is safe to rerun,
+and how to work the daily window. `examples.md` walks three real decisions.
+For exactly why the run did what it did (mutation surface, row lifecycle,
+parse rules, alert shape), see `references/update-contract.md`. Short
+version: transient errors need nothing; sheet-data errors (INVALID_AMOUNT,
+NOT_FOUND) get fixed in the sheet by a human; account-level policy blocks
+arrive with the fix attached and the row waits it out; permission errors
+mean your OAuth or account access broke — investigate immediately.
 
 ## Troubleshooting
 

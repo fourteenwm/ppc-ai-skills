@@ -10,6 +10,8 @@ import os
 
 import requests
 
+from workflows._shared.mutate_error_hints import hint_for
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,6 +52,9 @@ def send_row_failures(webhook_url: str, failed: list[dict], processed_count: int
             f"`${f['amount']}`\n"
             f"   `{f['error_code']}`: {f['message']}{trig}"
         )
+        hint = hint_for(f.get("error_code", ""))
+        if hint:
+            lines.append(f"   :point_right: {hint}")
     body = "\n".join(lines)
 
     mention = _mention()
