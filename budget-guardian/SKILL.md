@@ -57,16 +57,35 @@ GitHub Actions (every 2 hours)
 5. Set the kill switch to `ENABLED` in the sheet
 6. Confirm the 2-hour cron is firing in the Actions tab
 
+Once deployed, the work shifts from setup to triage: every alert gets read
+per [`rules.md`](rules.md) before anyone acts on it.
+
+## When an alert fires — where it routes
+
+Triage itself lives in [`rules.md`](rules.md) (read it before acting on any
+alert; [`examples.md`](examples.md) shows worked reads). What triage
+surfaces routes to siblings:
+
+| Trigger | Load |
+|---------|------|
+| 120% incident — need who/what/when on recent changes | [`change-history-checker`](../change-history-checker/) |
+| Change history shows actors or campaigns nobody authorized | [`mcc-hack-audit`](../mcc-hack-audit/) — sweep the whole MCC, not just the alerting account |
+| "What should this account's budget actually be?" | [`budget-recommendation-calculator`](../budget-recommendation-calculator/) — its answer goes in the `Budgets` tab |
+| "Is this spend pace normal?" — variance context for the book | [`portfolio-pacing-rules`](../portfolio-pacing-rules/) |
+| A human approved a budget change and wants it executed via sheet | [`shared-budget-updater`](../shared-budget-updater/) — the execution arm; the Guardian never writes |
+| "Why did/didn't this alert fire?" — exact thresholds, dedupe, parse rules | [`references/alert-contract.md`](references/alert-contract.md) |
+
 ## Files in this skill
 
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | This file |
 | `README.md` | Full setup guide with step-by-step deployment |
-| `rules.md` | Alert-triage decision logic (invariants + triage table) |
+| `rules.md` | Judgment layer: triage table, false-alarm classes, threshold tuning, kill-switch guidance, roster rules |
 | `examples.md` | Worked triage decisions, including the edge cases |
+| `references/alert-contract.md` | Exact thresholds, alert shapes, state/dedupe semantics, parse rules, env vars, parity set |
 | `requirements.txt` | Python dependencies |
-| `sheet-template.md` | Google Sheet column structure |
+| `sheet-template.md` | Google Sheet tab structure — copy this to build your sheet |
 | `.github/workflows/budget-guardian.yml` | GitHub Actions cron config (every 2 hours) |
 | `workflows/budget_guardian/main.py` | Entry point — orchestrates checks |
 | `workflows/budget_guardian/ads_api.py` | Google Ads API client (MCC scan + MTD spend) |
@@ -79,16 +98,11 @@ GitHub Actions (every 2 hours)
 
 ## Configuration
 
-All identity-bearing values are loaded from environment variables. Nothing is hardcoded.
-
-| Env var | Purpose |
-|---------|---------|
-| `GUARDIAN_SHEET_ID` | Google Sheet ID where budgets and state live |
-| `GUARDIAN_BUDGET_TAB` | Tab name with per-account budgets (default: `Budgets`) |
-| `GOOGLE_TOKEN_PATH` | Path to your Google Sheets OAuth user token JSON |
-| `GOOGLE_ADS_YAML_PATH` | Path to your Google Ads API YAML config |
-| `SLACK_WEBHOOK_URL` | Incoming webhook URL for the channel that should receive alerts |
-| `SLACK_USER_MENTION` | Optional — Slack user/group to @-mention on alerts (e.g. `<@U12345>`) |
+All identity-bearing values are loaded from environment variables — nothing
+identity-bearing is hardcoded. The full env-var table lives in
+[`references/alert-contract.md`](references/alert-contract.md); `README.md`
+Step 5 maps each one to a GitHub Actions secret. (The alert thresholds are
+constants in the code, not env vars — tuning logic in [`rules.md`](rules.md).)
 
 ## Tested against
 
@@ -110,12 +124,8 @@ All identity-bearing values are loaded from environment variables. Nothing is ha
 
 This bundle is the generic replica of a production automation running on the
 same architecture every 2 hours. The two stay in **behavioral sync** on the
-parity set: thresholds 1.0/1.2 · kill-switch fail-closed semantics · state
-schema (`Month | CID | Account Name | Threshold | Action | Timestamp`) +
-per-account/threshold/month dedupe + stale-month clear · alert shape.
-
-Ingestion differs **BY DESIGN**: this bundle reads a direct-CID `Budgets` tab
-(A:C — Name, CID, Monthly Budget); the production twin discovers accounts via
-an MCC label and reads a pre-aggregated budget export. Env names + branding
-also differ by design. Drift between the two is reviewed against the parity
-set, never byte-synced.
+parity set — the exact set, and the by-design divergences (ingestion halves,
+env names, branding), are defined in
+[`references/alert-contract.md`](references/alert-contract.md) § Parity with
+the production twin. Drift between the two is reviewed against that set,
+never byte-synced.

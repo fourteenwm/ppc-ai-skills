@@ -2,6 +2,49 @@
 
 All notable changes to this repository.
 
+## 2026-07-22 — Budget Guardian: the operator layer
+
+[`budget-guardian/`](budget-guardian/) already shipped its invariants, a
+triage table, and worked examples. What was missing was the judgment an
+operator needs *around* the alerts: when a correct alert is still the wrong
+signal, which knob to reach for when tuning, what the kill switch is
+actually for, and what the direct-CID roster model implies for coverage.
+
+- `rules.md` grew four sections: a **false-alarm classes** table (mid-month
+  budget edits, month-boundary resets, Google overdelivery vs. the sheet
+  number, small-denominator early-month trips, and the
+  several-accounts-at-once → suspect-the-budget-source-first rule),
+  **threshold tuning** (the per-account knob is the `Budgets` tab; the two
+  constants in `main.py` are global posture — and the alert labels don't
+  follow them), **kill-switch guidance** (legitimate flips, the
+  disabled-runs-exit-green trap, per-account alternatives from scalpel to
+  hammer), and **the `Budgets` tab is the roster** (new accounts are
+  invisible until added; blank budget = deliberate unwatch; coverage diffs
+  are an operator duty).
+- NEW `references/alert-contract.md` — the exact run contract sourced from
+  the code: threshold math (including the if/elif detail that an account
+  jumping straight past 120% never gets its 100% warning that month), the
+  three alert shapes, state/dedupe semantics, the Budgets-tab parse ladder
+  (which skips log and which are silent), kill-switch read semantics, the
+  failure contract, how to read run state cold, the env-var table, and the
+  production-twin parity set. SKILL.md hands those facts over and keeps
+  workflow + routing.
+- SKILL.md now routes what triage surfaces:
+  [`change-history-checker`](change-history-checker/) and
+  [`mcc-hack-audit`](mcc-hack-audit/) on the 120% incident path,
+  [`budget-recommendation-calculator`](budget-recommendation-calculator/)
+  for budget-sizing questions,
+  [`portfolio-pacing-rules`](portfolio-pacing-rules/) for pace context,
+  [`shared-budget-updater`](shared-budget-updater/) as the execution arm.
+  The rules.md triage table and examples wire the same routes inline.
+- README: install file list names the doc layer explicitly; new "Triaging
+  an alert" pointer under Operations.
+- One code change, deliberately ported from the production twin after
+  hunk-by-hunk review: `workflows/_shared/sheets_retry.py` now also retries
+  HTTP 429 rate-limit errors (new `_is_transient()` helper) and takes 4
+  attempts with 2/4/8/16s backoff instead of 3. Generic hardening, no
+  identity-bearing content. All other workflow code byte-untouched.
+
 ## 2026-07-22 — Non-Serving Keyword Scanner: the judgment layer
 
 [`non-serving-keyword-scanner/`](non-serving-keyword-scanner/) shipped a

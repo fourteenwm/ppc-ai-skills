@@ -177,7 +177,8 @@ This is where the 2-hour cron actually runs. GitHub Actions is GitHub's built-in
 git init budget-guardian-deploy
 cd budget-guardian-deploy
 # Copy ALL the contents of this skill folder into the repo root
-# (SKILL.md, README.md, requirements.txt, .github/, workflows/, etc.)
+# (SKILL.md, README.md, rules.md, examples.md, sheet-template.md,
+#  references/, requirements.txt, .github/, workflows/)
 git add .
 git commit -m "Initial: Budget Guardian deployment"
 git remote add origin <the-clone-URL-from-above>
@@ -290,6 +291,15 @@ The workflow `.github/workflows/budget-guardian.yml` is configured to run every 
 > _Investigate immediately. No campaigns were paused._
 
 ## Operations
+
+### Triaging an alert
+
+Before acting on any alert, read `rules.md` — the triage table, the
+false-alarm classes (mid-month budget edits, month-boundary resets, Google
+overdelivery, several-accounts-at-once), and the escalation default.
+`examples.md` walks three worked reads. For exactly why an alert did or
+didn't fire (thresholds, dedupe, parse rules), see
+`references/alert-contract.md`.
 
 ### Kill switch
 
