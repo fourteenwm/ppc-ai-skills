@@ -16,6 +16,7 @@ Scans all accounts in a portfolio for keywords with zero impressions in the last
 - Outputs to any Google Sheet you own, with account name, CID, campaign, ad group, keyword, and match type
 - Human-in-the-loop design: generates report only, never auto-pauses keywords
 - Progress output showing per-account results as the scan runs
+- A judgment layer for reading the results: `rules.md` (when zero impressions is expected vs. actionable — triage order, false signals, and the three verdicts), `examples.md` (worked triage reads), and `references/scan-contract.md` (the exact selection and output contract)
 
 The run logic, gate by gate:
 
@@ -30,13 +31,19 @@ The `.mmd` sources for both diagrams live in `diagrams/` — they're
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/non-serving-keyword-scanner/scripts
+mkdir -p .claude/skills/non-serving-keyword-scanner/scripts .claude/skills/non-serving-keyword-scanner/references
 curl -o .claude/skills/non-serving-keyword-scanner/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/SKILL.md
 curl -o .claude/skills/non-serving-keyword-scanner/scripts/non_serving_keyword_scan.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/scripts/non_serving_keyword_scan.py
 curl -o .claude/skills/non-serving-keyword-scanner/accounts.example.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/accounts.example.md
+curl -o .claude/skills/non-serving-keyword-scanner/rules.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/rules.md
+curl -o .claude/skills/non-serving-keyword-scanner/examples.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/examples.md
+curl -o .claude/skills/non-serving-keyword-scanner/references/scan-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/non-serving-keyword-scanner/references/scan-contract.md
 ```
 
 First run (single account, no other files needed beyond your credentials):

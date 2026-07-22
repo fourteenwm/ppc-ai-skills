@@ -1,55 +1,35 @@
 ---
 name: non-serving-keyword-scanner
-description: "Scans your agency accounts for keywords with 0 impressions in last 180 days. Auto-invoke when user says 'scan non-serving keywords', 'find dead keywords', 'keyword cleanup report', or 'non-serving keyword scan'. Outputs to Google Sheet for human review."
+description: "Scans your accounts for enabled Search keywords with zero impressions over a window (default 180 days) and writes one review tab to a Google Sheet — every row then gets a Pause/Keep/Investigate verdict per rules.md. Report-only, never pauses. Auto-invoke when user says 'scan non-serving keywords', 'find dead keywords', 'keyword cleanup report', or 'non-serving keyword scan'."
 allowed-tools: [Bash, Read]
 ---
 
 # Non-Serving Keyword Scanner
 
-**Trigger Phrases:** "scan non-serving keywords", "find dead keywords", "keyword cleanup report"
+Finds the keywords nobody knows exist: enabled, eligible, and silent — zero
+impressions across the whole scan window. Across a large portfolio these
+accumulate into hundreds of rows of clutter and false coverage ("we're
+covering that term" — except it never serves). One run scans every account
+you point it at and produces a single review tab.
 
-## Purpose
+One operator owns the workflow end to end: run the scan → triage the tab
+(`rules.md` — clusters before rows) → give every row a Pause / Keep /
+Investigate verdict → route what needs routing. The scanner itself never
+pauses anything; it is a hygiene instrument, not a savings instrument —
+every flagged keyword spent $0.00 by definition.
 
-Identifies keywords across all your accounts that have received **zero impressions in the last 180 days**. These "dead" keywords clutter accounts and should be reviewed for pausing.
+---
 
-**Approach:** Human-in-the-Loop - Generates report only, no auto-pausing.
+## Invocation Triggers
 
-## Prerequisites
+Auto-invoke when user says:
 
-- **Credentials:** `google-ads.yaml` at project root — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one. The sheet-writing step reuses this same file's OAuth credentials for the Sheets API — its refresh token must carry the `spreadsheets` + `drive.readonly` scopes, which the setup skill's generator grants by default (token predates that? re-run the generator once)
-- **Output sheet:** any Google Sheet you own — you pass its ID via `--sheet-id`
-- **Python packages:** `pip install google-ads gspread google-auth pyyaml`
+- "Scan non-serving keywords"
+- "Find dead keywords"
+- "Keyword cleanup report"
+- "Non-serving keyword scan"
 
-## What It Scans
-
-**Included:**
-- All accounts in your portfolio
-- Search campaigns only
-- Enabled campaigns, ad groups, and keywords only
-
-**Excluded:**
-- Paused campaigns, ad groups, or keywords
-- Ad groups named "special" or "specials" (dynamic pricing ad groups)
-- Non-Search campaign types (Pmax, Display, etc.)
-
-## Output
-
-**Google Sheet:** any spreadsheet you own — pass its ID with `--sheet-id`
-**Tab:** "Non-Serving Keywords" (created if missing, cleared and rewritten each run; override with `--tab-name`)
-
-**Columns:**
-| Column | Description |
-|--------|-------------|
-| Account Name | Google Ads account name |
-| CID | Customer ID |
-| Campaign | Campaign name |
-| Ad Group | Ad group name |
-| Keyword | Keyword text |
-| Match Type | EXACT, PHRASE, or BROAD |
-| Impressions | 0 (confirmed non-serving) |
-| Clicks | Should be 0 |
-| Conversions | Should be 0 |
-| Cost | Should be $0 |
+---
 
 ## How to Run
 
@@ -65,109 +45,134 @@ python scripts/non_serving_keyword_scan.py --all --sheet-id YOUR_SHEET_ID
 
 # Scan a curated account list (copy accounts.example.md to accounts.md and edit)
 python scripts/non_serving_keyword_scan.py --accounts accounts.md --sheet-id YOUR_SHEET_ID
-
-# Custom threshold (e.g., 90 days instead of default 180)
-python scripts/non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID --days 90
-
-# Custom tab name
-python scripts/non_serving_keyword_scan.py --cid 1234567890 --sheet-id YOUR_SHEET_ID --tab-name "Dead Keywords 90d"
 ```
 
-**Required CLI args:** `--sheet-id` (Google Sheet ID for output)
+**Required:** `--sheet-id` (any Google Sheet you own — the ID between `/d/`
+and `/edit` in its URL).
 
-**Account selection — three modes (mutually exclusive; with no account flag the script defaults to `--accounts accounts.md`):**
-- `--cid CID` — single account (fastest first run)
-- `--cids CID1,CID2,...` — multiple accounts
+**Account selection — three modes, mutually exclusive** (no account flag =
+the script defaults to `--accounts accounts.md`):
+
+- `--cid CID` / `--cids CID1,CID2,...` — explicit accounts, digits only
 - `--all` — every enabled account under your MCC's `login_customer_id`
-- `--accounts PATH` — curated markdown list (default: `./accounts.md`); a starter file ships with this skill as `accounts.example.md` — copy it and edit
+- `--accounts PATH` — curated markdown list; a starter template ships as
+  [`accounts.example.md`](accounts.example.md) with the format documented
+  inside it — copy to `accounts.md` and edit
 
-Running without a usable account source (e.g., the default mode with no `accounts.md` present) prints this mode list instead of a traceback.
-
-**Accounts file format** (see the shipped `accounts.example.md`) — one `### CID:` header per account, then one or more `- Name` lines; the FIRST name is the display name, extra lines are optional aliases:
-
-```markdown
-### CID: 123-456-7890
-- Example Client A
-
-### CID: 234-567-8901
-- Example Client B
-- Example Client B (alias)
-```
+Run with no usable account source and the script prints the mode list above
+instead of a traceback.
 
 **Optional flags:**
-- `--days N` — zero-impression threshold (default: 180)
-- `--tab-name NAME` — sheet tab name (default: "Non-Serving Keywords")
-- `--config PATH` — google-ads.yaml location (default: `./google-ads.yaml`)
 
-**Runtime:** ~3-5 seconds per account. Plan ~3-5 minutes for a ~50-account MCC.
+- `--days N` — zero-impression window (default: 180)
+- `--tab-name NAME` — sheet tab (default: `"Non-Serving Keywords"`); use
+  dated names for run-over-run history, since the tab is rewritten each run
+- `--config PATH` — `google-ads.yaml` location (default: `./google-ads.yaml`)
 
-**Progress Output:**
-```
-[1/N] Scanning Portfolio 1 - Example Account A... 0 non-serving keywords
-[2/N] Scanning Portfolio 1 - Example Account B... 3 non-serving keywords
-...
-[N/N] Scanning Portfolio 2 - Example Account Z... 1 non-serving keywords
+**Runtime:** ~3–5 seconds per account; plan ~3–5 minutes for a ~50-account
+MCC.
 
-================================================================================
-SCAN COMPLETE
-================================================================================
-Total accounts scanned: N
-Accounts with non-serving keywords: 23
-Total non-serving keywords found: 156
+---
 
-Results written to:
-https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit
-```
+## After the run — operator duties
 
-## After Running
+The script writing the tab is the midpoint of this skill, not the end. On
+every run:
 
-1. Open the Google Sheet
-2. Review the "Non-Serving Keywords" tab
-3. For each keyword, decide:
-   - **Pause:** Keyword is truly dead, no longer relevant
-   - **Keep:** Keyword may serve in future (seasonal, niche)
-   - **Investigate:** Check if there's a broader issue (bid too low, negative conflict)
-4. Pause keywords manually in Google Ads UI
+1. **Present the summary** — accounts scanned, accounts with findings, total
+   flagged keywords, and any failed accounts (an inline `API Error` next to
+   a zero means *unscanned*, not clean — see
+   [`references/scan-contract.md`](references/scan-contract.md)).
+2. **Read [`rules.md`](rules.md) before any verdict** — triage clusters
+   before rows (a whole account flagged is an outage, not keyword rot), and
+   rule out the false signals: re-enabled or newly launched campaigns,
+   keywords added mid-window, seasonal terms, low-search-volume suppression.
+3. **Give every surviving row one of the three verdicts** — Pause / Keep /
+   Investigate, defined in `rules.md`. Ambiguous rows default to
+   Keep + Investigate, never Pause.
+4. **Route what needs routing:**
+   - Dense clusters (whole account or campaign flagged) →
+     [`account-diagnostic`](../account-diagnostic/) for the upstream
+     diagnosis; auction-side campaign questions →
+     [`impression-share-diagnostics`](../impression-share-diagnostics/)
+   - A keyword that *should* serve but doesn't → suspect a blocking
+     negative first: [`neg-conflict-finder`](../neg-conflict-finder/)
+   - A query being absorbed by a broader keyword elsewhere → confirm with
+     an ad-hoc pull ([`google-ads-query`](../google-ads-query/)), steer
+     with negatives via the [`sqr-pipeline`](../sqr-pipeline/) review gate
+   - Pause verdicts → a human executes them in the Google Ads UI or Editor
+5. When asked *why* a row is (or isn't) on the list, answer from
+   [`references/scan-contract.md`](references/scan-contract.md) — exact
+   selection criteria, not paraphrase. [`examples.md`](examples.md) shows
+   the expected shape of a full triage read.
 
-## Filters Applied
+---
 
-**GAQL Query Filters:**
-- `ad_group_criterion.type = 'KEYWORD'`
-- `ad_group_criterion.status = 'ENABLED'`
-- `ad_group.status = 'ENABLED'`
-- `campaign.status = 'ENABLED'`
-- `campaign.advertising_channel_type = 'SEARCH'`
-- `metrics.impressions = 0` (over LAST_180_DAYS)
+## What this skill deliberately does NOT do
 
-**Python Post-Filters:**
-- Exclude ad groups where name.lower() in ['special', 'specials']
+- **No pausing, ever.** Report-only by design — the human review step IS the
+  product. Pause execution happens in the UI/Editor; if pausing ever gets
+  scripted, that script is a separate tool behind the
+  [`mutation-safety`](../mutation-safety/) approval flow.
+- **No savings claims.** Flagged keywords have zero impressions, therefore
+  zero clicks and zero spend. The payoff is structural hygiene — never
+  present the tab as recoverable budget.
+- **No root-cause diagnosis.** The scan says *which* keywords never served,
+  not *why*. Why routes per `rules.md`: [`account-diagnostic`](../account-diagnostic/),
+  [`neg-conflict-finder`](../neg-conflict-finder/),
+  [`impression-share-diagnostics`](../impression-share-diagnostics/).
+- **No archaeology.** Current-state review only — keywords, ad groups, and
+  campaigns that are already paused are invisible to it (which is also why
+  a row vanishing between runs is not proof of recovery — `rules.md`).
+- **No non-Search coverage.** Search campaigns only; PMax/Display/Video
+  don't use this keyword model. An account with no Search campaigns
+  legitimately returns zero rows.
 
-## Troubleshooting
+---
 
-**"Accounts file not found" / "No accounts parsed"**
-- Pick an account source: `--cid`, `--cids`, `--all`, or `--accounts` (copy `accounts.example.md` to `accounts.md` and edit)
+## Files in this skill
 
-**"No keywords found"**
-- Check if Search campaigns exist and are enabled
-- Verify date range is correct (180 days)
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | This file — how to run + what the operator does with the tab |
+| `README.md` | Zero-context setup guide: install, prerequisites, first run |
+| `rules.md` | Triage decision logic — read after every run, before any verdict |
+| `examples.md` | Worked reads: routine triage, an account-level outage, a false recovery |
+| `references/scan-contract.md` | Exact selection criteria, output columns, failure behavior |
+| `accounts.example.md` | Copyable starter for the curated account-list mode |
+| `scripts/non_serving_keyword_scan.py` | The scan engine (read-only GAQL + one sheet write) |
+| `diagrams/` | Workflow diagrams used by the README |
 
-**"API Error for account X"**
-- Script continues with other accounts
-- Check if account is accessible under MCC
+---
 
-**403 / "insufficient authentication scopes" writing the sheet**
-- Your `google-ads.yaml` refresh token predates the Sheets scopes — re-run the `google-ads-api-setup` generator once and paste the new refresh_token
+## Output
 
-**"Sheet not updating"**
-- Verify gspread authentication is current
-- Check Sheet ID is correct
+One review tab in the sheet you passed (`--tab-name`, default
+`"Non-Serving Keywords"`), stamped with the run time — created if missing,
+**cleared and rewritten** on every run with findings, and left untouched on
+a clean run (a stale tab keeps its old stamp — check it). Columns and exact
+write behavior: [`references/scan-contract.md`](references/scan-contract.md).
 
-## Related Skills
+---
 
-- `conversion-tracking-health` - Similar portfolio-wide audit pattern
-- `gaql-query-patterns` - GAQL templates
+## Prerequisites
 
-## Future Enhancements
+- **Credentials:** `google-ads.yaml` at project root — see the
+  [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have
+  one. The sheet-writing step reuses this same file's OAuth credentials for
+  the Sheets API — its refresh token must carry the `spreadsheets` +
+  `drive.readonly` scopes, which the setup skill's generator grants by
+  default (token predates that? re-run the generator once — a 403 on the
+  write step is this)
+- **Output sheet:** any Google Sheet you own — you pass its ID via
+  `--sheet-id`
+- **Python packages:** `pip install google-ads gspread google-auth pyyaml`
 
-- Add `--portfolio` flag to scan a specific portfolio only
-- Add "Pause Selected" mode gated by the `mutation-safety` approval flow
+---
+
+## Safety
+
+Read-only against Google Ads — the scan runs GAQL SELECT queries exclusively
+and never mutates an account. Its only write is the review tab, into a sheet
+you own. Acting on the findings is a separate, human-executed step (see the
+boundary above and [`mutation-safety`](../mutation-safety/)).

@@ -2,6 +2,46 @@
 
 All notable changes to this repository.
 
+## 2026-07-22 — Non-Serving Keyword Scanner: the judgment layer
+
+[`non-serving-keyword-scanner/`](non-serving-keyword-scanner/) shipped a
+scan with thin reading guidance — "decide pause/keep/investigate" and little
+else. The interesting failure mode of a zero-impression report is misreading
+it: bulk-pausing seasonal keywords that cost nothing, "cleaning up" an
+account whose real problem is an outage upstream, or celebrating a row that
+disappeared because Google's ~13-month low-activity auto-pause removed it
+from scan scope. The skill now ships the judgment layer:
+
+- NEW `rules.md` — when zero impressions is expected vs. actionable:
+  invariants (report-only; hygiene not savings; the tab is a snapshot, not a
+  log), clusters-before-rows triage, sharpened Pause/Keep/Investigate
+  definitions, a false-signal table (re-enabled and newly launched
+  campaigns, mid-window keyword adds, seasonal terms, low-search-volume
+  suppression, inline API errors, the false recovery), and an escalation
+  default.
+- NEW `examples.md` — three worked reads: a routine portfolio triage, a
+  whole-account cluster that turned out to be a billing outage, and a
+  disappearing row misread as a win. All names and numbers synthetic.
+- NEW `references/scan-contract.md` — the exact selection criteria, output
+  columns, tab-write behavior, and failure contract, sourced from the
+  script (and correcting the old SKILL.md's paraphrase: the query has no
+  explicit keyword-type filter — `keyword_view` restricts by construction).
+- SKILL.md restructured to workflow altitude: identity + operator duties
+  (present → triage per rules.md → verdicts → route), an explicit
+  "deliberately does NOT do" boundary, a files-in-this-skill table, and
+  routing to [`account-diagnostic`](account-diagnostic/),
+  [`neg-conflict-finder`](neg-conflict-finder/),
+  [`impression-share-diagnostics`](impression-share-diagnostics/),
+  [`google-ads-query`](google-ads-query/), and
+  [`sqr-pipeline`](sqr-pipeline/). Scan mechanics moved to the reference;
+  the Future Enhancements stub was dropped (a pause mode would contradict
+  the report-only identity).
+- README install block now fetches the three new files alongside the
+  script and accounts template.
+
+`scripts/non_serving_keyword_scan.py` is byte-identical — documentation
+anatomy only.
+
 ## 2026-07-20 — Competitor Analysis v2: generic single-operator workflow
 
 [`competitor-analysis-v2/`](competitor-analysis-v2/)'s SKILL.md was written
