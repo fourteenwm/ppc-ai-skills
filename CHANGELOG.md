@@ -2,6 +2,44 @@
 
 All notable changes to this repository.
 
+## 2026-07-22 — Ads Checker: the operator layer and the check rubric
+
+[`ads-checker/`](ads-checker/) shipped as a rich procedural wrapper with the
+stable reference material carried inline. This pass re-homes that payload
+and adds the judgment layer — doc-only, both scripts byte-untouched.
+
+- NEW `references/check-rubric.md` — exact per-check criteria sourced from
+  the engine: what fires each of the checks and at what severity, the
+  10-checks-vs-11-functions precision (the auto-created-assets *setting*
+  check feeds severity but has no history column — it's a setting state,
+  not an issue volume), the severity-by-matched-term nuance on the
+  inappropriate check (spam-category matches count but never move
+  severity), the 20-URL sampling on URL validation, and the full
+  cached-output contract both scripts share — tabs, columns, date format,
+  comparison and chronic semantics (including that comparison history is
+  scope-bound while chronic detection is not).
+- NEW `rules.md` — the judgment layer: invariants (the audit Sheet is the
+  instrument's memory; severity ranks urgency class while count ranks
+  effort), a triage order (CRITICAL by exposure → chronic → NEW/INCREASED →
+  structural HIGH → copy HIGH), how to read the history tags (RESOLVED
+  means verify fixed-vs-vanished), an 11-row false-alarm table mined from
+  the engine (brand/coined-word spelling flags, current-promo seasonal
+  hits, HEAD-blocking servers, whole-library asset scans, the
+  unregistered-CID BRAND_MISSING trap, blank briefing = stale never
+  all-clear), chronic reasoning (3+/90d means the fix isn't sticking —
+  find the source), and a finding→fix-skill routing table.
+- NEW `examples.md` — three worked reads: a portfolio run with a chronic
+  disapproval tag, the spurious HIGH on an unregistered account (the fix
+  was configuration, not copy), and a blank briefing section almost
+  reported as "clean this week" (a `--dry-run` writes no history).
+- SKILL.md re-homed to workflow + routing: the checks list, severity
+  table, and contract column list moved to their owning files; gained an
+  explicit does-NOT-do boundary, a finding→sibling routing table, and a
+  files-in-this-skill map.
+- README: install block fetches the new anatomy files, What's-Inside names
+  the operator docs, the contract paragraph points at the rubric instead
+  of restating it, and a triage pointer covers the false-alarm classes.
+
 ## 2026-07-22 — Shared Budget Updater: the operator layer and the write contract
 
 [`shared-budget-updater/`](shared-budget-updater/) already shipped its

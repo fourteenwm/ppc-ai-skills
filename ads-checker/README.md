@@ -9,6 +9,7 @@ Audit Google Ads accounts for creative compliance across 10 checks — DKI, auto
 ## What's Inside
 
 - **10 creative-compliance checks** with severity logic (CRITICAL / HIGH / MEDIUM / OK), spanning policy, automation settings, copy hygiene, and relevance
+- **Operator docs, not just scripts** — `rules.md` (triage order, false-alarm classes, finding→fix-skill routing), `examples.md` (worked triage reads), and `references/check-rubric.md` (exact per-check criteria + the output contract)
 - **Issue-history comparison** — every run tags each issue type NEW / INCREASED / DECREASED / RESOLVED / SAME vs the last audit
 - **Chronic-issue detection** — flags accounts where an issue has recurred 3+ times in 90 days, so persistent problems escalate automatically
 - **Brand-aware spelling** — account/brand names load as spelling exceptions so real property names don't false-positive
@@ -22,11 +23,17 @@ Audit Google Ads accounts for creative compliance across 10 checks — DKI, auto
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/ads-checker/scripts
+mkdir -p .claude/skills/ads-checker/scripts .claude/skills/ads-checker/references
 curl -o .claude/skills/ads-checker/SKILL.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/SKILL.md
 curl -o .claude/skills/ads-checker/README.md \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/README.md
+curl -o .claude/skills/ads-checker/rules.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/rules.md
+curl -o .claude/skills/ads-checker/examples.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/examples.md
+curl -o .claude/skills/ads-checker/references/check-rubric.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/references/check-rubric.md
 curl -o .claude/skills/ads-checker/scripts/ads_checker_audit.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ads-checker/scripts/ads_checker_audit.py
 curl -o .claude/skills/ads-checker/scripts/read_latest_ads_checker.py \
@@ -57,7 +64,7 @@ Both scripts are included and self-contained — Google Ads API + Google Sheets 
 - The spelling exceptions list ships with common ad abbreviations plus a real-estate example block — extend for your vertical; account/brand names are added automatically from your registry
 - Chronic-issue account files are created under `./accounts/<portfolio>/<slug>.md` after an interactive prompt
 
-**The cached-output contract (do not break):** the `Account History` tab must carry `Audit Date` (`%Y-%m-%d %H:%M`), `Portfolio`, `CID`, `Account Name`, `Overall Severity`, and the per-issue `* Count` columns. The reader filters to the last 24h on `Audit Date`. Change the tab name, date format, or headers in one script and you must change them in the other, or the briefing section silently goes blank.
+**The cached-output contract (do not break):** the two scripts share a hard lockstep contract — the `Account History` tab name, the `Audit Date` format, and the column headers. Change any of them in one script and you must change the other, or the briefing section silently goes blank. The exact tab/column contract, per-check criteria, and comparison/chronic semantics live in [`references/check-rubric.md`](references/check-rubric.md).
 
 ---
 
@@ -74,6 +81,8 @@ The skill will:
 2. Run `scripts/ads_checker_audit.py` (piping `"no"` so the optional chronic-issue prompt never blocks)
 3. Surface the severity breakdown, the changes-vs-last-run (NEW/INCREASED/RESOLVED), and any chronic accounts
 4. Point you at the Google Sheet output
+
+After the run, [`rules.md`](rules.md) drives the triage: false-alarm classes ruled out (brand-word spelling flags, current-promo seasonal hits, the unregistered-CID trap), chronic accounts escalated as process problems, and every actionable finding routed to its fix skill — each with its own review gate. [`examples.md`](examples.md) shows worked reads, including why a blank briefing section is never an all-clear.
 
 **Parallel (multiple portfolios at once):**
 
@@ -123,3 +132,9 @@ CRITICAL CREATIVE (Fix Immediately):
 ## License
 
 MIT — use freely in your own brain / repo / agency.
+
+---
+
+Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage over 110 Google Ads accounts with 85+ specialized skills.
+
+More free skills: [github.com/fourteenwm/ppc-ai-skills](https://github.com/fourteenwm/ppc-ai-skills)
