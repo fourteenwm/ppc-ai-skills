@@ -39,7 +39,7 @@ already done enters at step 2. Read the relevant step below before running it.
 | Step | Tool | What it does | Type |
 |------|------|--------------|------|
 | 0 Pull | `scripts/mcc_search_query_report.py` | Pull last-30-day search terms across the MCC → the `SQR` tab. (Or use your own scheduled Google Ads Script.) | script |
-| 1 Prep | `scripts/sqr_prep.py` | Build classification batches from the sheet; flag off-brand candidates via the keyword stub. | script |
+| 1 Prep | `scripts/sqr_prep.py` | Build classification batches from the sheet; each batch bundles the account brand names + the competitor keyword stub for the classifier. | script |
 | 2 Classify | `references/classify-prompt.md` | **3 independent classification passes** over every batch (Claude Task agents). | LLM |
 | 3 Geo *(optional)* | `scripts/prep_geo_batches.py` + `references/geo-prompt.md` | Re-check off-brand hits that contain a location you actively target — don't negate those. | script + LLM |
 | 4 Consensus | `scripts/sqr_compare.py` (+ optional `scripts/sqr_ngram_analysis.py`) | Merge the 3 runs → `3-3 Agree` / `2-3 Agree` tabs; optional per-account n-grams. | script |
@@ -163,7 +163,9 @@ unexpected state, STOP and report; do not retry into the API.
 
 ## Step 7 — Remove (maintenance)
 
-Un-negate a keyword added by mistake. Progressive discovery → preview → approve:
+Un-negate a keyword added by mistake. Mistakes usually surface via a
+blocked-positive conflict scan — load [`neg-conflict-finder`](../neg-conflict-finder/)
+to find them — or a performance drop. Progressive discovery → preview → approve:
 
 ```bash
 python scripts/sqr_remove_negatives.py --customer-id 1234567890                                  # list lists

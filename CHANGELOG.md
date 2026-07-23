@@ -2,6 +2,21 @@
 
 All notable changes to this repository.
 
+## 2026-07-23 — SQR Pipeline: two one-line doc fixes
+
+From re-deriving every SKILL.md claim against the seven shipped scripts.
+Doc-only — all scripts byte-untouched.
+
+- [`sqr-pipeline/SKILL.md`](sqr-pipeline/SKILL.md) — the step-1 row now
+  describes what `sqr_prep.py` actually does: it batches every pending query
+  and bundles the account brand names + the competitor keyword stub into each
+  batch for the classifier (prep itself flags nothing — classification is
+  step 2's job).
+- [`sqr-pipeline/SKILL.md`](sqr-pipeline/SKILL.md) — the remove branch
+  (step 7) now says where removal candidates come from: a blocked-positive
+  conflict scan via [`neg-conflict-finder`](neg-conflict-finder/), or a
+  performance drop.
+
 ## 2026-07-23 — Doc-accuracy pass: budget-guardian and ads-checker
 
 Five one-line corrections from re-deriving doc claims against the code they
