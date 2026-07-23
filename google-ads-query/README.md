@@ -14,6 +14,7 @@ Query Google Ads API data with natural language commands and save results to CSV
 - Works with bare CIDs out of the box; optional `accounts.json` registry adds name/alias resolution with fuzzy matching and suggestions (starter template ships as `accounts.example.json`)
 - Read-only by design: SELECT queries only, never mutations
 - Standard file naming convention for organized data exports
+- Operator docs: `rules.md` (template-vs-custom and registry-vs-CID calls, CSV-reading judgment, false-alarm table), `examples.md` (three worked reads), and `references/query-contract.md` (exact resolution/date/CSV mechanics + each template's scope filters)
 
 ---
 
@@ -21,14 +22,16 @@ Query Google Ads API data with natural language commands and save results to CSV
 
 ```bash
 mkdir -p .claude/skills/google-ads-query/scripts .claude/skills/google-ads-query/references
-curl -o .claude/skills/google-ads-query/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/SKILL.md
-curl -o .claude/skills/google-ads-query/accounts.example.json \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/accounts.example.json
+for f in SKILL.md rules.md examples.md accounts.example.json; do
+  curl -o .claude/skills/google-ads-query/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/$f
+done
 curl -o .claude/skills/google-ads-query/scripts/query.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/scripts/query.py
-curl -o .claude/skills/google-ads-query/references/resources.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/references/resources.md
+for r in resources.md query-contract.md; do
+  curl -o .claude/skills/google-ads-query/references/$r \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/references/$r
+done
 for t in search-terms campaigns keywords ad-groups conversions budgets assets geo; do
   curl -o .claude/skills/google-ads-query/references/$t.gaql \
     https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/google-ads-query/references/$t.gaql
@@ -43,6 +46,8 @@ python .claude/skills/google-ads-query/scripts/query.py \
 ```
 
 The CSV lands in `./data/`. To query by account name instead of CID, copy `accounts.example.json` to `./accounts.json` and edit — then `--account "riverside flats"` resolves names, aliases, and partial matches.
+
+Before reading any surprising result (zero rows, mismatched totals), check the false-alarm table in `rules.md` — most surprises are per-template scope filters doing their documented job.
 
 ---
 

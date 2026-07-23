@@ -73,7 +73,7 @@ done
 | [Investigation Methodology](investigation-methodology/) | Hypothesis-driven framework for diagnosing Google Ads performance issues |
 | [Impression Share Diagnostics](impression-share-diagnostics/) | Decision tree for interpreting Search IS, Budget Lost IS, and Rank Lost IS under smart bidding |
 | [Underspending Investigation](underspending-investigation/) | Six-framework root-cause diagnosis for accounts pacing under tolerance — distinguishes budget-too-low from quality issues, low demand, and smart-bidding ramp-up. Read-only; produces conservative budget recommendations capped at +10% per change |
-| [Change History Checker](change-history-checker/) | GAQL templates for answering "what changed?" — not limited to the UI's 30-day window |
+| [Change History Checker](change-history-checker/) | Script + query patterns for answering "what changed?" up to 90 days back via `change_status` — three times `change_event`'s 30-day window — with the attribution ladder for "who did it" |
 | [Conversion Tracking Health](conversion-tracking-health/) | Audit conversion tracking across portfolios — catches stale or misconfigured conversion actions |
 | [Lead Quality Pattern Analysis](lead-quality-pattern-analysis/) | 5 red-flag detection frameworks for diagnosing bot traffic, form spam, and low-intent leads |
 | [Lead Quality Recommendation Prioritization](lead-quality-recommendation-prioritization/) | 3-tier action framework for turning lead quality findings into prioritized fixes |

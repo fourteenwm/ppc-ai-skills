@@ -2,6 +2,113 @@
 
 All notable changes to this repository.
 
+## 2026-07-23 — Query, history, and link-audit trio: the operator layer
+
+Judgment and contract layers for three skills that share a spine — reading
+Google Ads API pulls and deciding what's actionable. Doc-only: all three
+scripts and all eight `.gaql` templates are byte-untouched.
+
+**[`google-ads-query/`](google-ads-query/):**
+
+- NEW `references/query-contract.md` — the resolution ladder (`--cid`
+  normalization, exact/partial registry matching, aliases never
+  partial-matched), template resolution (skill-folder relative, exact
+  filename stem only — the alias table is request-parsing vocabulary, not
+  script input), date semantics (`--days 30` spans 31 dates including
+  today's partial data; `conversions` has no date placeholder so `--days` is
+  inert there), the CSV contract (columns alphabetized rather than
+  SELECT-ordered, rows in template sort order, zero rows writes no file),
+  a per-template scope table (the `campaigns`-keeps-paused vs
+  `budgets`-drops-paused asymmetry, PMax-only `assets`, numeric criterion
+  IDs in `geo`), and the drop-in ninth-template contract. States the
+  templates themselves as the source of truth for field lists.
+- NEW `rules.md` — the template-vs-custom-GAQL call (filter-after-pull for
+  one-offs, ninth template for repeat asks, custom GAQL when the grain
+  differs), registry-vs-bare-CID guidance, CSV-reading judgment (when the
+  file actually gets read, micros/ratio literacy), a false-alarm table, and
+  the never-guess-a-CID escalation default.
+- NEW `examples.md` — three worked reads: the routine pull whose analysis
+  waits to be asked, the `Rows: 0` that's a PMax-scope artifact rather than
+  an empty account, and the by-device ask that outgrows the templates.
+- `SKILL.md` re-homed to workflow + routing (frontmatter untouched): boundary
+  block, files table, six-row sibling routing, and two console-sample
+  precision fixes — the row count prints without a thousands separator, and
+  resolution failures print `ERROR: Ambiguous account '…'` (the old sample
+  showed a different wording than the script emits).
+- `README.md` — install block now fetches the operator docs; false-alarm
+  pointer added.
+
+**[`change-history-checker/`](change-history-checker/):**
+
+- Window-accuracy pass throughout: `change_status` reaches **90 days back —
+  not unlimited** (the API rejects older starts with `START_DATE_TOO_OLD`),
+  and both change resources require a finite date range AND a `LIMIT` ≤
+  10,000 — the previously shown LIMIT-less query patterns would not run.
+  SKILL.md frontmatter description, body, README, and the root-README row now
+  state the enforced windows; the script (which always used `LIMIT 500`) is
+  byte-untouched, its "any date range" docstring left as-is with the contract
+  stating the enforced behavior.
+- NEW `references/history-windows.md` — the two-resource table
+  (30-day-with-actor vs 90-day-counts-only), the API-enforced query rules,
+  midnight semantics of date-only bounds, one-row-per-resource counting
+  (work vanishes from a window when the resource is edited again later),
+  the script's two query shapes and its `LIMIT 500` newest-first cap,
+  corrected standalone patterns including the `change_event`
+  "who did this" query with `user_email` + `client_type`, and the
+  resource-type/status tables.
+- NEW `rules.md` — routine-vs-investigate reading (count × date × surface vs
+  your own work log; bulk signatures), the three-step attribution ladder
+  (`change_event` inside 30 days → UI Change History → `mcc-hack-audit` when
+  access is the question), `--detailed`/`--types`/`--list-accounts` decision
+  guidance (including the CAMPAIGN_ASSET gap in the detailed gate and
+  ENABLED-only listing), a false-alarm table, and the
+  never-conclude-compromise-from-counts escalation default.
+- NEW `examples.md` — three worked reads: the routine month audit, the
+  Saturday bulk cluster that splits into auto-applied recommendations plus a
+  genuinely unknown API actor, and the 90-day wall with the LIMIT-cap
+  truncation read.
+- `SKILL.md` re-homed to workflow + routing; query patterns and resource
+  tables moved to the reference; boundary block, files table, four-row
+  routing, no-dashes CID note, console-only status-leg honesty.
+
+**[`mcc-hack-audit/`](mcc-hack-audit/):**
+
+- NEW `references/scan-contract.md` — tree-walk mechanics (no status filter,
+  the root MCC scans itself, internal set = walked managers + login CID),
+  the all-link-statuses pull (REFUSED/CANCELED rows are attempt records),
+  per-account error isolation (an errored account is absent from the CSVs
+  entirely — console-only, never persisted), classification precedence
+  (HOSTILE beats INTERNAL beats TRUSTED beats EXTERNAL), the datestamped
+  CSV/Sheets contracts, the summary block whose error label asserts a cause
+  the code never checks, the warning banner that prints for revoked hostile
+  links too, and the five hard-won API limitations (no external-MCC names
+  via API, `start_time` rejected so `manager_link_id` is the chronology,
+  `change_event` never records link acceptances, canceled accounts hold link
+  history, 20-worker throttling ceiling).
+- NEW `rules.md` — the triage order (HOSTILE → PENDING-to-unknown →
+  EXTERNAL newest-first → attempt records), the three-verdict table with the
+  suspicious-link profile, the escalation default (check activity via
+  change-history-checker, name the CID in the UI, revoke + rotate +
+  hostile.json — never TRUSTED to silence a row), cadence + the manual
+  cross-day CSV-diff watchdog, threat-intel sharing criteria, and a
+  ten-row false-alarm table.
+- NEW `examples.md` — three worked reads: the clean quarterly baseline, the
+  PENDING invite caught pre-breach (with the probing pattern across
+  accounts and the post-remediation banner misread), and the absent account
+  whose error-count arithmetic exposed a coverage gap.
+- `SKILL.md` re-homed to workflow + routing (frontmatter untouched):
+  "every active manager-link" corrected to all-statuses, the encoded
+  knowledge moved to the contract's API-limitations section, the
+  threat-intel section moved to rules, the "sister skill (planned)" promise
+  replaced with real routing to `change-history-checker`, boundary block
+  merged from the old Limitations, files table.
+- `README.md` — install block now fetches the operator docs; attempt-record
+  bullet; triage pointer.
+
+Root README: the Change History Checker row now states the real windows
+(90-day `change_status` vs 30-day `change_event`) instead of "not limited to
+the UI's 30-day window" — the UI's own history reaches 2 years.
+
 ## 2026-07-23 — RSA Single-Account: the operator layer
 
 The full-set RSA generator gets its judgment and contract layers. Doc-only — all

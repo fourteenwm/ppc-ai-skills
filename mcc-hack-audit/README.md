@@ -11,21 +11,26 @@ This skill was built in direct response to a real-world incident where three hos
 ## What's Inside
 
 - Walks your full MCC tree from `login_customer_id` (auto-detects every internal account and sub-MCC)
-- Pulls `customer_manager_link` for every account using parallel API calls (20 workers by default)
+- Pulls `customer_manager_link` for every account using parallel API calls (20 workers by default) — all link statuses, so REFUSED/CANCELED attempt records surface too
 - Classifies each link as INTERNAL, HOSTILE, or EXTERNAL — no "trusted partner" auto-clearance
 - Optional `--trusted-cids` flag if you want to suppress long-standing trusted external MCCs
 - Outputs two CSVs: all links + suspicious-only subset
 - Optional Google Sheets upload with four organized tabs
 - Handles CANCELED/CLOSED accounts (they hold security-relevant link history too)
+- Operator docs: `rules.md` (triage order, what a suspicious link looks like, the escalation default, false-alarm table), `examples.md` (three worked reads including a caught-pre-breach PENDING invite), and `references/scan-contract.md` (exact scan mechanics + the hard-won API limitations)
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/mcc-hack-audit/scripts
-curl -o .claude/skills/mcc-hack-audit/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/mcc-hack-audit/SKILL.md
+mkdir -p .claude/skills/mcc-hack-audit/scripts .claude/skills/mcc-hack-audit/references
+for f in SKILL.md rules.md examples.md; do
+  curl -o .claude/skills/mcc-hack-audit/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/mcc-hack-audit/$f
+done
+curl -o .claude/skills/mcc-hack-audit/references/scan-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/mcc-hack-audit/references/scan-contract.md
 curl -o .claude/skills/mcc-hack-audit/scripts/mcc_hack_audit.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/mcc-hack-audit/scripts/mcc_hack_audit.py
 ```
@@ -51,7 +56,7 @@ python scripts/mcc_hack_audit.py
 cat output/mcc_link_scan_*_SUSPICIOUS.csv
 ```
 
-Open the suspicious CSV. Every EXTERNAL row is a manager outside your tree with access to one of your accounts. For each one, decide: legitimate (former agency, integration partner), expected (parent company), or unknown (investigate).
+Open the suspicious CSV. Every EXTERNAL row is a manager outside your tree with a link into one of your accounts. For each one, decide: legitimate (former agency, integration partner), expected (parent company), or unknown (investigate) — the triage order, the suspicious-link profile, and the escalation default live in `rules.md`.
 
 ---
 

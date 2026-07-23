@@ -7,7 +7,9 @@ allowed-tools: [Read, Bash, Glob]
 
 # Google Ads Query Skill
 
-Query Google Ads API data, save to CSV, and return minimal output (file path + row count only). Read-only — SELECT queries, never mutations.
+Owns one workflow: turn a natural-language data request into a template-driven
+GAQL pull whose results land in a CSV file — returning only the file path and
+row count to the conversation. Read-only — SELECT queries, never mutations.
 
 ## Purpose
 
@@ -16,6 +18,23 @@ This skill implements the **CSV-first pattern** for context-efficient analysis:
 2. Save to CSV file (data stays outside context)
 3. Return only file path + row count
 4. Analyze the CSV as a separate step, only when asked (read the file then, not before)
+
+The judgment layer — template vs custom GAQL, registry vs bare CID, when the
+CSV actually gets read — is [`rules.md`](rules.md). The exact resolution,
+date, and CSV mechanics are
+[`references/query-contract.md`](references/query-contract.md).
+
+## Deliberately does NOT do
+
+- **No mutations, ever** — there is no code path that writes to Google Ads.
+- **No auto-analysis** — a completed query reports path + row count and stops;
+  reading the file waits for an analysis question.
+- **No raw data in conversation** — no sample rows, no previews, no pastes.
+- **No portfolio sweeps by default** — one account per run; a multi-account
+  pull is an explicit loop, not an assumption.
+- **No alias/fuzzy matching inside the script** — name resolution vocabulary
+  is the agent's parsing job (see `references/resources.md`); the script takes
+  exact resource names and exact/partial registry matches only.
 
 ## Command Format
 
@@ -28,30 +47,43 @@ Get [resource] for [account] [days]d
 - `Get campaigns for Riverside Flats 60d` → 60 days
 - `Get keywords for 1234567890 90d` → bare CID works too
 
-**Defaults:**
-- Days: 30
-- Sort: cost DESC (built into each template)
+**Defaults:** 30 days; sort built into each template (cost DESC on seven,
+conversions DESC on `conversions`). Note the contract's date semantics:
+`--days 30` spans 31 calendar dates including today's partial data, and
+`conversions` ignores `--days` entirely (all-time template).
 
 ## Prerequisites
 
 - **`google-ads.yaml`** at project root (or `--config <path>`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it. Querying client accounts through a manager account requires `login_customer_id` in the yaml.
 - Python with the `google-ads` package (`pip install google-ads`)
-- Optional: an `accounts.json` registry so requests can use account names instead of CIDs — copy `accounts.example.json` and edit. Without it, bare CIDs work fine.
+- Optional: an `accounts.json` registry so requests can use account names instead of CIDs — copy `accounts.example.json` and edit. Without it, bare CIDs work fine. The registry-or-CID call is in `rules.md`.
 
 ## Process
 
 ### Step 1: Parse Request
 
 Extract:
-1. **Resource** — short name (see `references/resources.md`)
+1. **Resource** — short name. Eight ship: `search-terms`, `campaigns`,
+   `keywords`, `ad-groups`, `conversions`, `budgets`, `assets`, `geo` —
+   mappings, aliases, and the template format live in
+   [`references/resources.md`](references/resources.md). Map user phrasing
+   ("sqr", "kw") to the exact short name here — the script won't.
 2. **Account** — a CID, or a name/alias if a registry exists
 3. **Days** — time period (default 30)
+
+If the ask doesn't map cleanly to one of the eight (different segment, grain,
+or filter), stop and make the template-vs-custom call per `rules.md` before
+running anything.
 
 ### Step 2: Resolve Account
 
 - Request contains a CID → use `--cid` directly; no registry needed.
-- Request names an account → resolve via `accounts.json` (`--account` matches key, name, or alias, case-insensitively; partial matches suggest candidates).
-- Name given but no `accounts.json` present → ask for the CID, or offer to set up the registry from `accounts.example.json`.
+- Request names an account → resolve via `accounts.json` (`--account` matches
+  key, name, or alias; partial matches suggest candidates — full ladder in the
+  contract).
+- Name given but no `accounts.json` present → ask for the CID, or offer to set
+  up the registry from `accounts.example.json`. CID route first — it needs no
+  setup.
 
 ### Step 3: Execute Query
 
@@ -67,79 +99,62 @@ Useful flags: `--config <path>` (default `./google-ads.yaml`), `--accounts <path
 
 ### Step 4: Return Minimal Output
 
-**Only return:**
-```
-Query complete.
-File: data/20260109-riverside-flats-search-terms.csv
-Rows: 3,847
+The script prints exactly two lines on success:
 
-Ask for analysis to dig in, or run another query.
 ```
+File: data/20260723-riverside-flats-search-terms.csv
+Rows: 4127
+```
+
+Relay them (row count prints plain — no thousands separator) and close with
+the standing offer: *"Ask for analysis to dig in, or run another query."*
 
 **DO NOT:**
 - Display raw data in conversation
 - Show sample rows
 - Auto-analyze (wait for user to request)
 
-## Resources
-
-See `references/resources.md` for resource mappings.
-
-| Short Name | Description | GAQL Template |
-|------------|-------------|---------------|
-| `search-terms` | Search query report | `search-terms.gaql` |
-| `campaigns` | Campaign performance | `campaigns.gaql` |
-| `keywords` | Keyword performance | `keywords.gaql` |
-| `ad-groups` | Ad group performance | `ad-groups.gaql` |
-| `conversions` | Conversion tracking | `conversions.gaql` |
-| `budgets` | Budget utilization | `budgets.gaql` |
-| `assets` | Asset performance (PMAX) | `assets.gaql` |
-| `geo` | Geographic performance | `geo.gaql` |
-
-## File Naming Convention
-
-```
-data/[YYYYMMDD]-[account-slug]-[resource].csv
-```
-
-The slug is the registry key for `--account` runs, or the CID for `--cid` runs:
-- `data/20260109-riverside-flats-search-terms.csv`
-- `data/20260109-1234567890-campaigns.csv`
-
 ## Error Handling
 
-**Account not found (registry present):**
-```
-Account "riverside" is ambiguous. Did you mean:
-  - riverside-flats (Riverside Flats)
-```
-Relay the script's suggestions and let the user pick.
+Every failure prints `ERROR: <detail>` to stderr and exits 1 — resolution
+errors carry their own suggestions (ambiguous-name candidates, the first
+registry keys, the both-fixes message when a name is used with no registry).
+Relay the script's suggestions and let the user pick; never auto-pick. A
+zero-row run is **not** an error: `Rows: 0 (no file written - …)`, exit 0.
+Before re-running any surprise, check the false-alarm table in
+[`rules.md`](rules.md) — most surprises are per-template scope filters doing
+their documented job (contract table).
 
-**Registry missing but a name was used:**
-The script explains both fixes (copy `accounts.example.json`, or pass `--cid`). Offer the CID route first — it needs no setup.
+## After a Query (status leg)
 
-**Query fails:**
-- Show the API error message
-- Common fixes: wrong CID, missing `login_customer_id` for manager-account access, longer `--days` window when a report is empty
+- `data/` is the run record: `<YYYYMMDD>-<slug>-<resource>.csv` names tell a
+  cold session what was pulled and when. Same-day same-target re-pulls
+  overwrite; zero-row runs leave no file (contract, "Reading run state cold").
+- Findings that turn into work route onward — table below.
 
-## Integration
+## Files in this skill
 
-After a query completes, the user can:
-1. Ask for analysis → read the CSV and dig in (separate step, keeps raw data out of context until needed)
-2. Ask for a different resource/account
-3. Re-query with a different date range
+| File | Role |
+|---|---|
+| `SKILL.md` | This file — workflow + routing |
+| `rules.md` | Judgment: template-vs-custom, registry-vs-CID, CSV reading, false alarms |
+| `examples.md` | Three worked reads (routine pull, the PMax-scope zero, the ninth template) |
+| `references/query-contract.md` | Exact resolution/date/CSV mechanics + per-template scope table |
+| `references/resources.md` | Resource → template mappings + parse-time aliases |
+| `references/*.gaql` | The 8 query templates — each file is the source of truth for its fields |
+| `accounts.example.json` | Registry starter — copy to `accounts.json` and edit |
+| `scripts/query.py` | The query → CSV engine |
 
-To go beyond the 8 shipped templates, see the [gaql-query-patterns](../gaql-query-patterns/) skill — GAQL templates for custom queries; drop a new `.gaql` file in `references/` (with a `{DATE_RANGE}` placeholder) and it's immediately queryable by filename.
+Runtime artifacts (never committed): `data/*.csv` outputs, your
+`accounts.json`, your `google-ads.yaml`.
 
-## Files
+## When to load sibling skills
 
-```
-google-ads-query/
-├── SKILL.md                    ← This file
-├── accounts.example.json       ← Registry template (copy to accounts.json)
-├── scripts/
-│   └── query.py                ← Unified query→CSV script
-└── references/
-    ├── resources.md            ← Resource mappings
-    └── *.gaql                  ← 8 query templates
-```
+| Load | When |
+|---|---|
+| [`gaql-query-patterns`](../gaql-query-patterns/) | The ask doesn't map to the 8 templates — write custom GAQL there; promote repeat queries to a ninth template per the contract |
+| [`google-ads-api-setup`](../google-ads-api-setup/) | First run, or any credentials error |
+| [`sqr-pipeline`](../sqr-pipeline/) | The search-terms pull is step one of negatives work — classification and upload live there, not here |
+| [`change-history-checker`](../change-history-checker/) | The question is "what changed," not "how did it perform" |
+| [`account-diagnostic`](../account-diagnostic/) | The question is really "how healthy is this account" — run the inspection, not ad-hoc pulls |
+| [`markdown-to-sheets-presenter`](../markdown-to-sheets-presenter/) | CSV findings need to become a client-facing formatted Sheet |
