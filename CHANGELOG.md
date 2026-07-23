@@ -2,6 +2,51 @@
 
 All notable changes to this repository.
 
+## 2026-07-23 — RSA Single-Account: the operator layer
+
+The full-set RSA generator gets its judgment and contract layers. Doc-only — all
+seven workflow scripts and `vertical_configs.json` are byte-untouched.
+
+**[`rsa-single-account/`](rsa-single-account/):**
+
+- NEW `references/pipeline-contract.md` — exact per-script mechanics sourced from
+  the shipped code: Step-1 selection (registry-vs-MCC-walk ladder, the MTD > $0
+  gate, why zero-spend accounts print nothing), the Step-2 domain vote (unique-URL
+  counting, paused-campaign ads included), Step-3 analysis mechanics (top-5-ads /
+  top-3-LSAs caps, per-keyword-match counting, the hardcoded 2+/3+ gap thresholds,
+  the inert config keys, and the example-USP artifact — the JSON's client-side gap
+  fields reflect built-in samples until you substitute real USPs), the Step-4
+  zero-rows-exits-like-a-failure path, the Step-5 scrape + extraction contract
+  (page discovery, the 10,000-char truncation, the prompt-enforced JSON schema),
+  the Step-6 review gates (the 4.5 rating threshold, exact-5-star snippet filter
+  and its fall-back-to-all-snippets trap, the top-2 cap), and the Step-8 sheet
+  contract (first-tab A:Z clear, 22 columns, key-presence-only validation,
+  padding-never-truncation). Closes with a "Reading run state cold" section — no
+  script writes a timestamp, so artifacts and mtimes are the run record.
+- NEW `rules.md` — the judgment layer: six invariants (including "the generation
+  is yours, not the scripts'" and "the scripts validate structure, never copy"),
+  the step-sequencing table (which steps are skippable when, ordering freedom,
+  resume-from-cache logic), how to read the competitive JSON (saturation counts
+  real, client-USP fields not; synonym multi-count discounting; the thin-SERP
+  "everything unique" trap), review usability (the 4.5 gate, the wrong-panel
+  check, sub-5-star snippet fallback), an 11-row false-alarm table, and the
+  escalation default (Empty > Inaccurate; never guess identity inputs).
+- NEW `examples.md` — three worked runs, two edge-shaped: a clean full-account run
+  hinging on a real saturation call, a thin-review business (4.2★, the snippet
+  fallback surfacing a 3-star quote), and the `[ERROR]` at Step 4 that's a
+  naming-convention miss plus a one-competitor SERP read.
+- `SKILL.md` re-homed to workflow + routing altitude (frontmatter untouched):
+  explicit does-NOT-do boundary, files table, when-to-load routing for seven
+  siblings, precision fixes (Step 3 now says the script's gap printout runs
+  against built-in example USPs; Step 6 names the 4.5 gate; Step 8 notes you
+  author `rsa_data.json` and the writer validates key presence only), and an
+  After-a-Run section pointing at the cold-read contract.
+- `README.md` — install block now fetches the three operator docs and the two
+  companion skills Step 7 invokes (`ad-copy-verification-standard`,
+  `ad-copy-generation-framework` — previously invoked but never installed);
+  sample summary line aligned to real analysis caps; before-you-import triage
+  pointer; house footer added.
+
 ## 2026-07-23 — RSA Refresh + RSA Bulk Edit: the operator layer
 
 The two RSA-editing skills get their judgment and contract layers, and the

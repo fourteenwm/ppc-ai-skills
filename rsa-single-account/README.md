@@ -12,9 +12,10 @@ Generate a complete, import-ready Responsive Search Ad set for **one** account �
 - **Website-verified copy** — claims sourced from a Firecrawl scrape + structured extraction; *Empty > Inaccurate*
 - **Live SERP competitive analysis** — finds what competitors over-use (saturated) vs. what the client uniquely offers (emphasize), so the copy differentiates instead of echoing
 - **Review-backed social proof** — website testimonials first, Google Business Profile fallback via SERP; never fabricated ratings/counts
-- **Disciplined distribution** — 3 keyword · 2 social proof · 4 USP · 2 CTA · 1 pun · 3 flexible (auto-falls back to 5 flexible when no reviews exist)
+- **Disciplined distribution** — 3 keyword · 2 social proof · 4 USP · 2 CTA · 1 pun · 3 flexible (falls back to 5 flexible when no reviews exist — a workflow rule, enforced at generation)
 - **Premium-avatar filter** — excludes all "Free" copy even when verified on the site
 - **Import-ready Google Sheet** — Account · Campaign · Ad Group · 15 headlines · 4 descriptions, ready to paste into Google Ads Editor
+- **Operator docs** — [`rules.md`](rules.md) (step sequencing, false-alarm table, escalation), [`examples.md`](examples.md) (three worked runs), and [`references/pipeline-contract.md`](references/pipeline-contract.md) (exact per-script mechanics)
 - Read-only on Google Ads — never mutates accounts
 
 ---
@@ -22,11 +23,13 @@ Generate a complete, import-ready Responsive Search Ad set for **one** account �
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/rsa-single-account/scripts
-curl -o .claude/skills/rsa-single-account/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/SKILL.md
-curl -o .claude/skills/rsa-single-account/README.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/README.md
+mkdir -p .claude/skills/rsa-single-account/scripts .claude/skills/rsa-single-account/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o ".claude/skills/rsa-single-account/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/$f"
+done
+curl -o .claude/skills/rsa-single-account/references/pipeline-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/references/pipeline-contract.md
 for f in check_active_accounts.py get_account_website_url.py \
          analyze_competitors_for_rsa.py get_search_campaign_structure.py \
          scrape_website_firecrawl.py get_gmb_reviews.py write_rsa_to_sheet.py \
@@ -34,7 +37,18 @@ for f in check_active_accounts.py get_account_website_url.py \
   curl -o ".claude/skills/rsa-single-account/scripts/$f" \
     "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/rsa-single-account/scripts/$f"
 done
+
+# Step 7 invokes two companion skills (both in this repo) — install their operative files:
+mkdir -p .claude/skills/ad-copy-verification-standard .claude/skills/ad-copy-generation-framework
+curl -o .claude/skills/ad-copy-verification-standard/SKILL.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ad-copy-verification-standard/SKILL.md
+for f in SKILL.md framework.md distribution.md technical-specs.md examples.md; do
+  curl -o ".claude/skills/ad-copy-generation-framework/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ad-copy-generation-framework/$f"
+done
 ```
+
+The generation step will not work as documented without both companions — the verification standard is the law every claim passes through, and the generation framework holds the 23-element system the distribution comes from.
 
 ---
 
@@ -85,7 +99,7 @@ Console summary:
 RSAs generated for Example Auto (3 campaigns, 8 ad groups)
 Website: scraped ✓ (7 services, 4 credentials, 6 features)
 Reviews: none found on site or GBP → 5-flexible fallback
-Competitive: 0–7 competitors analyzed; emphasized 3 unique USPs
+Competitive: 9 competitors found (top 5 ads + 3 LSAs analyzed); emphasized 3 USPs no competitor mentions
 Validation: 120/120 headlines ≤30 chars · 32/32 descriptions ≤90 chars · 0 "Free" · all verified
 Sheet updated → ready for Google Ads Editor import
 ```
@@ -100,8 +114,20 @@ D: Auto Repair In [City] By ASE Certified Techs. AAA Approved. Book Online Today
 
 Every line traces to a verified website claim — nothing fabricated, no "Free" copy.
 
+**Before you import:** the Sheet is a review queue, not an approval. Read the set against
+[`rules.md`](rules.md) — the false-alarm table covers the misreads (the `[ERROR]` that's
+really a naming-convention miss, the "everything unique" thin-SERP artifact, sub-4.5-star
+review traps) — then import via Google Ads Editor and confirm with the
+[change-history-checker](../change-history-checker/) skill.
+
 ---
 
 ## License
 
 MIT — use freely in your own brain / repo / agency.
+
+---
+
+Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage over 110 Google Ads accounts with 85+ specialized skills.
+
+More free skills: [github.com/fourteenwm/ppc-ai-skills](https://github.com/fourteenwm/ppc-ai-skills)
