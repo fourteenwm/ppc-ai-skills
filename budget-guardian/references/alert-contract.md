@@ -126,9 +126,11 @@ model means for coverage — and the deliberate-unwatch idiom — is in
 Checked first thing every run, from `'Guardian Config'!A2`:
 
 - Only the exact word `ENABLED` (case-insensitive, trimmed) enables.
-- **Anything else — including an empty cell, a missing tab, or a typo —
-  reads as DISABLED** (fail-closed), with a run-log warning when the cell is
-  empty.
+- **Anything else in the cell — including an empty cell or a typo — reads
+  as DISABLED** (fail-closed), with a run-log warning when the cell is
+  empty. (A missing `Guardian Config` tab is different: the read itself
+  fails, so the run crashes loud — Script Error alert, red Actions run —
+  rather than silently disabling.)
 - A disabled run exits **immediately and successfully**: no budgets read, no
   accounts queried, no alerts — and the Actions run shows green. A healthy
   Actions history is NOT proof monitoring is on; the switch cell is.
@@ -145,8 +147,8 @@ Checked first thing every run, from `'Guardian Config'!A2`:
 - **Fatal failure:** any crash outside the per-account loop sends the Script
   Error alert and exits 1 (red run in Actions).
 - **Sheets resilience:** every Sheets call retries transient errors (HTTP
-  5xx and 429 rate-limit) up to 4 attempts with exponential backoff
-  (2/4/8/16s) before failing.
+  5xx and 429 rate-limit) up to 4 attempts with 2/4/8s waits between them
+  before failing.
 - **Credentials hygiene:** secrets are written to runner-local temp files at
   step start and deleted in an `always()` cleanup step, success or failure.
 

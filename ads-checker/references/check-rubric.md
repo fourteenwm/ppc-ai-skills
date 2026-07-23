@@ -125,8 +125,9 @@ marks that account ERROR (its row still writes, with `Error` cells).
 - `pyspellchecker` (English, distance=1). Known-word exceptions =
   the `AD_COPY_EXCEPTIONS` starter list in the script header **plus every
   word of every account name in your registry** (brand shield — built from
-  the whole registry, not just the audited account; on registry-less runs
-  there is effectively no brand shield).
+  the whole registry, not just the audited account; on registry-less
+  `--cid`/`--cids` runs there is effectively no brand shield — a
+  registry-less `--all` walk builds it from the walked account names).
 - Extraction strips DKI patterns, URLs, and numbers, splits hyphenated
   words, drops words under 3 characters and contractions. Skipped: words
   appearing ALL-CAPS in the original (acronyms), digit-containing tokens,

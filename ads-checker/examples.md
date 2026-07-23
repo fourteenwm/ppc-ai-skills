@@ -9,7 +9,7 @@ CIDs, and numbers are synthetic.
 run, Sheet written. Console:
 
 ```
-[1/3] Auditing Northgate Group - Cedar Point Lofts... CRITICAL (6 issues, 2 disapprovals, 1 DKI, 3 seasonal)
+[1/3] Auditing Northgate Group - Cedar Point Lofts... CRITICAL (6 issues)
 [2/3] Auditing Northgate Group - Juniper Row... HIGH (6 issues, 2 auto-create ON, 6 spelling)
 [3/3] Auditing Northgate Group - Bexley Commons... OK (0 issues)
 
@@ -22,6 +22,9 @@ CHRONIC ISSUES DETECTED - MANUAL REVIEW REQUIRED
 🔴 Northgate Group - Cedar Point Lofts (1234567890)
    - Disapprovals: 3 occurrences (2026-05-02 to 2026-07-01)
 ```
+
+The Sheet's per-check detail columns split Cedar Point's 6 issues:
+2 disapprovals, 1 DKI, 3 seasonal.
 
 **Reasoning:** Severity picks the account (Cedar Point first), but the
 chronic tag changes what the disapprovals *are*: third time in 90 days means

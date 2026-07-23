@@ -2,6 +2,29 @@
 
 All notable changes to this repository.
 
+## 2026-07-23 — Doc-accuracy pass: budget-guardian and ads-checker
+
+Five one-line corrections from re-deriving doc claims against the code they
+describe. Doc-only — every workflow and script is byte-untouched.
+
+- [`budget-guardian/references/alert-contract.md`](budget-guardian/references/alert-contract.md)
+  — the Sheets retry waits are 2/4/8s (the fourth failed attempt raises
+  without sleeping; the doc said 2/4/8/16s), and a missing `Guardian Config`
+  tab crashes loud to a Script Error alert rather than reading as DISABLED
+  (empty cells and typos still fail closed).
+- [`budget-guardian/SKILL.md`](budget-guardian/SKILL.md) — the
+  production-twin parity line no longer claims the twin's cron cadence;
+  cadence is outside the parity set. (Every reference to this bundle's own
+  2-hour cron is unchanged and correct.)
+- [`ads-checker/examples.md`](ads-checker/examples.md) — example 1's first
+  console line now shows the format the engine actually prints
+  (`CRITICAL (6 issues)` — DKI, disapproval, and seasonal counts never
+  appear as suffix extras); the per-check breakdown moved into the prose.
+- [`ads-checker/references/check-rubric.md`](ads-checker/references/check-rubric.md)
+  — the spelling check's "no brand shield" note is scoped to registry-less
+  `--cid`/`--cids` runs; a registry-less `--all` walk builds the shield
+  from the walked account names.
+
 ## 2026-07-22 — Ads Checker: the operator layer and the check rubric
 
 [`ads-checker/`](ads-checker/) shipped as a rich procedural wrapper with the

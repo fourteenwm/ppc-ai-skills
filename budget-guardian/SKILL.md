@@ -123,7 +123,7 @@ constants in the code, not env vars — tuning logic in [`rules.md`](rules.md).)
 ## Production twin & behavior parity
 
 This bundle is the generic replica of a production automation running on the
-same architecture every 2 hours. The two stay in **behavioral sync** on the
+same architecture. The two stay in **behavioral sync** on the
 parity set — the exact set, and the by-design divergences (ingestion halves,
 env names, branding), are defined in
 [`references/alert-contract.md`](references/alert-contract.md) § Parity with
