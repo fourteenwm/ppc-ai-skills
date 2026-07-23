@@ -97,7 +97,7 @@ done
 |-------|-------------|
 | [Ad Copy Generation Framework](ad-copy-generation-framework/) | 23-element RSA copywriting framework with distribution formulas and verification checkpoints |
 | [RSA Refresh](rsa-refresh/) | Replace LOW-performing RSA assets with website-verified headlines and descriptions |
-| [RSA Bulk Edit](rsa-bulk-edit/) | Find-and-replace text across RSA ads with preview, approval, and rollback safety |
+| [RSA Bulk Edit](rsa-bulk-edit/) | Find-and-replace text across RSA ads at scale — dry-run preview and a Google Ads Editor-ready review sheet |
 | [RSA Single-Account Generator](rsa-single-account/) | Generate a full RSA set (15 headlines + 4 descriptions per ad group) for one account from website-verified copy + live SERP competitive analysis + GBP review fallback |
 
 ### Portfolio Management

@@ -1,5 +1,13 @@
 # Hallucination Filter (Defense-in-Depth)
 
+> **Source of truth:** this file is the operative filter standard, applied
+> by the generating agent at Stage 2. Unlike the headline and description
+> references it is NOT embedded in the context JSON — load it from the
+> skill folder before writing any copy. The script's in-code
+> `HALLUCINATION_PATTERNS` list is scaffolding the shipped three-stage flow
+> never invokes (`refresh-contract.md` §helpers); where the two lists
+> differ, this file governs. Changes here ship with a CHANGELOG entry.
+
 The hallucination filter is a **secondary defense**, not the primary one. The primary defense is verified-only content generation. The filter catches patterns that slip through.
 
 ## Filtered Terms
@@ -42,35 +50,3 @@ Benefit headlines (3 per ad) require stricter verification than feature headline
 - "What changes?" column is vague or could apply to any apartment → reject (the change must be specific to the feature)
 
 **Empty > Ungrounded.** If fewer than 3 benefits pass verification, generate fewer benefit headlines and fill remaining slots with additional verified feature headlines. Never pad with ungrounded benefits.
-
-## Output Format
-
-### Tab 1: Original RSAs
-Shows existing state with performance ratings for comparison.
-
-| Column | Content |
-|--------|---------|
-| A | Account Name |
-| B | Customer ID |
-| C | Campaign |
-| D | Ad Group |
-| E-S | Headline 1-15 + Performance ratings |
-| T-W | Description 1-4 |
-| X-Z | Path 1, Path 2, Final URL |
-
-### Tab 2: Refreshed RSAs (Google Ads Editor Format)
-Import-ready format with changes logged.
-
-| Column | Content | Limit |
-|--------|---------|-------|
-| A | Account Name | - |
-| B | Customer ID | - |
-| C | Campaign | - |
-| D | Ad Group | - |
-| E-S | Headline 1-15 | 30 chars |
-| T-W | Description 1-4 | 90 chars |
-| X | Path 1 | 15 chars |
-| Y | Path 2 | 15 chars |
-| Z | Final URL | - |
-| AA | Ad ID | - |
-| AB | Changes Made | - |

@@ -1,5 +1,11 @@
 # PM Description Structure & Voice Lifting
 
+> **Source of truth:** this file IS the canonical description standard —
+> the generator embeds it verbatim into `rsa_context_{cid}.json` at
+> Stage 1, so edits here change what Stage 2 sees on the next prepare run.
+> Merge and sheet mechanics live in `refresh-contract.md`. Changes here
+> ship with a CHANGELOG entry.
+
 ## Description Structure (up to 4 total)
 
 Descriptions are generated ONCE per account and applied identically to every ad group.

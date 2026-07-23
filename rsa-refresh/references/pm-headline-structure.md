@@ -1,5 +1,11 @@
 # PM Headline Structure (15 total)
 
+> **Source of truth:** this file IS the canonical headline structure — the
+> generator embeds it verbatim into `rsa_context_{cid}.json` at Stage 1, so
+> edits here change what Stage 2 sees on the next prepare run. Merge and
+> sheet mechanics live in `refresh-contract.md`. Changes here ship with a
+> CHANGELOG entry.
+
 1 customizer is preserved from the existing ad. Claude Code provides 14 headlines:
 
 | Type | Count | Description | Example |

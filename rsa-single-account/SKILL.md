@@ -10,6 +10,13 @@ allowed-tools: [Read, Bash, Grep, Glob]
 
 **Type:** Read-only generation skill. It does not mutate Google Ads — it writes ad copy to a review Sheet; you import via Editor.
 
+**Which RSA skill?** This one builds a **full set from scratch**. If the
+account already has RSAs with performance labels and the job is replacing
+the LOW slots while keeping proven copy, load
+[`rsa-refresh`](../rsa-refresh/) instead. If the job is a uniform literal
+text swap across existing ads (rebrand, spelling, customizer retirement) —
+no new copy at all — load [`rsa-bulk-edit`](../rsa-bulk-edit/).
+
 ---
 
 ## What This Skill Wraps

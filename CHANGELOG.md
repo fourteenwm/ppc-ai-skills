@@ -2,6 +2,80 @@
 
 All notable changes to this repository.
 
+## 2026-07-23 — RSA Refresh + RSA Bulk Edit: the operator layer
+
+The two RSA-editing skills get their judgment and contract layers, and the
+three RSA skills now route to each other explicitly. Doc-only — all three
+scripts byte-untouched.
+
+**[`rsa-refresh/`](rsa-refresh/):**
+
+- NEW `references/refresh-contract.md` — the exact mechanics sourced from
+  both scripts: selection scope, the context/copy JSON formats (including
+  the `headlines_needed` math), merge gates (customizer-only mechanical
+  preservation, 30/90 length skips, silent dedupe, the below-10-headlines
+  skip that drops an ad from both tabs), the append-default sheet contract
+  with both tabs' real column layouts, the baseline contract (including
+  why a standalone run always writes zero asset counts), the scrape
+  ladder and its fork by mode, and the enrichment gating — including that
+  the SERP hook needs city/state the compliance module supplies, and that
+  [`rsa-single-account`](rsa-single-account/) ships importable SERP
+  modules. Also states plainly that the in-script filter helpers are
+  scaffolding the shipped flow never invokes — the reference files are
+  what governs copy quality.
+- NEW `rules.md` — the judgment layer: the refresh-vs-rebuild call (per ad
+  group, from the label spread), reading the baseline (the standalone-zeros
+  and all-N/A misreads), the Stage-2 compliance chain, an 8-row
+  false-alarm table (all-`NO_DATA` labels = failed query, error rows on a
+  resume-time scrape failure, doubled append rows, the wrong-site scrape),
+  and the escalation default (empty slot / held-back ad group, never
+  improvised copy).
+- NEW `examples.md` — three worked reads: a surgical refresh, the
+  prepare-mode scrape trap (context JSON written anyway — the near-miss is
+  generating from vibes), and the standalone-baseline zeros misread.
+- The three existing references now carry source-of-truth headers — the
+  headline and description standards note that Stage 1 embeds them
+  verbatim into the context JSON (edits change what Stage 2 sees), and the
+  hallucination filter notes it is loaded from the folder, not embedded.
+  The stale output-format table formerly in `hallucination-filter.md`
+  (missing the validation columns, wrong Original-tab layout) is replaced
+  by the contract's code-accurate version.
+- `SKILL.md` re-homed to workflow + routing: does-NOT-do boundary (no
+  mutations, no autonomous copy, customizers are the only mechanical
+  preservation), files map, and when-to-load routing across the RSA family
+  plus [`ad-copy-verification-standard`](ad-copy-verification-standard/) and
+  [`ad-copy-generation-framework`](ad-copy-generation-framework/). README
+  install block fetches the full doc layer; the "preserving BEST and GOOD"
+  phrasing now says how they actually survive (Stage 2 re-includes them).
+
+**[`rsa-bulk-edit/`](rsa-bulk-edit/):**
+
+- NEW `references/edit-contract.md` — match semantics from the code
+  (literal substring, no word boundaries, replacement inserted exactly as
+  typed, backslash caveat), the searched-fields truth (headlines and
+  descriptions only — paths ride along unedited), per-account error
+  isolation, the clear-and-rewrite sheet contract, run modes, and the
+  Editor-paste contract (columns C→Z carry no account or ad identity).
+- NEW `rules.md` — when bulk is the WRONG tool (five routed cases), the
+  pre-flight (dry-run, substring audit, casing plan, customizer intent),
+  the pre-paste review checklist (length audit — the script writes
+  over-limit text unflagged; casing scan; collateral read; per-account
+  paste), false alarms, escalation default.
+- NEW `examples.md` — a rebrand with the checklist catching a 37-char
+  headline and a casing artifact, the substring-collateral read
+  (`Care` → `Carefree`), and the ask that isn't bulk work (inserting a
+  new claim) next to the customizer retirement that is.
+- `SKILL.md` re-homed to workflow + routing with boundary and files map;
+  placeholder CIDs normalized to the 10-digit convention. README's claim
+  that paths are searched corrected (they never were — the code carries
+  them through untouched); root README's "approval and rollback safety"
+  wording replaced with what the tool actually does.
+
+**Cross-wiring:** [`rsa-single-account/`](rsa-single-account/) SKILL.md
+gains a three-line "Which RSA skill?" block, so each of the three RSA
+skills now states when to load the other two — full-set-from-scratch vs
+label-guided refresh vs literal swap.
+
 ## 2026-07-23 — SQR Pipeline: two one-line doc fixes
 
 From re-deriving every SKILL.md claim against the seven shipped scripts.
