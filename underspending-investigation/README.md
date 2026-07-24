@@ -77,7 +77,7 @@ python scripts/investigate_underspend.py --cid 1234567890 --monthly-budget 5000
 
 **Prerequisites:** `google-ads.yaml` at project root (see [google-ads-api-setup](../google-ads-api-setup/)) and `pip install google-ads pyyaml`. Optional: an `accounts.md` registry at project root for name→CID resolution (format documented in the script header).
 
-The SKILL.md's "Script Contract" section documents how to adapt the script to your own infrastructure — pacing dashboard reads, optimization logs, custom account registries.
+`references/investigation-contract.md` § "Adapting the script (extension hooks)" documents how to adapt the script to your own infrastructure — pacing dashboard reads, optimization logs, custom account registries.
 
 ---
 

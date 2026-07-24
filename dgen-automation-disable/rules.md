@@ -43,9 +43,11 @@ Work the diff top to bottom; approve only when all five reads pass:
    reconcile with the per-ad blocks — it counts settings, not ads.
 4. **`GENERATE_LANDING_PAGE_PREVIEW` in the diff = a flag, not a default.**
    It ships OFF (contract, taxonomy). Seeing it `OPTED_IN -> OPTED_OUT`
-   means a human or a Google-side change turned it ON — find out who via
+   means a human or a Google-side change turned it ON — or the API response
+   omitted the row (absent settings read as `OPTED_IN` — contract,
+   selection) — find out which via
    [`change-history-checker`](../change-history-checker/) (inside 30 days
-   its detailed view names the actor) before overwriting their choice.
+   its detailed view names the actor) before overwriting anyone's choice.
 5. **`Settings to change` lines that aren't `OPTED_IN`.** The diff prints
    the current value verbatim; an `UNSPECIFIED -> OPTED_OUT` line is the
    same fix with a different starting point — fine — but note it, because
@@ -99,7 +101,7 @@ old code and never treat the mismatch as a bug:
 | `All accounts are compliant` but an `ERROR querying account` line printed above | The erroring account was never audited — dropped from the pending set (contract) | The error line; the CID format (dashes are NOT stripped) | Fix the CID/access, re-run; never trust the summary over the error line |
 | Approval code mismatch on execute | State drift since the dry-run — that's the design | Re-run the dry-run; compare diffs | Re-read, re-approve; never retry the stale code |
 | Same settings back `OPTED_IN` a month after you fixed them | Known drift: certain campaign edits reset them; new ads default ON | Diff scope: new ads only vs. previously-fixed ads | Normal → monthly cadence. Previously-fixed ads re-flipped with no campaign edits → `change-history-checker`, find the actor |
-| `--verify` printed nothing | Dry-run, already-compliant, or multi-account run — three silent no-op cases (contract) | Which of the three applies | For a no-mutation compliance check, use a dry-run, not `--verify` |
+| `--verify` did nothing | Dry-run, already-compliant, or multi-account run — three no-op cases, two silent + one noted (contract) | Which of the three applies (the multi-account case prints its own note) | For a no-mutation compliance check, use a dry-run, not `--verify` |
 | `Warning: Could not log to Google Sheet` | Sheet logging failed — scope, sheet ID, or network | The JSONL row for the same account | Mutation stands (JSONL is the authority); fix the token scope or sheet ID for next time |
 | `No DGen ads need fixing` on an account that definitely runs DGen | All its DGen campaigns are paused/ended, its ads are paused, or it's genuinely compliant | Campaign + ad status (the selection filters both; ended campaigns drop out) | If paused-by-season: re-run after re-enabling. If truly compliant: done |
 | `Failed: N ads` count looks inflated | It counts every ad of each failed account, not settings, and the account is all-or-nothing | The per-account `ERROR executing mutation` line + the JSONL `success: false` row | Read the API error; fix cause; re-run — already-fixed accounts drop out automatically |

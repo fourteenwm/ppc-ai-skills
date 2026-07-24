@@ -59,7 +59,7 @@ Total problematic conversions: 4
 2. **Fernbrook / Lead Form Submit — the emergency.** An `ENABLED` primary
    action, zero fires in 90 days, on an account spending daily: Smart
    Bidding is optimizing toward nothing. Escalation ladder: a deep-dive at
-   `--days 240` shows it firing steadily until ~11 weeks ago; the `(obs)`
+   `--days 240` shows it firing steadily until ~14 weeks ago; the `(obs)`
    rows and the phone action still fire, so tracking is alive at the site
    level; a test submit on the live form never reaches Google — the form
    was rebuilt and the conversion trigger didn't survive. Fix the trigger,

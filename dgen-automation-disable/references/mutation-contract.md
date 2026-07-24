@@ -14,7 +14,10 @@
 | `DEMAND_GEN_CAROUSEL_AD`, `DEMAND_GEN_PRODUCT_AD` | none — skipped | — |
 
 `GENERATE_LANDING_PAGE_PREVIEW` defaulting OFF matters at read time: seeing
-it in a dry-run diff means someone or something turned it ON
+it in a dry-run diff means someone or something turned it ON — or the API
+response simply omitted the row, since absent settings are seeded `OPTED_IN`
+(selection, below) and print the identical `OPTED_IN -> OPTED_OUT` line; the
+change-history attribution step is what separates the two
 ([`rules.md`](../rules.md), reading the diff).
 
 ## Selection — which ads enter the pending set
@@ -123,7 +126,7 @@ Counters at the end: `Successfully updated: N ads` counts API results;
 An **execute-mode rider, single-account only** — it re-queries after
 mutations and reports `All N DGen ads are now compliant`, or lists
 non-compliant campaigns with their offending settings, or `No DGen ads
-found`. Three silent no-op cases to know:
+found`. Three no-op cases to know — two silent, one noted:
 
 1. Dry-run + `--verify`: ignored (the run returns before verification).
 2. Already-compliant account + `--verify`: ignored (same early return).

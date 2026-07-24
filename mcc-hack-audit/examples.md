@@ -53,7 +53,7 @@ The three EXTERNAL rows, oldest link_ids in the file:
 |---|---|---|---|---|
 | Halstead Automotive Group | 0987654321 | 111222333 | ACTIVE | **Expected** — UI lookup names the client's former agency; link predates onboarding; client confirms they never removed it. Recorded, flagged to client for cleanup |
 | Halstead Automotive Group | 0987654321 | 111222334 | INACTIVE | Same manager, dead link — attempt/teardown history, no live access |
-| Kingsbury District | 2345678901 | 222333444 | ACTIVE | **Expected** — the property's parent-company MCC; known relationship |
+| Kingsbury District | 1234567891 | 222333444 | ACTIVE | **Expected** — the property's parent-company MCC; known relationship |
 
 All three get names via the UI Account Access page (the API can't name
 external MCCs — contract, limitation 1). Nothing gets `--trusted-cids`
@@ -129,8 +129,9 @@ SUSPENDED (mid-quarter, unrelated billing dispute) — suspended accounts
 error on the link query just like canceled ones, but a *suspended* account
 with attempt history from example 2 is not an account to lose visibility on.
 Its manager links get checked in the UI while the suspension lasts, and the
-scan's coverage gap is recorded in the quarter's notes: 213 of 214 accounts
-scanned, one checked manually.
+scan's coverage gap is recorded in the quarter's notes: 206 of 214 accounts
+produced link data, seven gaps expected (canceled), one unexpected —
+checked manually.
 
 The error-count arithmetic — errors vs your own canceled/closed inventory —
 is a one-line health check worth running on every scan before trusting

@@ -2,6 +2,50 @@
 
 All notable changes to this repository.
 
+## 2026-07-24 — Doc-accuracy pass: nine fixes across six skills
+
+Nine corrections from re-deriving doc claims against the code they
+describe. Doc-only — every script is byte-untouched.
+
+- [`conversion-tracking-health/examples.md`](conversion-tracking-health/examples.md)
+  — example 1's deep-dive now shows the dead form firing until ~14 weeks
+  ago; ~11 weeks (77 days) sits inside the 91-date scan window, where the
+  action would read STALE, not `Never fired`.
+- [`conversion-tracking-health/references/audit-contract.md`](conversion-tracking-health/references/audit-contract.md)
+  — the error-isolation trap set counts FOUR paths: a failed
+  conversion-dates query buckets every primary ENABLED action
+  `Never fired` — the one path that fabricates findings instead of hiding
+  them.
+- [`underspending-investigation/README.md`](underspending-investigation/README.md)
+  — the script-adaptation pointer follows the moved section to
+  `references/investigation-contract.md` § "Adapting the script (extension
+  hooks)"; the "Script Contract" section it named no longer exists in
+  SKILL.md.
+- [`dgen-automation-disable/references/mutation-contract.md`](dgen-automation-disable/references/mutation-contract.md)
+  and [`rules.md`](dgen-automation-disable/rules.md) — the
+  landing-page-preview tell reconciled with the absent-setting default:
+  settings omitted from the API response are seeded `OPTED_IN` and print
+  the identical diff line, so the change-history attribution step — not
+  the diff — separates "someone turned it ON" from "the response omitted
+  the row".
+- [`dgen-automation-disable/`](dgen-automation-disable/) (contract, SKILL,
+  rules) — `--verify`'s three no-op cases are two silent plus one noted
+  (the multi-account case prints `Note: --verify runs on single-account
+  invocations only.`); the false-alarm trigger is now "`--verify` did
+  nothing".
+- [`rsa-refresh/examples.md`](rsa-refresh/examples.md) — example 2's two
+  console lines restored to emission order (the no-content WARNING prints
+  before the URL-fallback property name).
+- [`rsa-single-account/examples.md`](rsa-single-account/examples.md) —
+  example 1's four `USP:` lines restored to emission order (USP keywords
+  iterate in config insertion order: Free Estimates, Same-Day Service,
+  Family Owned, Years of Experience).
+- [`mcc-hack-audit/examples.md`](mcc-hack-audit/examples.md) — Kingsbury
+  District's parent-company MCC gets its own placeholder CID (one CID was
+  doing double duty as both an external manager and a scanned account),
+  and example 3's coverage note now matches its own arithmetic (206 of
+  214 accounts produced link data; seven gaps expected, one not).
+
 ## 2026-07-24 — Diagnostics trio: the operator layer
 
 Judgment and contract layers for three skills that read account state and

@@ -93,10 +93,10 @@ nothing.
 python scripts/fix_dgen_ad_automation.py --cid 1234567890 APPROVE-A3F9B2C1 --verify
 ```
 
-Re-queries and confirms every in-scope DGen ad is `OPTED_OUT`. Three cases
-where `--verify` silently does nothing (dry-run, already-compliant,
-multi-account) are in the contract — for a no-mutation compliance check,
-use a plain dry-run instead.
+Re-queries and confirms every in-scope DGen ad is `OPTED_OUT`. Three no-op
+cases for `--verify` (silent on dry-run and already-compliant runs; a
+printed note on multi-account runs) are in the contract — for a
+no-mutation compliance check, use a plain dry-run instead.
 
 ---
 

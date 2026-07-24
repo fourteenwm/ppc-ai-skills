@@ -28,9 +28,9 @@ Analyzing 4 paid ads with 39 USP keywords...
 
 Competitor 1: Gearline Auto Repair - Family Owned Since 1998
   Description: Family owned & operated. Free estimates on all repairs. Same day service...
-  USP: Family Owned (matched: 'family owned')
   USP: Free Estimates (matched: 'free estimate')
   USP: Same-Day Service (matched: 'same day')
+  USP: Family Owned (matched: 'family owned')
   USP: Years of Experience (matched: 'since 19')
 ```
 

@@ -94,13 +94,14 @@ healthy.` The summary block repeats the three counts with aligned labels
 (`  No recent data:       4`).
 
 **Error isolation — the trap set.** Per-account failures never stop the
-batch, and they never get their own summary line. Three distinct error paths
-produce three misleadable outputs:
+batch, and they never get their own summary line. Four distinct error paths
+produce four misleadable outputs:
 
 | Error print (above the account line) | The account then shows as | Why that's a trap |
 |---|---|---|
 | `Error checking spend for {cid}: …` | `[skipped] … (no spend in last 7 days)` | An auth/access failure masquerades as a paused account |
 | `Error querying conversion actions: …` | `[ok]` with zero findings | A failed account masquerades as a healthy one |
+| `Error querying conversion dates: …` | `[ok]` with every primary `ENABLED` action bucketed `Never fired` | The one path that fabricates findings instead of hiding them — the dates query failed, so a full-account "never fired" outage appears that isn't real |
 | `Error auditing {name}: …` | `[ok]`, possibly with partial findings | Late failure; whatever was bucketed before it still counts |
 
 The error lines are the ONLY trace — always scan for them before trusting

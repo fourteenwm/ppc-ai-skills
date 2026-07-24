@@ -73,8 +73,8 @@ written this morning is the *before* for the ~30-day re-capture.
 ```
 WARNING: All scraping methods failed for https://apply.leasehub.example.com/larkfield-commons - headlines will be generic only
 ...
-Property name from URL: Apply
 WARNING: No website content available
+Property name from URL: Apply
 ...
 [CLAUDE CODE MODE] Context saved to: rsa_context_2345678901.json
 ```
