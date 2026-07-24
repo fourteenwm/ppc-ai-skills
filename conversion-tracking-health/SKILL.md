@@ -4,325 +4,136 @@ description: "Audits conversion tracking health across Google Ads portfolios. Au
 allowed-tools: [Bash, Read]
 ---
 
-# Conversion Tracking Health Audit Skill
+# Conversion Tracking Health Audit
 
-**Trigger Phrases:**
-- "conversion tracking audit for portfolio_2"
-- "check conversion health for portfolio_1"
-- "audit conversions for portfolio_3"
-- "run conversion audit"
-- "conversion tracking health"
+**Purpose:** Find conversion actions that have gone quiet before someone
+asks "why did conversions drop?" — a portfolio-wide scan of which primary
+website conversion actions haven't fired recently, spend-gated so you only
+audit accounts that are actively running.
 
-## Purpose
+**Type:** Read-only audit. Two shipped scripts: a portfolio scan and a
+single-account deep-dive. Console-only — neither writes a file.
 
-Identifies conversion tracking issues across Google Ads portfolios by analyzing which conversion actions haven't fired recently or are stale. **Only audits accounts with spend in the last 7 days** to focus on actively running campaigns.
+This skill deliberately does NOT:
 
-## Key Features
-
-### 1. Spend Filter (Critical)
-- **Only audits accounts with spend in last 7 days**
-- Skips inactive/paused accounts automatically
-- Rationale: Conversion tracking only matters for actively spending accounts
-- Reduces noise from ~63 accounts (Google Sheet approach) to ~160 active accounts
-
-### 2. Conversion Action Filtering
-**Tracks Only:**
-- Primary conversions (`include_in_conversions_metric = True`)
-- Website conversions only
-
-**Ignores:**
-- Store visits (`STORE_VISITS`)
-- Google-hosted actions (`GOOGLE_HOSTED` - local actions, clicks to call)
-- Mobile app conversions (Android/iOS installs, in-app actions)
-- Firebase events
-- Observation-only conversions (not used in optimization)
-
-### 3. Activity Categorization
-- **Healthy:** ≤14 days (not shown in output)
-- **Warning:** 15-30 days since last conversion
-- **Stale:** 30+ days since last conversion
-- **No Data:** 90+ days or never fired
-
-### 4. Severity-Based Output
-Results grouped worst-first:
-1. ❌ **No Recent Data** (90+ days / never fired)
-2. 🚨 **Stale** (30+ days)
-3. ⚠️ **Warning** (15-30 days)
+- **Fix anything** — no tag edits, no action pauses, no re-promotion. It
+  finds the quiet actions; the fix runs through your own change process.
+- **Detect missing tracking setup** — an account with no conversion actions
+  configured passes silently. Absent-setup detection is
+  [`account-diagnostic`](../account-diagnostic/)'s job (contract, "the
+  zero-actions blind spot").
+- **Audit store-visit, app, or Google-hosted call conversions** — ten
+  non-website action types are filtered out by design (contract).
+- **Judge WHY an action is quiet** — the output is a table of hypotheses;
+  [`rules.md`](rules.md) owns the triage that separates broken tags from
+  seasonality, low volume, and deliberate config.
+- **Track observation-only actions in the portfolio scan** — that's the
+  deep-dive's job (contract, cross-script asymmetry).
 
 ## Prerequisites
 
-- **`google-ads.yaml`** at project root (or `--config <path>`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it
+- **`google-ads.yaml`** at project root — see
+  [`google-ads-api-setup`](../google-ads-api-setup/). The portfolio scan
+  accepts `--config <path>`; **the deep-dive reads `./google-ads.yaml`
+  only** — run it from the project root.
 - Python with the `google-ads` package (`pip install google-ads`)
 
-## Execution Workflow
+## Workflow
 
-### Step 1: Identify Accounts to Audit
+### Step 1: Choose accounts
 
-Either:
-- A list of customer IDs (`--cids 1234567890,2345678901`)
-- A single CID (`--cid 1234567890`)
-- A CSV file with `cid,name` rows (`--accounts-file portfolio.csv`) — useful
-  for named portfolios
+- Single account: `--cid 1234567890`
+- Several: `--cids 1234567890,2345678901`
+- A book: `--accounts-file portfolio.csv` (`cid,name` per row, no header)
 
-### Step 2: Run the Audit
+The three flags combine; duplicates run twice (contract, account list).
 
-Use the Bash tool to execute:
+### Step 2: Run the portfolio scan
 
 ```bash
-# Single account
-python scripts/portfolio_conversion_audit.py --cid 1234567890
-
-# Multiple accounts
-python scripts/portfolio_conversion_audit.py --cids 1234567890,2345678901
-
-# Portfolio from CSV (cid,name per row, no header)
 python scripts/portfolio_conversion_audit.py --accounts-file portfolio.csv
 ```
 
-**Expected Runtime:** ~1-2 seconds per account.
+Useful variants: `--days 180` (wider lookback — the no-data bucket is
+window-relative), `--include-no-spend` (audit idle accounts too),
+`--config <path>`. Runtime ~1-2 seconds per account (three sequential API
+queries each).
 
-### Step 3: Present Results
+### Step 3: Read the output
 
-The script outputs:
+Accounts print as `[ok]` / `[skipped] … (no spend in last 7 days)`,
+followed by three severity sections, worst first:
 
 ```
-====================================================================================================
-PORTFOLIO CONVERSION AUDIT - PORTFOLIO_2
-====================================================================================================
-Accounts to audit: 162
-Lookback period: 90 days
-Analysis date: 2025-11-04 16:36:20
-====================================================================================================
-
-Auditing accounts...
-
-  ✓ Example Account Name 1
-  ✓ Example Account Name 2
-  ⊘ Example Paused Account (no spend in last 7 days)
-  ...
-
-Audit complete. Checked 160 accounts, skipped 2 (no spend).
-
-====================================================================================================
-RESULTS - PROBLEMATIC CONVERSIONS ONLY
-====================================================================================================
-
-❌ NO RECENT CONVERSIONS (90+ days) - 107 issues found
-
-Account Name                        | Conversion Action              | Last Activity
------------------------------------ | ------------------------------ | ---------------
-Example Account Name                 | Contact Form Submit            | Never fired
-Example Another Account              | Phone Call                     | Never fired
-...
-
-🚨 STALE (30+ days) - 26 issues found
-
-Account Name                        | Conversion Action              | Last Activity
------------------------------------ | ------------------------------ | ---------------
-Example Account Name                 | Contact                        | 84 days ago
-...
-
-⚠️  WARNING (15-30 days) - 40 issues found
-
-Account Name                        | Conversion Action              | Last Activity
------------------------------------ | ------------------------------ | ---------------
-Example Account Name                 | Contact Form Submit            | 26 days ago
-...
-
-====================================================================================================
-SUMMARY
-====================================================================================================
-
-Total accounts checked: 160
-Accounts skipped (no spend in 7 days): 2
-Total problematic conversions: 173
-  ❌ No recent data: 107
-  🚨 Stale (30+ days): 26
-  ⚠️  Warning (15-30 days): 40
-
-====================================================================================================
+NO RECENT CONVERSIONS (90+ days) - 2 issues
+STALE (30+ days) - 1 issues
+WARNING (15-30 days) - 1 issues
 ```
 
-### Step 4: Interpret Results
+Healthy actions (fired within 14 days) are suppressed; a clean run prints
+`NO ISSUES FOUND - All conversion actions are healthy.` Exact bucket
+definitions, console shapes, the meaning of `Never fired`
+(window-relative!), and the three error paths that can make `[ok]` or
+`[skipped]` lie are in
+[`references/audit-contract.md`](references/audit-contract.md) — **scan for
+error lines before trusting any verdict** (contract, error isolation).
 
-**Key Metrics:**
-- **Accounts checked** - Active accounts with spend in last 7 days
-- **Accounts skipped** - Inactive accounts (no spend)
-- **Total problematic conversions** - Individual conversion actions with issues (not unique accounts)
+### Step 4: Triage per rules.md
 
-**Understanding the Numbers:**
-- One account can have multiple problematic conversion actions
-- Example: Portfolio 2 shows 173 problematic conversions across many accounts
-- This means many accounts have 1-2 conversion actions with issues
+Work [`rules.md`](rules.md) top to bottom: error lines → no-data on
+spending accounts → stale main actions → warnings against cadence. The
+"when stale is expected" table keeps seasonal businesses, low-volume
+actions, and migration leftovers from becoming tickets; the escalation
+ladder (widen the window → observation view → change history → live tag
+test) runs BEFORE any "tracking is broken" verdict.
 
-## Complementary to Google Ads Script
-
-**User's Existing Google Ads Script:**
-- Runs daily in Google Ads environment
-- Outputs to "Zero Conversions" tab in Google Sheets
-- Shows ~63 accounts with conversion tracking problems
-- No spend filter (includes all accounts)
-
-**This Python Skill:**
-- Runs on-demand from your workspace
-- Filters by spend (only active accounts)
-- Shows 173 problematic conversion actions across 160 accounts
-- More granular - counts individual conversion actions, not just accounts
-
-**How They Complement:**
-- Google Sheet: Broad overview of all accounts (including inactive)
-- Python Audit: Focused view of active accounts only
-- Use both: Sheet for comprehensive tracking, Python for actionable insights
-
-## Advanced Usage
-
-### Custom Lookback Period
+### Deep-dive (single account, all actions)
 
 ```bash
-python scripts/portfolio_conversion_audit.py --accounts-file portfolio.csv --days 180
+python scripts/last_conversion_dates_by_action.py --cid 1234567890 --days 180
 ```
 
-### Include Accounts With No Recent Spend
+Shows ALL actions including healthy ones, with `(in)`/`(obs)` markers —
+observation-only actions appear here and nowhere else. Pass `--cid`; name
+lookup only sees directly-accessible accounts, not your MCC's clients
+(contract, deep-dive resolution).
 
-By default, accounts with no spend in the last 7 days are skipped. To audit
-everything regardless of spend:
+## Pairing with scheduled monitoring
 
-```bash
-python scripts/portfolio_conversion_audit.py --accounts-file portfolio.csv --include-no-spend
-```
+If you run a scheduled Google Ads Script or dashboard that tracks
+zero-conversion accounts continuously, keep both: the scheduled layer for
+always-on breadth, this skill for on-demand depth (per-action dates,
+severity buckets, spend-gating, and the deep-dive's observation view). They
+answer at different granularities — accounts vs. individual actions.
 
-### Single Account Deep-Dive
+## Files in This Skill
 
-For detailed analysis of a single account:
+| File | Role |
+|---|---|
+| `SKILL.md` | This workflow — run, read, triage, route |
+| `rules.md` | Judgment layer: triage order, when-stale-is-expected, escalation ladder, false-alarm table, cadence |
+| `examples.md` | Three worked reads — the routine portfolio pass, the error masquerade, the "Never fired" that fired for years |
+| `references/audit-contract.md` | Exact per-script mechanics: buckets, windows, console shapes, error isolation, the cross-script asymmetry table (source of truth: the scripts) |
+| `scripts/portfolio_conversion_audit.py` | Portfolio scan — primary actions, spend-gated, problems only |
+| `scripts/last_conversion_dates_by_action.py` | Single-account deep-dive — all actions incl. observation, healthy shown |
+| `README.md` | Zero-context install and orientation |
 
-```bash
-python scripts/last_conversion_dates_by_action.py --cid 1234567890 --days 90
-```
+Runtime artifacts: **none** — both scripts are console-only.
 
-This shows ALL conversion actions (including healthy ones) with full details.
+## After a Run
 
-## Use Cases
+Nothing lands on disk: copy findings out of the console before they
+scroll (the analysis-date line in the header timestamps the run). Re-runs
+are always safe. If a row was fixed, the confirmation is the row clearing
+on the NEXT scan a few days later — schedule that follow-up when you ship
+the fix.
 
-### 1. Daily Portfolio Health Check
-**Scenario:** Daily portfolio health check includes conversion tracking review
-**Action:** Run skill for Portfolio 2, focus on "No Data" section for immediate action
+## When to Load Something Else
 
-### 2. Client Reporting
-**Scenario:** Client asks "Are our conversions tracking properly?"
-**Action:** Run audit, export results, summarize findings in client-facing report
-
-### 3. New Campaign Launch
-**Scenario:** Launched new campaigns 2 weeks ago, need to verify tracking
-**Action:** Run audit, check if new conversion actions are firing
-
-### 4. Troubleshooting Low Conversions
-**Scenario:** Account has low conversion volume, investigating why
-**Action:** Run single-account deep-dive to see all conversion actions and their health
-
-## Error Handling
-
-**No Active Accounts:**
-- If all accounts have no spend, summary shows 0 accounts checked
-- Output: "Accounts skipped (no spend in 7 days): 162"
-
-**API Access Errors:**
-- If account query fails, error message shown but script continues
-- Error format: `Error querying conversion actions: [ERROR_MESSAGE]`
-
-**No Conversion Issues:**
-- If all conversions are healthy (≤14 days)
-- Output: "🎉 NO ISSUES FOUND! All conversion actions are healthy."
-
-## Technical Details
-
-### GAQL Queries Used
-
-**1. Check Account Spend:**
-```sql
-SELECT metrics.cost_micros
-FROM customer
-WHERE segments.date BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'
-```
-
-**2. Get Conversion Actions:**
-```sql
-SELECT
-    conversion_action.id,
-    conversion_action.name,
-    conversion_action.type,
-    conversion_action.status,
-    conversion_action.category,
-    conversion_action.include_in_conversions_metric
-FROM conversion_action
-WHERE conversion_action.status != 'REMOVED'
-ORDER BY conversion_action.name
-```
-
-**3. Get Conversion Performance:**
-```sql
-SELECT
-    segments.conversion_action_name,
-    segments.date,
-    metrics.conversions
-FROM campaign
-WHERE segments.date BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'
-  AND metrics.conversions > 0
-ORDER BY segments.date DESC
-```
-
-### Account Loading
-
-The script accepts accounts via three flags (combinable):
-- `--cid 1234567890`        - single CID
-- `--cids 123,456,789`      - comma-separated CIDs
-- `--accounts-file foo.csv` - CSV file with `cid,name` per row (no header)
-
-## Output Files
-
-Audit runs are saved to your project's output folder (e.g., `./data/audits/` or wherever you configure).
-
-**Note:** Output files are not automatically cleaned up. Delete old files manually if needed.
-
-## Integration with Other Skills
-
-**Related Skills:**
-- [`portfolio-health-prioritization`](../portfolio-health-prioritization/) - Determines which accounts need investigation
-- Your daily triage workflow — for catching all portfolio issues (external)
-- [`client-communication-standards`](../client-communication-standards/) - Format findings for client reports
-
-**Workflow Example:**
-1. Run `conversion-tracking-health` for Portfolio 2
-2. Identify accounts with "No Data" issues
-3. Use `portfolio-health-prioritization` to determine which to fix first
-4. Create client summary using `client-communication-standards` format
-
-## Maintenance
-
-**Update Frequency:** On-demand (run when needed, no scheduled execution)
-
-**Potential Enhancements:**
-- CSV export option
-- Email/Slack alerts for critical issues
-- Trend analysis (track changes over time)
-- Integration with your budget/pacing tracking sheet
-- Automated fix suggestions
-
-**Dependencies:**
-- `google-ads.yaml` at project root - Google Ads API credentials (override with `--config`) — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one
-- Python environment with `google-ads` library installed
-
-## Version History
-
-**v1.0** (2025-11-04)
-- Initial skill creation
-- Portfolio-wide audit with spend filter (7 days)
-- Filters out store/mobile/Google-hosted conversions
-- Only tracks primary conversions (used in optimization)
-- Severity-based output (No Data → Stale → Warning)
-- Summary shows accounts checked vs. skipped
-- Complements existing Google Ads Script approach
-
----
-
-**Script Location:** `scripts/portfolio_conversion_audit.py` (ships with this skill, alongside the single-account deep-dive `scripts/last_conversion_dates_by_action.py`)
-**Trigger:** Say "conversion tracking audit for [portfolio]" or "check conversion health"
+| Trigger | Load |
+|---|---|
+| A quiet action needs a "who changed what" answer | [`change-history-checker`](../change-history-checker/) — inside 30 days it names the actor on conversion-setting changes |
+| An account never shows findings and you suspect no tracking exists | [`account-diagnostic`](../account-diagnostic/) — setup checks, not just activity checks |
+| Findings need prioritizing across a big book | [`portfolio-health-prioritization`](../portfolio-health-prioritization/) — which account gets attention first |
+| Findings go to a client | [`client-communication-standards`](../client-communication-standards/) — report framing |
+| No working `google-ads.yaml` yet | [`google-ads-api-setup`](../google-ads-api-setup/) — one-time credential setup |

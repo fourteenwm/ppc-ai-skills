@@ -6,50 +6,48 @@ allowed-tools: [Bash, Read]
 
 # DGen Ad-Level Automation Disable
 
-**Purpose:** Programmatically set all Demand Gen ad-level asset automation settings to `OPTED_OUT` across one or many accounts.
+**Purpose:** Programmatically set all Demand Gen ad-level asset automation
+settings to `OPTED_OUT` across one or many accounts — the auto-generated
+design versions, generated videos, and landing-page previews that trade
+creative control for Google's guesses.
 
-**Type:** Mutation skill (two-step approval required)
+**Type:** Mutation skill — two-step approval required, always. The
+[`mutation-safety`](../mutation-safety/) pattern (dry-run preview → human
+reads → execute with the code from that preview) is implemented directly in
+the shipped script.
+
+This skill deliberately does NOT:
+
+- **Decide whether disabling is right for the account** — that judgment
+  (accounts leaning on generated video, shared management, mid-flight
+  experiments) lives in [`rules.md`](rules.md) § "When NOT to disable" and
+  belongs to the operator.
+- **Touch campaign-level automation** — PMax automation is campaign-level
+  and belongs to [`pmax-asset-automation`](../pmax-asset-automation/); DGen
+  automation is per-ad, which is why this tool exists separately.
+- **Enable anything, ever** — one direction only, toward `OPTED_OUT`.
+- **Execute without a human-read dry-run** — no code, no mutation; and the
+  code only proves the account hasn't changed since the preview you read.
+- **Normalize CIDs** — dashes are NOT stripped; a dashed CID errors rather
+  than matching (contract).
 
 ---
 
-## Auto-Invoke When
+## Background (one paragraph)
 
-- "disable dgen automation"
-- "fix dgen asset settings"
-- "turn off dgen auto assets"
-- "dgen automation fix"
-- "fix demand gen automation"
-
----
-
-## Background
-
-Demand Gen asset automation operates at the **ad level** (not campaign level like PMax). Google auto-generates creative variations that frequently drift off-brand or reduce quality control for managed accounts.
-
-### Settings Controlled
-
-**DemandGenMultiAssetAd:**
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `GENERATE_DESIGN_VERSIONS_FOR_IMAGES` | Adds design elements to images | ON |
-| `GENERATE_VIDEOS_FROM_OTHER_ASSETS` | Generates videos from images/text | ON |
-
-**DemandGenVideoResponsiveAd:**
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `GENERATE_VERTICAL_YOUTUBE_VIDEOS` | Converts horizontal to vertical | ON |
-| `GENERATE_SHORTER_YOUTUBE_VIDEOS` | Shortens videos | ON |
-| `GENERATE_LANDING_PAGE_PREVIEW` | Landing page screenshot in ads | OFF (but found ON in some accounts) |
-
-`DEMAND_GEN_CAROUSEL_AD` and `DEMAND_GEN_PRODUCT_AD` have no automation settings — skipped.
+Demand Gen asset automation operates at the **ad level** — settings live on
+each ad, new ads arrive with automation ON, and two ad types carry five
+settings between them (the exact taxonomy and defaults:
+[`references/mutation-contract.md`](references/mutation-contract.md)). One
+default matters at read time: `GENERATE_LANDING_PAGE_PREVIEW` ships OFF, so
+finding it ON in a diff means someone turned it on — attribute before you
+overwrite ([`rules.md`](rules.md), reading the diff).
 
 ---
 
 ## Two-Step Mutation Flow
 
-This skill follows the [`mutation-safety`](../mutation-safety/) pattern. **Never skip the dry-run, never auto-approve.**
-
-### Step 1 — Dry-run preview
+### Step 1 — Dry-run preview (free, writes nothing)
 
 ```bash
 # Single account
@@ -62,39 +60,43 @@ python scripts/fix_dgen_ad_automation.py --cids "1234567890,2345678901"
 python scripts/fix_dgen_ad_automation.py --all
 ```
 
-Output includes:
-- Per-account list of ads needing changes
-- Specific settings that will flip from `OPTED_IN` → `OPTED_OUT`
-- Total count (ads, settings, accounts)
-- An **APPROVAL CODE** like `APPROVE-A3F9B2C1`
+Prints per-account diffs (each ad's settings with `current -> OPTED_OUT`
+lines), a summary (accounts / ads / settings), and an **APPROVAL CODE**.
 
-### Step 2 — Execute with approval code
+**Then READ the diff** — the five checks in [`rules.md`](rules.md) § "Reading
+the dry-run diff": error lines (an erroring account silently drops out —
+`All accounts are compliant` can be false), ad counts vs. expectation,
+settings-per-ad sanity, the landing-page-preview tell, and unexpected
+current values. Approve only what you can explain.
+
+### Step 2 — Execute with the approval code
 
 ```bash
 python scripts/fix_dgen_ad_automation.py --cid 1234567890 APPROVE-A3F9B2C1
 ```
 
-The script:
-- Re-computes the approval code from current ad state
-- Refuses to execute if the code doesn't match (safety net if ads changed since the dry-run)
-- Mutates via `AdGroupAdService.mutate_ad_group_ads`
-- Writes to local log at `./logs/mutations_log.jsonl`
-- Optionally writes to a Google Sheet log (`--log-sheet-id`)
+The code is a deterministic hash of the pending work, recomputed from
+current account state at execute time — ANY drift since your dry-run
+(new ads, a Google-side reset, a colleague's fix) refuses with a mismatch.
+A mismatch is information, not an error: re-run the dry-run and read what
+changed ([`rules.md`](rules.md), "the mismatch is a feature"). Full hash
+semantics: the contract.
 
-### Step 3 — Verify (optional, single-account only)
+Execution is one all-or-nothing mutation per account; failed accounts log
+and the batch continues. Every execute appends to
+`./logs/mutations_log.jsonl` (success and failure) — dry-runs write
+nothing.
+
+### Step 3 — Verify (optional, execute-mode, single account)
 
 ```bash
 python scripts/fix_dgen_ad_automation.py --cid 1234567890 APPROVE-A3F9B2C1 --verify
 ```
 
-Re-queries the account and confirms every DGen ad is now `OPTED_OUT` on all applicable settings. Reports any non-compliant ads.
-
-### How the approval code works
-
-The code is a SHA-256 hash of the sorted `(cid, ad_id, settings_to_fix)` tuples across all pending mutations, truncated to 8 hex chars.
-
-- **Deterministic:** same pending work → same code. No state file needed.
-- **Safe against drift:** if ads change between dry-run and execute (new ads, settings changed by Google's defaults reappearing, etc.), the code changes and execution is refused.
+Re-queries and confirms every in-scope DGen ad is `OPTED_OUT`. Three cases
+where `--verify` silently does nothing (dry-run, already-compliant,
+multi-account) are in the contract — for a no-mutation compliance check,
+use a plain dry-run instead.
 
 ---
 
@@ -103,78 +105,84 @@ The code is a SHA-256 hash of the sorted `(cid, ad_id, settings_to_fix)` tuples 
 | Flag | Default | Purpose |
 |------|---------|---------|
 | `--cid CID` | — | Single account (mutually exclusive with `--cids`/`--all`) |
-| `--cids CID1,CID2,...` | — | Multiple accounts |
+| `--cids CID1,CID2,...` | — | Multiple accounts (used exactly as typed — no dash-stripping) |
 | `--all` | — | All enabled non-manager accounts under `login_customer_id` from google-ads.yaml |
 | `approval_code` (positional) | — | `APPROVE-XXXXXXXX` from dry-run. Omit for dry-run mode. |
 | `--config` | `google-ads.yaml` | Path to Google Ads credentials YAML |
-| `--log-dir` | `logs` | Directory for local JSONL mutation log |
-| `--log-sheet-id` | *(off)* | Optional Google Sheet ID for central mutation log |
+| `--log-dir` | `logs` | Directory for the local JSONL mutation log |
+| `--log-sheet-id` | *(off)* | Optional Google Sheet ID for a central mutation log |
 | `--verify` | off | Post-execute re-query (single account only) |
 
----
+Selection scope (what "in scope" means — enabled campaigns and ads, ended
+campaigns excluded, paused ad groups' enabled ads INCLUDED), logging shapes,
+and the sheet-log token requirement are all in
+[`references/mutation-contract.md`](references/mutation-contract.md).
 
-## Mutation Logging
-
-### Local (always on)
-
-Every execution appends to `./logs/mutations_log.jsonl`:
-
-```json
-{"timestamp_utc": "2026-04-23T15:30:00+00:00", "approval_code": "APPROVE-A3F9B2C1",
- "account_cid": "1234567890", "account_name": "Example Account", "action_type": "DISABLE_DGEN_AUTOMATION",
- "details": {"ads_updated": 3, "settings_changed": [...], "ad_types": [...]},
- "success": true, "error": null}
-```
-
-This is your audit trail. The script creates the directory if it doesn't exist.
-
-### Google Sheet (opt-in)
-
-Pass `--log-sheet-id YOUR_SHEET_ID` to also log to a central Sheet with columns:
-`Timestamp | Account | CID | Action Type | Details | Success | Error | Approval Code`
-
-Uses the refresh token in `google-ads.yaml` — that token must have the spreadsheets scope.
-
----
-
-## CRITICAL Implementation Note
-
-**Replacement behavior:** When updating `ad_group_ad_asset_automation_settings`, you must specify ALL applicable settings for the ad type. If you only specify one, the others reset to defaults (`OPTED_IN`).
-
-The script handles this correctly — it always sets every applicable setting for each ad type. If you write your own tooling against this field, do the same.
+One implementation fact worth knowing even if you never read the contract:
+the API **replaces the whole settings list** on update — the script always
+sends every applicable setting per ad type, and any tooling you write
+against this field must do the same, or unspecified settings silently reset
+to `OPTED_IN`.
 
 ---
 
 ## Prerequisites
 
-1. **Google Ads API credentials** — `google-ads.yaml` at project root (see [`google-ads-api-setup`](../google-ads-api-setup/))
+1. **Google Ads API credentials** — `google-ads.yaml` at project root (see
+   [`google-ads-api-setup`](../google-ads-api-setup/))
 2. **Python:** `pip install google-ads google-auth google-api-python-client pyyaml`
-3. **For `--log-sheet-id`:** the refresh token in `google-ads.yaml` must include `https://www.googleapis.com/auth/spreadsheets` scope
+3. **For `--log-sheet-id` only:** the refresh token inside `google-ads.yaml`
+   must carry the spreadsheets scope (the api-setup generator's default
+   token does). The local JSONL log needs nothing extra.
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/dgen-automation-disable/scripts
-curl -o .claude/skills/dgen-automation-disable/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/SKILL.md
+mkdir -p .claude/skills/dgen-automation-disable/scripts .claude/skills/dgen-automation-disable/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o .claude/skills/dgen-automation-disable/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/$f
+done
+curl -o .claude/skills/dgen-automation-disable/references/mutation-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/references/mutation-contract.md
 curl -o .claude/skills/dgen-automation-disable/scripts/fix_dgen_ad_automation.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/dgen-automation-disable/scripts/fix_dgen_ad_automation.py
 ```
 
 ---
 
-## Related Skills
+## Files in This Skill
 
-- [`mutation-safety`](../mutation-safety/) — two-step approval pattern this skill implements
-- [`pmax-asset-automation`](../pmax-asset-automation/) — PMax equivalent (campaign-level, not ad-level)
-- [`ad-copy-verification-standard`](../ad-copy-verification-standard/) — the underlying philosophy: *Empty > Inaccurate.* Google's auto-generated assets frequently violate this.
+| File | Role |
+|---|---|
+| `SKILL.md` | This workflow — the two-step flow, CLI surface, routing |
+| `rules.md` | Judgment layer: the five dry-run reads, when NOT to disable, mismatch handling, cadence, false alarms, escalation |
+| `examples.md` | Three worked runs — clean execute, the drift mismatch, the false compliance |
+| `references/mutation-contract.md` | Exact selection/hash/mutation/logging/verify mechanics (source of truth: the script) |
+| `scripts/fix_dgen_ad_automation.py` | The tool — dry-run by default, mutates only with a fresh approval code |
+| `README.md` | Zero-context install and orientation |
 
----
+Runtime artifacts (gitignore them): `logs/mutations_log.jsonl` — appended
+on every execute; dry-runs write nothing.
 
-## When to Run
+## After a Run
 
-- **Post-onboarding** — run once after taking over any new account with DGen campaigns
-- **Periodic audit** — DGen settings are observed to reset silently after certain campaign edits. Re-run monthly to catch drift.
-- **Before a brand-sensitive launch** — confirm no auto-generation is active right before a new creative goes live
+`logs/mutations_log.jsonl` is the durable record — one line per account per
+execute, success or failure. No row = no mutation through this script. The
+API-side record is the account's change history. When a run mutated
+anything, calendar the follow-ups from [`rules.md`](rules.md) § Cadence:
+the monthly drift re-run, and a re-run after any paused campaign
+re-enables.
+
+## When to Load Something Else
+
+| Trigger | Load |
+|---|---|
+| A diagnostic flagged DGen automation ON ([`account-diagnostic`](../account-diagnostic/) check 44, or [`ads-checker`](../ads-checker/)'s ad-level automation check) | This skill is the fixer those finders route to — run the dry-run |
+| The finding is campaign-level automation on PMax | [`pmax-asset-automation`](../pmax-asset-automation/) — the campaign-level twin |
+| A setting is ON that nobody in your shop enabled | [`change-history-checker`](../change-history-checker/) — inside 30 days it names the actor; attribute before overwriting |
+| You're about to respond to ANY mutation-shaped work | [`mutation-safety`](../mutation-safety/) — the pattern this skill implements; read it once so the two-step flow is philosophy, not ritual |
+| Why "empty beats auto-generated" is the house default | [`ad-copy-verification-standard`](../ad-copy-verification-standard/) — *Empty > Inaccurate* |
+| No working `google-ads.yaml` yet | [`google-ads-api-setup`](../google-ads-api-setup/) — one-time credential setup |

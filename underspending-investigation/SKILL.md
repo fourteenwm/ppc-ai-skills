@@ -6,55 +6,73 @@ allowed-tools: [Read, Bash, Grep, Glob, Skill]
 
 # Underspending Investigation
 
-**Purpose:** Investigate why a Google Ads account is underspending and determine the root cause with actionable, data-backed recommendations.
+**Purpose:** Investigate why a Google Ads account is underspending and
+determine the root cause with actionable, data-backed recommendations — or
+an explicit, equally-rigorous no-action call.
 
-**Type:** Read-only investigation skill. Reads campaign, impression share, and pacing data; never writes to Google Ads.
+**Type:** Read-only investigation skill. Reads campaign, impression share,
+and pacing data; never writes to Google Ads.
+
+This skill deliberately does NOT:
+
+- **Mutate anything** — no budget changes, no settings edits. The product is
+  a diagnosis and a recommendation; execution happens in your own change
+  process, human-approved.
+- **Sweep portfolios** — one account per investigation. Callers orchestrate
+  parallel runs (see Invocation Patterns).
+- **Replace the companion frameworks** — the pacing thresholds, IS decision
+  tree, and budget calculation live in their own skills; this skill loads
+  and applies them.
+- **Read your pacing dashboard or optimization log out of the box** — those
+  are bring-your-own data sources with documented extension hooks
+  (contract, "Adapting the script").
+- **Diagnose Display campaigns via impression share** — Display has no
+  Search IS metrics; it gets its own check ([`rules.md`](rules.md), the
+  "Bid setting limited" section).
 
 ---
 
 ## Inputs
 
-The skill expects:
-
 - **`{ACCOUNT_NAME}`** — full account name (e.g., `Example Property - Pmax`)
-- **`{ADDITIONAL_CONTEXT}`** (optional) — pacing variance or other prior context (e.g., `Underspending by +12.5%`)
+- **`{ADDITIONAL_CONTEXT}`** (optional) — pacing variance or other prior
+  context (e.g., `Underspending by 12.5%`)
 
-When invoked via `Task(subagent_type="general-purpose", prompt="Use the underspending-investigation skill to investigate <account>…")`, the orchestrator substitutes both values into the prompt.
+When invoked via `Task(subagent_type="general-purpose", …)`, the
+orchestrator substitutes both values into the prompt.
 
 ---
 
-## Auto-Load Domain Knowledge Skills
+## Load the Frameworks First
 
-**CRITICAL:** At the start of every investigation, auto-invoke these three companion skills via the Skill tool to load the frameworks, formulas, and decision trees:
+**At the start of every investigation — before reading script output — load
+the three required companion skills via the Skill tool:**
 
-1. `portfolio-pacing-rules` — Pacing thresholds and budget management philosophy for your portfolios
-2. `impression-share-diagnostics` — Root-cause diagnosis framework for Search campaigns
-3. `budget-recommendation-calculator` — Conservative budget calculation methodology
+1. [`portfolio-pacing-rules`](../portfolio-pacing-rules/)
+2. [`impression-share-diagnostics`](../impression-share-diagnostics/)
+3. [`budget-recommendation-calculator`](../budget-recommendation-calculator/)
 
-Do this BEFORE analyzing script output. All three are shipped as standalone skills in this repo; the investigation will not work correctly without them.
-
-**Optional reference (also in this repo):** `gaql-query-patterns` — GAQL templates for spend, impression share, and settings queries. The shipped script already handles all data extraction, so load it only when extending the script or running ad-hoc follow-up queries.
-
-**Inlined frameworks (bring your own conventions):** The protocol's other two frameworks come from internal, portfolio-specific skills that don't publish — they encode one shop's account-naming conventions and pacing-sheet layouts. Their diagnostic content is fully inlined in the steps below, so nothing is missing; supply your own conventions where the steps call for them:
-
-- **Campaign-line filtering** (Step 2) — decide which campaigns are in scope per your own account-naming convention.
-- **Pacing-data lookups** (Step 1) — point the recent-optimizations check at your own budget/pacing data source (see "Script Contract" for the extension hooks).
+All three ship in this repo; the investigation will not work correctly
+without them. [`rules.md`](rules.md) § "The framework load-map" states what
+each one answers and where the other three (bring-your-own) frameworks plug
+in.
 
 ---
 
 ## Prerequisites
 
-1. **Google Ads API credentials** — `google-ads.yaml` at project root (see [`google-ads-api-setup`](../google-ads-api-setup/))
+1. **Google Ads API credentials** — `google-ads.yaml` at project root (see
+   [`google-ads-api-setup`](../google-ads-api-setup/))
 2. **Python packages** — `pip install google-ads pyyaml`
-3. **Optional: `accounts.md`** at project root — a name→CID registry so investigations can be invoked by account name (format documented in the script header). Without it, the script falls back to walking your MCC via the `login_customer_id` in `google-ads.yaml`.
+3. **Optional: `accounts.md`** at project root — a name→CID registry so
+   investigations can run by account name (format in the script header).
+   Without it, the script falls back to walking your MCC.
 
 ---
 
 ## Investigation Protocol
 
 ### STEP 0: Run the Universal Investigation Script
-
-The script ships with this skill at [`scripts/investigate_underspend.py`](scripts/investigate_underspend.py):
 
 ```bash
 # By account name (resolved via accounts.md, or by walking the MCC)
@@ -67,223 +85,67 @@ python scripts/investigate_underspend.py --cid 1234567890
 python scripts/investigate_underspend.py "{ACCOUNT_NAME}" --monthly-budget 5000
 ```
 
-The script:
-
-1. Resolves the customer ID for the account (`accounts.md` registry, MCC walk, or `--cid`)
-2. Runs a 7-day campaign spend analysis (budget utilization, performance)
-3. Pulls impression share metrics (Search IS, Budget Lost IS, Rank Lost IS) with a threshold-based root-cause readout per campaign (Pmax is flagged separately — its Search IS metrics are not meaningful)
-4. Computes month-to-date pacing (MTD spend vs. expected spend at today's day-of-month, variance %) from campaign daily budgets — or from the true contracted budget when `--monthly-budget` is supplied
-
-The script handles data collection. The skill's job is to read/interpret the script output, apply the diagnostic frameworks (the auto-loaded companion skills plus the inlined steps below), and synthesize findings into actionable recommendations. To wire the script into your own pacing dashboard or optimization logs, see "Script Contract" below.
-
----
+The script prints three sections — 7-day campaign spend, impression share
+with a per-campaign readout, and month-to-date pacing.
+[`references/investigation-contract.md`](references/investigation-contract.md)
+defines exactly what each line means (windows, display gates, shared-budget
+double-counting, the readout ladder, the sign convention) — read findings
+through it, especially before trusting a variance number. Pass
+`--monthly-budget` whenever a contracted budget exists.
 
 ### Step 1: Recent Optimizations Check
 
-**Data source (yours):** your budget-change / optimization log — see "Script Contract" → Optimization log. If you don't keep one, `change-history-checker` in this repo answers the same question from the API's change history.
+**Data source (yours):** your budget-change log — or
+[`change-history-checker`](../change-history-checker/) in this repo, which
+answers the same question from the API.
 
-**Goal:** Determine if recent budget changes explain the underspending.
-
-**Decision Point (from `portfolio-pacing-rules`):**
-
-- **IF recent budget increase found (last 3-7 days):**
-  - Diagnosis: "Normal ramp-up period after budget increase"
-  - Recommendation: "Monitor over next 3-5 days, no action needed"
-  - **STOP investigation here** ✅
-- **IF budget increase 7-14 days ago:**
-  - Note in findings; CONTINUE to Step 2 (should be ramped up by now)
-- **IF no recent budget changes:**
-  - CONTINUE to Step 2
-
----
+A budget increase **3-7 days old** ends the investigation: diagnosis
+"ramp-up period", recommendation "monitor 3-5 days, no action" — stop here.
+An increase **7-14 days old**: note it and continue (it should be ramped by
+now). The full stop-early ladder, including the ended-by-design check, is in
+[`rules.md`](rules.md).
 
 ### Step 2: Campaign Spend Pattern Analysis
 
-**Framework (inlined):** campaign-line filtering — decide which of the account's campaigns are in scope per your own account-naming convention.
+Filter the STEP 1 campaign list to the campaigns in scope per **your own
+account-naming convention** (bring-your-own framework — e.g., a name suffix
+marking the account's line). Set aside ended/removed campaigns, note unusual
+patterns (paused campaigns with spend, shared-budget rows, disappeared
+campaigns — the false-alarm table covers each), and identify the primary
+spenders.
 
-**Goal:** Understand which campaigns are spending and how budgets are structured.
+### Step 3: Impression Share Analysis (Root Cause)
 
-**Key Analysis:**
+Apply the [`impression-share-diagnostics`](../impression-share-diagnostics/)
+decision tree to the STEP 2 metrics — it separates budget-constrained from
+quality-constrained from low-demand, and owns the critical context (Rank
+Lost IS is informational, never an optimization target). Check the
+performance guardrails from
+[`portfolio-pacing-rules`](../portfolio-pacing-rules/) (CPA/ROAS
+acceptable?) before any budget conclusion.
 
-- **Budget structure:** Shared vs. individual budgets
-- **Budget utilization %:** MTD spend ÷ MTD budget allocation
-- **Campaign status:** ENABLED, PAUSED (with MTD spend), vs. ENDED (excluded)
-- **Bidding strategy:** Smart bidding type (Max Conversions, Max Conversion Value, etc.)
+**Performance Max caveat:** Pmax campaigns expose no meaningful Search IS
+metrics — the script flags them `[i]` and excludes them from Search
+averages. Diagnose Pmax via budget utilization % plus performance vs. goal
+(STEP 1 data).
 
-**What the script output gives you:**
+### Step 4: Budget Recommendation (Only If Budget-Constrained)
 
-- Per-campaign 7-day budget, spend, utilization %, status, and bidding strategy (campaigns with $0 spend in the window are excluded from display)
-- Shared vs. individual budget type per campaign
-- MTD spend and pacing variance (STEP 3 of the script output)
-
-**Skill analysis:**
-
-- Filter the campaign list by line designation per your account-naming convention (e.g., a name suffix marking the account's line: Pmax / Demand Gen / Search)
-- Set aside ENDED / REMOVED campaigns when diagnosing current pacing
-- Note unusual patterns (paused campaigns with spend, shared-budget imbalances)
-- Identify primary spending campaigns
-
----
-
-### Step 3: Impression Share Analysis (Root Cause Diagnosis)
-
-**Reference Skill:** `impression-share-diagnostics`
-
-**Goal:** Diagnose WHY underspending is happening using impression share metrics.
-
-**Diagnostic Framework (from `impression-share-diagnostics`):**
-
-| Search IS | Budget Lost IS | Rank Lost IS | Diagnosis | Next Step |
-|-----------|----------------|--------------|-----------|-----------|
-| <70% | >30% | >50% | Budget too low | Step 4: Calculate budget recommendation |
-| <70% | <10% | >60% | Quality issues | Recommend quality improvements |
-| >80% | <10% | <10% | Low demand | Normal (or consider reducing budget) |
-| Any | Any | Any | Recent budget ↑ (if Step 1 found this) | Monitor, no action |
-
-**Critical Context (from `impression-share-diagnostics`):**
-
-- **Rank Lost IS is informational**, not a primary optimization target
-- High Rank Lost IS (60-80%) is common in competitive auctions
-- Primary focus: Budget Lost IS (indicates spend potential)
-- **Do NOT optimize TO a Rank Lost IS target**
-
-**Performance Guardrails (from `portfolio-pacing-rules`):**
-
-- Check if CPA is acceptable (within goal or <20% over)
-- Check if ROAS is acceptable (within goal or >80% of target)
-- If performance is failing, do NOT recommend budget increase
-
-**Performance Max caveat:** Pmax campaigns do NOT expose meaningful Search IS / Budget Lost IS / Rank Lost IS. For Pmax, use alternative diagnostics: budget utilization %, performance vs. goal, asset performance scores, auction insights (when available).
-
----
-
-### Step 4: Budget Recommendation (If Applicable)
-
-**Reference Skill:** `budget-recommendation-calculator`
-
-**Goal:** Calculate a specific, conservative budget recommendation.
-
-**When to recommend a budget increase:**
-
-- ✅ Pacing variance exceeds your portfolio's tolerance
-- ✅ Budget Lost IS >10% (spend potential exists) — or for Pmax, low budget utilization with strong performance
-- ✅ CPA / ROAS performance acceptable
-- ✅ No recent budget increase in last 7 days
-- ✅ At least 5 days into the month
-
-**Calculation Method (from `budget-recommendation-calculator`):**
-
-```
-Target Monthly Budget = Current Monthly Budget × (1 + (Pacing Variance × Adjustment Factor))
-
-Where:
-- Pacing Variance = from script output
-- Adjustment Factor = 0.5 (standard conservative — only close half the gap)
-
-HARD CAP: Never exceed 10% increase in a single change
-```
-
-**Example:**
-
-```
-Current Monthly Budget: $1,000
-Pacing Variance:        +13.18%
-Adjustment Factor:      0.5
-
-Target = $1,000 × (1 + (0.1318 × 0.5))
-       = $1,000 × 1.0659
-       = $1,065.90
-
-Recommended: $1,065 (6.5% increase)
-Daily Budget: $1,065 ÷ 31 days = $34.35/day
-```
-
-**When NOT to recommend a budget increase:**
-
-- ❌ CPA significantly above goal (>20% over)
-- ❌ Recent budget increase within last 7 days
-- ❌ Search IS >80% + Budget Lost IS <10% (low demand scenario)
-- ❌ Less than 5 days into month (early-month variance)
-
----
+Calculate per
+[`budget-recommendation-calculator`](../budget-recommendation-calculator/) —
+the conservative close-half-the-gap method under its hard **10% single-change
+cap**, with its don't-recommend gates (recent increase, failing CPA/ROAS,
+low demand, early month). The no-action verdicts and their exact wording
+live in [`rules.md`](rules.md) § "The no-action calls" — a no-action answer
+is written with the same rigor as an increase.
 
 ### Adaptive Investigation
 
-The skill is NOT required to run all steps. Use judgment:
-
-- **Stop early** if Step 1 fully explains the underspending (e.g., recent budget increase)
-- **Add extra steps** if you find something unexpected (e.g., paused campaigns, ad schedule restrictions)
-- **Pivot** if the data suggests a different investigation path
-- **Skip Step 4** if diagnosis is NOT "budget too low"
-
-**Additional checks (if needed):**
-
-- Ad schedule restrictions (only running certain hours?)
-- Geographic targeting (too narrow?)
-- Negative keyword conflicts
-- Disapproved ads/assets
-- **Display remarketing campaigns:** check for "Bid setting limited" status (see below)
-
----
-
-### Display Campaign Diagnostic (When Applicable)
-
-**When to check:** Account has Display / GDN remarketing campaigns with low spend.
-
-**Key Diagnostic:** Look for "Bid setting limited" status in the Google Ads UI.
-
-**Pattern:**
-
-- Campaign status shows "Bid setting limited"
-- Very low click volume (e.g., 7 clicks over 18 days)
-- Spending well below daily budget
-- Bidding strategy: Maximize Clicks with max CPC limit
-
-**Root Cause:** Max CPC bid cap (e.g., $2-3) is too low for Display network auctions — campaign can't compete for impressions.
-
-**Standard Fix Pattern:**
-
-- Increase max CPC bid limit to a floor that gives the algorithm headroom (often around $4.00 for managed-portfolio remarketing — tune to your inventory)
-- Provides headroom to compete while maintaining a reasonable ceiling
-
-**Verification Steps:**
-
-1. Check campaign settings → Bidding → "Maximum CPC bid limit"
-2. If under your floor, recommend increasing
-3. Expected outcome: spend increases toward budget within 2-3 days
-4. Expected CPCs settle below your new cap after auctions normalize
-
-**Note:** This is a separate diagnostic from Search campaign IS analysis — Display campaigns don't have Search IS metrics.
-
----
-
-## Tools Used
-
-- **Skill** — Auto-invoke the three required companion skills (CRITICAL — use at start)
-- **Read** — Read sheet exports, read script output
-- **Bash** — Run the investigation script
-- **Grep / Glob** — Find supporting scripts if a deep dive is needed
-
----
-
-## Script Contract (Adapting to Your Own Data Sources)
-
-This skill ships with a working investigation script at `scripts/investigate_underspend.py` — Google Ads API only, no sheet or database dependencies. The contract below documents what any implementation must output, so you can extend the shipped script (or swap in your own) and the skill's diagnostic steps keep working.
-
-**Required script behavior:**
-
-- Accept `{ACCOUNT_NAME}` as a positional argument (and / or `--cid <numeric_id>` as fallback)
-- Resolve customer ID for the account
-- Output a 7-day campaign spend section (per-campaign budget, utilization %, status, bidding strategy, performance metrics)
-- Output an impression share section for Search / Pmax campaigns (Search IS, Budget Lost IS, Rank Lost IS)
-- Output a month-to-date pacing section (monthly budget, MTD spend, variance %, days elapsed)
-- Optionally output recent optimization log entries
-
-**Extension hooks (where the shipped script is designed to be adapted):**
-
-- **Pacing dashboard:** the shipped script computes MTD pacing from campaign daily budgets, with `--monthly-budget` as the manual override. If you maintain a pacing dashboard (Google Sheet or otherwise) that holds contracted monthly budgets, replace the STEP 3 budget lookup with a read against it — the highest-value adaptation, because contracted budgets and daily-budget math diverge whenever budgets change mid-month.
-- **Optimization log:** if you keep a budget-change log, print recent entries as an extra output section — Step 1 of the protocol consumes it directly. (`change-history-checker` in this repo is an API-based alternative for the same question.)
-- **Account registry:** swap `accounts.md` for your own registry (JSON, sheet, or database) inside the script's `resolve_account_name()`.
+Stop early, pivot, or add checks (ad schedules, geo targeting, negative
+conflicts, disapprovals, the Display "Bid setting limited" check) as the
+data directs — the ladder and escalation default are in
+[`rules.md`](rules.md). Skip Step 4 entirely unless the diagnosis is
+budget-constrained.
 
 ---
 
@@ -309,65 +171,43 @@ ROOT CAUSE DIAGNOSIS
 Primary Issue: {Budget Constraint | Quality Issues | Low Demand | Ramp-Up Period | Other}
 
 Evidence:
-- Pacing Variance: +X.X% (from pacing dashboard)
+- Pacing Variance: {−X.X}% ({source; state the sign convention — the script
+  prints underspend as negative, dashboards often quote it positive})
 - Search Impression Share: XX%
 - Budget Lost IS: XX%
 - Rank Lost IS: XX%
-- CPA: $XX.XX (Goal: $XX.XX) {✅ or ❌}
+- CPA: $XX.XX (Goal: $XX.XX) {OK or over}
 
 Explanation:
-{2-3 sentence explanation of WHY underspending is happening}
-{Reference the diagnostic framework from impression-share-diagnostics}
+{2-3 sentences on WHY, citing the framework that made the call}
 
 ================================================================================
 DETAILED FINDINGS
 ================================================================================
 
 Step 1: Recent Optimizations
-{Summary from script output — any recent budget changes?}
-
-Step 2: Campaign Spend Analysis
-{Filtered campaigns, budget structure, utilization %}
-{Note: Apply line-designation filtering per your campaign-naming convention (Step 2)}
-
-Step 3: Impression Share Analysis
-{IS metrics per campaign, interpreted using impression-share-diagnostics decision tree}
-
-{Any additional investigation steps taken}
+Step 2: Campaign Spend Analysis (filtered per your naming convention)
+Step 3: Impression Share Analysis (per the companion decision tree)
+{Any additional steps taken}
 
 ================================================================================
 RECOMMENDATIONS
 ================================================================================
 
-{Use budget-recommendation-calculator framework}
-
 BUDGET RECOMMENDATION:
-{If recommending increase:}
-✅ Increase Monthly Budget: $X,XXX → $X,XXX (+X.X%)
-✅ New Daily Budget: $XX.XX/day
+{If increasing:}
+Increase Monthly Budget: $X,XXX → $X,XXX (+X.X%)
+New Daily Budget: $XX.XX/day
+Rationale: {variance vs tolerance, Budget Lost IS, performance guardrails,
+calculator methodology}
+Expected Outcome: {variance path, ramp window}
 
-Rationale:
-- Pacing variance (+X.X%) exceeds your portfolio's tolerance
-- Budget Lost IS (XX%) indicates spend potential
-- CPA performance acceptable (within goal)
-- Conservative X.X% increase per budget-recommendation-calculator methodology
+{If NOT increasing:}
+Do NOT Increase Budget
+Reason: {ramp-up / low demand / performance failure / artifact — per
+rules.md, written as a complete answer with monitoring terms}
 
-Expected Outcome:
-- Reduce pacing variance from +X.X% to within tolerance range
-- Maintain acceptable CPA/ROAS performance
-- Algorithm will ramp up over 3-5 days
-
-{If NOT recommending increase:}
-❌ Do NOT Increase Budget
-
-Reason: {CPA over goal / Recent budget change / Low demand / etc.}
-{Explanation using budget-recommendation-calculator decision tree}
-
-QUALITY IMPROVEMENTS (if applicable):
-{Secondary recommendations for quality score, ad relevance, etc.}
-
-MONITORING:
-{Items to watch over next 5-7 days}
+MONITORING: {what you're watching, for how long}
 
 Confidence Level: {High | Medium | Low}
 
@@ -378,27 +218,16 @@ Confidence Level: {High | Medium | Low}
 
 ## Success Criteria
 
-Investigation is successful if:
+1. Three companion skills loaded at start
+2. Root cause identified with quotable evidence (script lines + named
+   frameworks)
+3. Recommendation specific ("$1,000 → $1,065, +6.5%") — or a no-action call
+   written as a complete answer
+4. WHY explained, not just WHAT
+5. Investigation path adapted (stopped early when Step 1 answered it)
 
-1. ✅ All three required companion skills auto-invoked at the start
-2. ✅ Clear root cause identified with evidence
-3. ✅ Diagnostic frameworks from the companion skills and inlined steps applied correctly
-4. ✅ Specific, actionable recommendations (exact budget amounts, not "increase budget")
-5. ✅ WHY the underspending is happening is explained (not just WHAT)
-6. ✅ Diagnosis backed by data from script output
-7. ✅ Investigation path adapted based on findings (stopped early if appropriate)
-
----
-
-## Important Notes
-
-- **Auto-invoke companion skills FIRST** — load the three required companion skills before analyzing script output
-- **Be autonomous** — don't ask for permission at each step, just investigate
-- **Be adaptive** — if Step 1 explains everything (ramp-up period), stop there
-- **Be specific** — "Increase budget from $1,000 to $1,065 (+6.5%)" not just "increase budget"
-- **Be data-driven** — every conclusion references script output metrics
-- **Be efficient** — the script does the heavy lifting; you interpret and synthesize
-- **Reference frameworks** — when explaining decisions, cite which framework was used
+Operating notes: be autonomous (don't ask permission between steps), be
+data-driven (every conclusion cites script output), be specific.
 
 ---
 
@@ -406,27 +235,45 @@ Investigation is successful if:
 
 **Inline (single account, manual):**
 
-> "Use the underspending-investigation skill to investigate `Example Property - Pmax`. Pacing variance: +12.5%."
+> "Use the underspending-investigation skill to investigate
+> `Example Property - Pmax`. Pacing variance: 12.5% under."
 
-**Parallel orchestration (used by a morning briefing orchestrator):**
+**Parallel orchestration (morning-briefing pattern):**
 
-The orchestrator launches N parallel `Task(subagent_type="general-purpose", …)` calls in a single message, each with a prompt that invokes this skill against one account. Parallelism + per-investigation context isolation are preserved at the Task layer; the skill itself runs identically.
+The orchestrator launches N parallel
+`Task(subagent_type="general-purpose", …)` calls in a single message, each
+invoking this skill against one account. Parallelism and per-investigation
+context isolation live at the Task layer; the skill runs identically.
 
 ---
 
-## Companion Skills
+## Files in This Skill
 
-**Required — all three in this repo.** The core diagnostic frameworks live inside them; the investigation will not work correctly without these:
+| File | Role |
+|---|---|
+| `SKILL.md` | This workflow — protocol, output format, routing |
+| `rules.md` | Judgment layer: framework load-map, stop-early ladder, no-action calls, false-alarm table, Display check, escalation default |
+| `examples.md` | Three worked investigations — two end without a budget change |
+| `references/investigation-contract.md` | Exact script-output contract + extension hooks (source of truth: the script) |
+| `scripts/investigate_underspend.py` | The evidence collector — read-only, API-only |
+| `README.md` | Zero-context install and orientation |
 
-- `portfolio-pacing-rules` — pacing thresholds and budget management philosophy (configure for your portfolios)
-- `impression-share-diagnostics` — IS decision tree and Pmax / Display caveats
-- `budget-recommendation-calculator` — conservative budget calc methodology with decision tree
+Runtime artifacts: **none** — the script writes nothing to disk.
 
-**Optional — also in this repo:**
+## After a Run
 
-- `gaql-query-patterns` — GAQL templates for spend, IS, pacing, and settings queries (useful when extending the shipped script)
-- `change-history-checker` — API-based recent-changes lookup for Step 1 if you don't keep an optimization log
+Console output is the entire record (timestamped in its header) — the
+investigation report you write is the durable artifact, so write it before
+the terminal scrolls away. There is no state to clean up; re-running is
+always safe and always current.
 
-**Bring your own:** campaign-line filtering conventions (Step 2) and budget/pacing data sources (Step 1) are inlined in the protocol steps — adapt them to your account-naming and reporting infrastructure.
+## When to Load Something Else
 
-Install the three required companions alongside this skill for full functionality.
+| Trigger | Load |
+|---|---|
+| Investigation start — always | The three companion frameworks (list above; per-framework load-map in `rules.md`) |
+| Step 1 with no budget-change log | [`change-history-checker`](../change-history-checker/) — API-based recent-changes lookup |
+| A campaign absent from STEP 1, or you need end dates / settings | [`google-ads-query`](../google-ads-query/) — campaigns pull to CSV |
+| Extending the shipped script or writing follow-up GAQL | [`gaql-query-patterns`](../gaql-query-patterns/) — spend/IS/settings templates |
+| Underspend was the ticket, but the account smells broadly unhealthy | [`account-diagnostic`](../account-diagnostic/) — full 42-point inspection |
+| No working `google-ads.yaml` yet | [`google-ads-api-setup`](../google-ads-api-setup/) — one-time credential setup |

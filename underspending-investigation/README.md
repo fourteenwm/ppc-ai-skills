@@ -9,24 +9,27 @@ Diagnose root causes of Google Ads account underspending and produce a specific,
 ## What's Inside
 
 - Six-framework diagnostic protocol (campaign filtering → pacing rules → pacing-data lookups → GAQL → impression share → budget calc) — the three core frameworks ship as required companion skills in this repo and auto-load at investigation start; the rest are inlined in the protocol or optional references
+- Operator docs: `rules.md` (stop-early ladder, the no-action calls, a false-alarm table covering shared-budget and morning-run artifacts, escalation default), `examples.md` (three worked investigations — two end without a budget change), and `references/investigation-contract.md` (exactly what each script line means)
 - Adaptive investigation — stop early if Step 1 explains the issue, pivot if data suggests a different path
 - Decision tree for budget-too-low vs. quality-issues vs. low-demand vs. ramp-up scenarios
 - Conservative budget calculation methodology with a hard 10% increase cap per single change
 - Performance Max-specific handling (IS metrics don't apply; alternative diagnostics)
 - Display / GDN remarketing diagnostic for "Bid setting limited" status
 - Standardized output format so reports across the portfolio are directly comparable
-- Read-only — never writes to Google Ads
+- Read-only — never writes to Google Ads, never writes to disk
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/underspending-investigation/scripts
-curl -o .claude/skills/underspending-investigation/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/SKILL.md
-curl -o .claude/skills/underspending-investigation/README.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/README.md
+mkdir -p .claude/skills/underspending-investigation/scripts .claude/skills/underspending-investigation/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o .claude/skills/underspending-investigation/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/$f
+done
+curl -o .claude/skills/underspending-investigation/references/investigation-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/references/investigation-contract.md
 curl -o .claude/skills/underspending-investigation/scripts/investigate_underspend.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/underspending-investigation/scripts/investigate_underspend.py
 ```
@@ -88,7 +91,9 @@ The skill will:
 
 1. Auto-load the three required companion skills via the Skill tool
 2. Run `scripts/investigate_underspend.py "Example Property - Pmax"`
-3. Apply the diagnostic decision trees to the script output
+3. Apply the diagnostic decision trees to the script output — read through
+   `references/investigation-contract.md` (what each line actually means),
+   with `rules.md`'s false-alarm table as the sanity gate before any verdict
 4. Produce a standardized investigation report with root cause, evidence, and a specific budget recommendation (or no-action call)
 
 **Parallel (orchestrated by a morning briefing):**
@@ -131,7 +136,8 @@ ROOT CAUSE DIAGNOSIS
 Primary Issue: Smart-bidding under-allocation despite strong unit economics
 
 Evidence:
-- Pacing Variance: +19.08% UNDERSPENDING
+- Pacing Variance: -19.08% (UNDERSPENDING; dashboard ticket quoted it as
+  "+19.08% under" — sign conventions differ, magnitudes agree)
 - Pmax 7-day budget utilization: 38.5%
 - Pmax 7-day ROAS: 19.04x (Goal: >5x) ✅
 - Pmax 7-day CPA: $10.41 (Goal: <$25) ✅
@@ -151,7 +157,7 @@ BUDGET RECOMMENDATION:
 ✅ New Daily Budget: $107.58/day
 
 Rationale:
-- Pacing variance (+19.08%) exceeds portfolio tolerance
+- Pacing variance (-19.08%) exceeds portfolio tolerance
 - Performance is elite (19x ROAS, $10 CPA — far better than goal)
 - Conservative 7.6% increase per budget-recommendation-calculator methodology
 - Adjustment Factor 0.4 (conservative because >15% variance and late in month)

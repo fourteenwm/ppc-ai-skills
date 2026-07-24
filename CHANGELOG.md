@@ -2,6 +2,109 @@
 
 All notable changes to this repository.
 
+## 2026-07-24 — Diagnostics trio: the operator layer
+
+Judgment and contract layers for three skills that read account state and
+produce triage decisions — underspend diagnosis, conversion-tracking
+health, and the DGen automation fixer. Doc-only: all four shipped scripts
+are byte-untouched.
+
+**[`underspending-investigation/`](underspending-investigation/):**
+
+- NEW `references/investigation-contract.md` — what each script line
+  actually means: registry-first name resolution (the MCC walk happens only
+  when `accounts.md` is absent — a registry miss errors out), the STEP 1
+  display gate (blocks print only above $0 spend, but totals count every
+  returned campaign), shared budgets double-counted in totals AND per-row
+  utilization, utilization computed against TODAY'S budget, the STEP 2
+  readout ladder verbatim (budget-lost first; a Budget Lost IS of exactly
+  10.0 falls to MIXED FACTORS; Pmax excluded from the Search averages),
+  STEP 3's expected-spend counting today as a full day against partial MTD
+  data (morning runs read artificially underspent), the negative-variance
+  = underspending sign convention, STEP-1-failure-aborts vs STEP 2/3
+  failures continuing, and the extension hooks.
+- NEW `rules.md` — the framework load-map (which companion answers what),
+  the stop-early ladder, the no-action calls written as complete answers
+  (ramp-up, low demand, performance failure, artifacts), a ten-row
+  false-alarm table, the Display "Bid setting limited" check, and the
+  cheapest-discriminating-check escalation default.
+- NEW `examples.md` — three worked investigations, two ending without a
+  budget change: the routine budget-constrained increase, the explicit
+  no-action low-demand call, and the −60% "emergency" that is three
+  stacked artifacts (shared-budget double-count × morning run × early
+  month).
+- `SKILL.md` re-homed to workflow + routing (frontmatter untouched):
+  boundary block, companion-owned payload compressed to pointers, files
+  table, when-to-load routing, After-a-Run; the report template's variance
+  line now states the sign convention.
+- `README.md` — install block fetches the operator docs; the output
+  example's pacing-variance sign corrected to the script's convention.
+
+**[`conversion-tracking-health/`](conversion-tracking-health/):**
+
+- NEW `references/audit-contract.md` — both scripts' exact mechanics: the
+  7-day spend gate (fixed, regardless of `--days`), "Never fired" meaning
+  zero primary conversions IN THE WINDOW (not never-ever), severity
+  buckets incl. HIDDEN actions never reaching the no-data bucket, the
+  error-isolation trap set (a spend-check error masquerades as a no-spend
+  skip; an action-query error masquerades as a healthy `[ok]`), the
+  zero-actions blind spot, the deep-dive's directly-accessible-only name
+  resolution (use `--cid`), its two early exits, and the cross-script
+  asymmetry table (primary-only vs all-conversions).
+- NEW `rules.md` — triage order (error lines first), the
+  when-stale-is-EXPECTED table (seasonal demand, low-volume cadence,
+  deliberate secondaries, soft bidding feeders, new actions, migration
+  leftovers), the escalation ladder that runs before any "tag is broken"
+  verdict, an eleven-row false-alarm table, and cadence.
+- NEW `examples.md` — the routine portfolio read (four rows, one work
+  item), the error masquerade that voids `[ok]` and `[skipped]`, and the
+  "Never fired" that fired for years — dated to a site relaunch by
+  widening the window.
+- `SKILL.md` re-homed (frontmatter untouched) with its console samples
+  corrected against the emitting code — the script prints `[ok]` /
+  `[skipped]` and plain-text section headers, not the checkmark/emoji
+  output the old SKILL showed, and no portfolio name in the banner; the
+  false "Output Files" section (both scripts are console-only) replaced by
+  an After-a-Run stating exactly that; internal-monitoring context
+  genericized into an optional pairing note.
+- `README.md` — install block fetches the operator docs and both scripts;
+  prerequisites note the deep-dive reads `./google-ads.yaml` only.
+- Root README row corrected: the audit catches actions that went quiet —
+  it does not audit configuration.
+
+**[`dgen-automation-disable/`](dgen-automation-disable/):**
+
+- NEW `references/mutation-contract.md` — the settings taxonomy with
+  defaults (landing-page preview ships OFF, so finding it ON is a flag),
+  selection scope (enabled campaign + enabled ad; paused ad groups' ads
+  INCLUDED; paused campaigns invisible until re-enabled), CIDs used
+  exactly as typed (no dash-stripping) and the false-compliance trap (an
+  erroring account silently leaves the run AND the approval code), full
+  approval-code semantics (deterministic hash of the pending set,
+  recomputed at execute, any drift refuses, no partial execution),
+  per-account all-or-nothing execution, the settings-list replacement
+  behavior, logging shapes (dry-runs write nothing; executes always append
+  the JSONL; the opt-in Sheet log reuses the ads-yaml token), and
+  `--verify`'s three silent no-op cases.
+- NEW `rules.md` — the five dry-run reads that precede any approval, the
+  when-NOT-to-disable table (generated-video reliance, shared management,
+  mid-flight experiments, client choice), the-mismatch-is-a-feature
+  handling, cadence (post-onboarding, monthly drift, after re-enabling
+  paused campaigns, pre-launch), a nine-row false-alarm table, and an
+  attribute-before-overwrite escalation default.
+- NEW `examples.md` — the clean read-approve-execute-verify run, the
+  mismatch that turned out to be Tuesday's creative launch, and the
+  dashed-CID false compliance followed by the setting nobody remembered
+  enabling.
+- `SKILL.md` re-homed (frontmatter untouched): the body trigger list
+  dropped (frontmatter owns triggers), the settings table moved to the
+  contract, boundary block, files table naming the runtime JSONL artifact,
+  finder→fixer routing (account-diagnostic check 44 and ads-checker's
+  ad-level automation check route here).
+- `README.md` — install block fetches the operator docs; the misleading
+  "Google Sheets API credentials" prerequisite corrected (the Sheet log is
+  opt-in and reuses the ads-yaml token; the local JSONL needs nothing).
+
 ## 2026-07-23 — Query, history, and link-audit trio: the operator layer
 
 Judgment and contract layers for three skills that share a spine — reading
