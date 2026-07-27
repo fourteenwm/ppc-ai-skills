@@ -8,20 +8,29 @@ Audit and fix Performance Max campaign asset automation settings. Opts out of Go
 
 ## What's Inside
 
+- A ready-to-run portfolio audit script (`--cid`, `--cids`, or `--all` under
+  an MCC; `--config` for a non-default credentials path) — read-only,
+  console output with per-campaign compliance verdicts
 - The five PMax asset automation settings and why each one matters
 - How to check settings in the Google Ads UI (for single campaigns)
-- GAQL query pattern for portfolio-wide auditing
 - Mutation pattern for fixing non-compliant campaigns (wrapped in mutation-safety)
-- Edge cases: when automation might genuinely help, which setting is the riskiest, and why settings silently reset
+- Operator docs: `rules.md` (risk ranking, when ON is legitimate, triage
+  order, escalation ladder), `examples.md` (three worked reads incl. the
+  false "fully compliant"), and `references/audit-contract.md` (exact
+  script mechanics, line-cited)
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/pmax-asset-automation/scripts
-curl -o .claude/skills/pmax-asset-automation/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/SKILL.md
+mkdir -p .claude/skills/pmax-asset-automation/scripts .claude/skills/pmax-asset-automation/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o .claude/skills/pmax-asset-automation/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/$f
+done
+curl -o .claude/skills/pmax-asset-automation/references/audit-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/references/audit-contract.md
 curl -o .claude/skills/pmax-asset-automation/scripts/audit_pmax_asset_automation.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-asset-automation/scripts/audit_pmax_asset_automation.py
 ```
@@ -30,7 +39,7 @@ curl -o .claude/skills/pmax-asset-automation/scripts/audit_pmax_asset_automation
 
 ## Prerequisites
 
-- [Google Ads API](../google-ads-api-setup/) set up for the audit and fix workflows
+- [Google Ads API](../google-ads-api-setup/) set up for the audit and fix workflows (`google-ads.yaml` at project root, or point the script at it with `--config`)
 - [Mutation Safety](../mutation-safety/) skill installed if you plan to run the fix mutation
 
 No API keys or external dependencies beyond what you already need for Google Ads API access.

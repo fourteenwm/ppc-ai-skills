@@ -6,22 +6,46 @@ allowed-tools: [Bash, Read]
 
 # PMax Campaign Builder
 
-Build Performance Max campaigns for accounts and output Google Ads Editor-importable CSV.
+Build Performance Max campaigns from a campaign brief and output a Google
+Ads Editor-importable CSV. Judgment calls (copy-source selection, template
+editing, the final-URL rule, pre-import checks) live in
+[rules.md](rules.md); exact script mechanics live in
+[references/build-contract.md](references/build-contract.md).
 
-## Triggers
+## What this skill deliberately does NOT do
 
-Auto-invoke when user says "build pmax", "pmax build", "new pmax campaign", "pmax csv", or references a todo file with `pmax-build` in the name.
+- **Never touches a live account.** No API mutations, no uploads — the
+  product is a CSV file, and Google Ads Editor import is the deliberate
+  human review gate between this skill and anything serving.
+- **Doesn't validate your ad copy.** No length checks, no minimum-count
+  checks — blank sheet rows silently shrink the copy. The console counts
+  and a CSV spot-check are your gate (rules.md, invariant 4).
+- **Doesn't verify the final URL.** The generator writes whatever
+  `--final-url` you pass. Sourcing it from the account's live Search ads is
+  an operator rule (rules.md, invariant 1), enforced by you in Step 3.
+- **Doesn't write ad copy.** It ingests existing copy verbatim. Writing new
+  copy is a different job — see the routing table below.
+- **Doesn't handle images.** Image assets are uploaded manually in Editor
+  after import (Manual Steps below).
 
 ## Prerequisites
 
-- **Credentials:** `google-ads.yaml` at project root — see the [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have one. The Sheets ad-copy mode (Step 4) reuses this same file's OAuth credentials for the Sheets API — its refresh token must carry the `spreadsheets` + `drive.readonly` scopes, which the setup skill's generator grants by default (token predates that? re-run the generator once)
+- **Credentials:** `google-ads.yaml` at project root — see the
+  [google-ads-api-setup](../google-ads-api-setup/) skill if you don't have
+  one. The Sheets ad-copy mode reuses this same file's OAuth credentials for
+  the Sheets API — its refresh token must carry the `spreadsheets` +
+  `drive.readonly` scopes, which the setup skill's generator grants by
+  default (token predates that? re-run the generator once)
 - **Account:** Know the CID of the account you're building for (or maintain
   your own local `accounts.json` lookup — keep it out of source control)
-- **Ad Copy:** Either read from a Google Sheet (`--sheet-id`, preferred) or pasted by the user (manual fallback, no Google credentials needed)
+- **Ad Copy:** Either read from a Google Sheet (`--sheet-id`, preferred) or
+  pasted by the user (manual fallback, no Google credentials needed). Keep
+  each business's "PMax Ad Copy" sheet in its own Drive folder. Choosing
+  between the two modes: rules.md § "Sheets mode vs manual paste"
 
 ## Workflow
 
-### Step 1: Parse the Todo File
+### Step 1: Parse the Build Request
 
 Read the build request (e.g., `todo/todo-20260319-acme-plumbing-pmax-build.md`) to extract:
 - Account name
@@ -47,7 +71,43 @@ for acc in accounts:
 
 Or pass the CID directly to the build script — no lookup needed.
 
-### Step 3: Get Business Location Data
+### Step 3: Confirm the Final URL From Search
+
+Never construct the URL from the business name or the brief — pull the root
+domain the account's ENABLED Search ads actually use (the why: rules.md,
+invariant 1):
+
+```bash
+python3 -c "
+from google.ads.googleads.client import GoogleAdsClient
+from urllib.parse import urlparse
+client = GoogleAdsClient.load_from_storage('google-ads.yaml')
+ga = client.get_service('GoogleAdsService')
+query = '''
+    SELECT ad_group_ad.ad.final_urls
+    FROM ad_group_ad
+    WHERE campaign.status = \"ENABLED\"
+      AND ad_group.status = \"ENABLED\"
+      AND ad_group_ad.status = \"ENABLED\"
+      AND campaign.advertising_channel_type = \"SEARCH\"
+'''
+counts = {}
+for batch in ga.search_stream(customer_id='[CUSTOMER_ID]', query=query):
+    for row in batch.results:
+        for url in row.ad_group_ad.ad.final_urls:
+            host = urlparse(url if '://' in url else 'https://'+url).netloc.lower()
+            if host.startswith('www.'): host = host[4:]
+            counts[host] = counts.get(host, 0) + 1
+for host, n in sorted(counts.items(), key=lambda x: -x[1]):
+    print(f'{n:>4}  {host}')
+"
+```
+
+One root → pass a URL on that root as `--final-url` in Step 8. Multiple
+roots, or no Search campaigns at all → stop; rules.md § "Escalation
+defaults" owns that call.
+
+### Step 4: Get Business Location Data
 
 **Option A: From existing GEO campaign (preferred)**
 ```bash
@@ -82,34 +142,40 @@ python scripts/scrape_website_firecrawl.py --url "BUSINESS_URL"
 # Then geocode the address using Nominatim
 ```
 
-### Step 4: Get Ad Copy
+The bundled scraper handles both current (attribute-style) and legacy (dict)
+Firecrawl SDK responses, and is scrape-only by design — no LLM extraction.
 
-**From Google Sheet (preferred):** pass `--sheet-id` to the build script in Step 7 —
-it reads the ad copy rows directly, authenticating with the OAuth credentials from
-`google-ads.yaml` (project root by default; override with `--config <path>`). No
-separate Sheets token: the refresh token minted by
-[google-ads-api-setup](../google-ads-api-setup/) already carries the required
-`spreadsheets` + `drive.readonly` scopes.
+### Step 5: Get Ad Copy
 
-**Sheet format (confirmed, first tab, column A):**
-- Row 1: Business name; Row 2: "PMax Ad Copy" title
-- Rows 4-18: 15 headlines (30 chars each, label in row 3) -> CSV cols 38-52
-- Row 20: Short headline (60 chars, label in row 19) -> IGNORED
-- Rows 22-26: 5 long headlines (90 chars each, label in row 21) -> CSV cols 53-57
-- Rows 28-32: 5 descriptions (90 chars each, label in row 27) -> CSV cols 58-62
+**From Google Sheet (preferred):** pass `--sheet-id` to the build script in
+Step 8 — it reads the copy cells directly (verbatim ingestion, no retyping),
+authenticating with the OAuth credentials from `google-ads.yaml` (project
+root by default; override with `--config <path>`).
 
-**Manual fallback:** User pastes headlines/descriptions into conversation; pass them
-via `--headlines` / `--long-headlines` / `--descriptions` (no Google credentials needed).
+The sheet layout the script expects (first tab, column A, rows 4-18 /
+22-26 / 28-32 — and the row-20 slot it deliberately ignores) is documented
+in [references/build-contract.md](references/build-contract.md) § "The
+Google Sheet contract". **After the read, check the printed counts against
+what the sheet should contain** — blank or misplaced rows are skipped
+silently.
 
-### Step 5: Extract Video IDs
+**Manual fallback:** User pastes headlines/descriptions into conversation;
+pass them via `--headlines` / `--long-headlines` / `--descriptions` (all
+three required; no Google credentials needed).
 
-Parse YouTube URLs from the todo file:
+### Step 6: Extract Video IDs
+
+Parse YouTube URLs from the build request:
 ```
 https://youtu.be/a8Nr45dNL50 -> a8Nr45dNL50
 https://youtu.be/GFIOY7vdf4k -> GFIOY7vdf4k
 ```
 
-### Step 6: Get Remarketing Audiences
+`youtu.be`, `watch?v=`, and `/embed/` URLs extract automatically; anything
+else (shorts links especially) passes through verbatim — hand the script
+bare 11-character IDs when in doubt (contract § "Video ID extraction").
+
+### Step 7: Get Remarketing Audiences
 
 ```bash
 python3 -c "
@@ -128,7 +194,7 @@ for row in ga.search(customer_id='[CUSTOMER_ID]', query=query):
 
 Format for CSV: `"AccountName;All visitors (AdWords);All Users of GA_ID | BusinessName - BLP"`
 
-### Step 7: Run the CSV Generator
+### Step 8: Run the CSV Generator
 
 ```bash
 python3 .claude/skills/pmax-builder/scripts/build_pmax_csv.py \
@@ -149,63 +215,57 @@ Manual ad-copy fallback: replace `--sheet-id` with
 `--headlines "H1|...|H15" --long-headlines "LH1|...|LH5" --descriptions "D1|...|D5"`.
 If your `google-ads.yaml` isn't at the working directory root, add `--config path/to/google-ads.yaml`.
 
-### Step 8: Present Output
+### Step 9: Verify and Present
 
-Present output to user:
-1. CSV file path
-2. Summary of what was generated (rows, themes, videos)
-3. Remind about manual image step
-4. Note any additional instructions from the build request (pause GDN, etc.)
+1. Read the console summary against rules.md's false-alarm table — counts
+   vs the source, the `Dates:` line (late-June trap), theme/row totals
+2. Spot-check the CSV's asset-group row (copy slots, Video ID columns)
+3. Present: CSV path, what was generated (rows, themes, videos), the manual
+   image step, and any extra instructions from the build request (pause
+   GDN, etc.)
 
 ## CSV Format
 
-- **Encoding:** UTF-16LE with BOM
-- **Delimiter:** Tab
-- **Line endings:** CRLF
-- **Columns:** 115
-- **Row types:** Campaign (1) + Asset Group (1) + Search Themes (14) + Location (1) + Negative Locations (238) = ~255 rows
-
-## Standard Settings
-
-| Setting | Value |
-|---------|-------|
-| Campaign Type | Performance Max |
-| Networks | Google search;Search Partners;Display Network |
-| Bid Strategy | Maximize conversion value |
-| Budget | $10/day (standard, adjust later) |
-| Targeting | Location of presence |
-| Final URL expansion | Disabled |
-| Text customization | Disabled |
-| Image/Video enhancement | Disabled |
-| Brand guidelines | Enabled |
-| CTA | Automated |
-| Start date | 3 business days from build |
-| End date | June 30 current FY |
+UTF-16LE with BOM, tab-delimited, CRLF, exactly 115 columns per row —
+~255 rows with the shipped templates. Full row-assembly and encoding
+mechanics: [references/build-contract.md](references/build-contract.md).
+Campaign defaults (networks, bidding, automation opt-outs) live in
+`templates/campaign_settings.json`; start/end dates are script-computed
+(3 business days out / June 30 of the current fiscal year).
 
 ## Vertical Note
 
-The shipped templates `templates/search_themes.json` and `templates/audience_signals.json`
-are **multifamily / apartment defaults** — apartment-rental search themes and
-Renters / Moving-Soon audience signals — even though the doc examples say "Acme
-Plumbing". Import them unedited and your PMax campaign targets apartment hunters.
-To adapt for your vertical:
-
-1. Replace the `generic` and `location_specific` lists in `templates/search_themes.json` with your own service terms (`{city}` / `{state}` placeholders are substituted at build time)
-2. Replace `interest_categories`, `life_events`, and `detailed_demographics` in `templates/audience_signals.json` with your vertical's audience taxonomy values (or set them to `""` to ship no audience signals beyond remarketing)
-3. No script changes needed — the generator builds whatever these files contain
-
-`campaign_settings.json` (bidding/network defaults) and `negative_locations.json`
-(country exclusions) are vertical-neutral.
+The shipped `search_themes.json` and `audience_signals.json` are
+**multifamily/apartment defaults** — import them unedited and your campaign
+targets apartment hunters, whatever you sell. Editing them for your vertical
+(which file, which fields, what the inert keys are): rules.md § "Editing the
+templates for your vertical".
 
 ## Files
 
 | File | Purpose |
 |------|---------|
+| `SKILL.md` | This file — workflow + routing |
+| `rules.md` | Judgment layer: invariants, copy-source decision, template editing, false alarms, escalation |
+| `examples.md` | Three worked builds (copy-count catch, vertical adaptation, the late-June date trap) |
+| `references/build-contract.md` | Line-derived script mechanics: sheet contract, caps, dates, row assembly, encoding, inert template keys |
 | `scripts/build_pmax_csv.py` | CSV generator (115 cols, UTF-16LE) |
+| `scripts/scrape_website_firecrawl.py` | Website scraper (address sourcing for Step 4B) — scrape-only |
 | `templates/negative_locations.json` | 238 country exclusions |
 | `templates/search_themes.json` | 14 search theme templates (8 generic + 6 location-specific) — multifamily defaults, see Vertical Note |
 | `templates/audience_signals.json` | Standard audience signals — multifamily defaults, see Vertical Note |
 | `templates/campaign_settings.json` | PMax campaign defaults |
+
+## After a Run
+
+The generated CSV at `--output` (house convention:
+`data/pmax-builds/<business>-pmax.csv`) is the run's only artifact — the
+scripts write nothing else, and no account state changes until a human
+imports the file in Google Ads Editor. The console summary is not persisted;
+a cold session reconstructs any build by reading the CSV itself (or simply
+regenerating it — builds are deterministic for the same inputs except the
+two computed dates). Scrape runs (Step 4B) persist only if you passed
+`--output` to the scraper.
 
 ## Manual Steps (Not in CSV)
 
@@ -214,9 +274,13 @@ To adapt for your vertical:
 3. **Retargeting audience:** Add to PMax asset group audience signals (included in CSV if --remarketing-segments provided)
 4. **Budget adjustment:** CSV defaults to $10/day; adjust post-import based on build request budget
 
-## Ad Copy Sheet Location
+## When to Load What
 
-Keep each business's "PMax Ad Copy" Google Sheet in its own Drive folder.
-Access goes through the Google Sheets API using the same `google-ads.yaml`
-OAuth credentials as everything else in this skill — just pass the sheet ID
-via `--sheet-id`.
+| Moment | Load |
+|---|---|
+| Before any build — mode choice, template edits, the URL rule | [rules.md](rules.md) |
+| Exact ingestion/caps/dates/encoding questions | [references/build-contract.md](references/build-contract.md) |
+| First build, or something looks off in the summary | [examples.md](examples.md) |
+| No `google-ads.yaml` yet, or a Sheets 403 | [google-ads-api-setup](../google-ads-api-setup/) |
+| Writing NEW ad copy for the sheet (not ingesting existing copy) | [ad-copy-generation-framework](../ad-copy-generation-framework/) + [ad-copy-verification-standard](../ad-copy-verification-standard/) |
+| After every Editor import — confirm the automation opt-outs landed | [pmax-asset-automation](../pmax-asset-automation/) |

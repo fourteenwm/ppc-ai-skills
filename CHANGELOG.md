@@ -2,6 +2,53 @@
 
 All notable changes to this repository.
 
+## 2026-07-27 — Operator-docs pass: pmax-builder + pmax-asset-automation
+
+Both PMax skills get the full operator-docs treatment, plus one small
+script addition.
+
+- [`pmax-builder/`](pmax-builder/) — NEW [`rules.md`](pmax-builder/rules.md)
+  (the final-URL-from-Search rule and why it exists, Sheets-vs-manual
+  copy-source decision, per-vertical template editing, a false-alarm table,
+  escalation defaults), NEW [`examples.md`](pmax-builder/examples.md)
+  (three worked builds: a sheet copy-count catch, a vertical adaptation
+  with a video-URL trap, and the late-June build whose default end date
+  lands before its start date), and NEW
+  [`references/build-contract.md`](pmax-builder/references/build-contract.md)
+  — line-derived script mechanics: the Google Sheet row map and its
+  silently-ignored row 20, caps and the no-validation surface, video-ID
+  extraction pass-through, date computation and the late-June trap, row
+  assembly, the UTF-16LE encoding contract, and the three inert
+  `campaign_settings.json` keys (`cta`, `default_budget_daily`,
+  `default_radius_miles` — argparse owns those defaults). SKILL.md re-homed
+  to workflow + routing (new Step 3 sources the final URL from the
+  account's ENABLED Search ads; sheet-format payload moved to the
+  contract; boundary, files table, after-a-run, when-to-load routing);
+  README install block now fetches all ten skill files. Scripts and
+  templates byte-untouched; the bundled scraper's tolerance for both
+  current (attribute-style) and legacy (dict) Firecrawl SDK responses is
+  now documented in the contract and SKILL.
+- [`pmax-asset-automation/`](pmax-asset-automation/) — NEW
+  [`rules.md`](pmax-asset-automation/rules.md) (risk ranking of the five
+  automation settings incl. the two-sided video-enhancement argument,
+  when-OPTED_IN-is-legitimate, triage order, false-alarm table, escalation
+  ladder, cadence), NEW [`examples.md`](pmax-asset-automation/examples.md)
+  (three worked reads: a paused-campaign judgment call, the
+  errored-account false "fully compliant", the all-five-ON baseline), and
+  NEW [`references/audit-contract.md`](pmax-asset-automation/references/audit-contract.md)
+  — line-derived mechanics: ENABLED+PAUSED selection, the
+  seeded-OPTED_IN default (absent and explicit settings print
+  identically), error isolation and the false-compliance trap ("All
+  accounts fully compliant!" can print over an unaudited account), CID
+  display rules, vacuous compliance, console shapes. SKILL.md re-homed
+  (the hand-written sample query — which said ENABLED-only while the
+  shipped script also audits PAUSED — replaced by the script's real
+  contract; boundary, files table, after-a-run, routing). **Script
+  change:** `audit_pmax_asset_automation.py` gains `--config <path>` for a
+  non-default credentials location, threaded through both the API client
+  and the `--all` MCC walk (previously two hardcoded `google-ads.yaml`
+  reads); default behavior unchanged.
+
 ## 2026-07-24 — Doc-accuracy pass: nine fixes across six skills
 
 Nine corrections from re-deriving doc claims against the code they

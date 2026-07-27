@@ -17,6 +17,7 @@ Generates Performance Max campaign CSV files importable via Google Ads Editor â€
 - Remarketing audience signal configuration
 - YouTube video ID extraction from URLs
 - Standard settings: Maximize Conversion Value bidding, Final URL expansion disabled, asset automation disabled
+- Operator docs: `rules.md` (the final-URL rule, copy-source decision, template editing, pre-import checks), `examples.md` (three worked builds incl. the late-June date trap), and `references/build-contract.md` (exact script mechanics, line-cited)
 
 > **Vertical note:** the shipped search-theme and audience-signal templates are
 > **multifamily/apartment defaults** (apartment search themes, Renters / Moving
@@ -29,9 +30,13 @@ Generates Performance Max campaign CSV files importable via Google Ads Editor â€
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/pmax-builder/scripts .claude/skills/pmax-builder/templates
-curl -o .claude/skills/pmax-builder/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-builder/SKILL.md
+mkdir -p .claude/skills/pmax-builder/scripts .claude/skills/pmax-builder/templates .claude/skills/pmax-builder/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o .claude/skills/pmax-builder/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-builder/$f
+done
+curl -o .claude/skills/pmax-builder/references/build-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-builder/references/build-contract.md
 curl -o .claude/skills/pmax-builder/scripts/build_pmax_csv.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/pmax-builder/scripts/build_pmax_csv.py
 curl -o .claude/skills/pmax-builder/scripts/scrape_website_firecrawl.py \

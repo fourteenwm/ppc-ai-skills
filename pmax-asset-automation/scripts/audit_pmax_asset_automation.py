@@ -1,7 +1,7 @@
 """Audit Performance Max Asset Automation Settings.
 
-Checks all PMAX campaigns for automatically created asset settings.
-Reports which settings are OPTED_IN vs OPTED_OUT.
+Checks ENABLED and PAUSED PMAX campaigns for automatically created asset
+settings. Reports which settings are OPTED_IN vs OPTED_OUT.
 
 Settings Checked:
 - TEXT_ASSET_AUTOMATION (auto-generated headlines/descriptions)
@@ -20,12 +20,15 @@ Usage:
     # All accounts under MCC
     python audit_pmax_asset_automation.py --all
 
+    # Credentials somewhere other than ./google-ads.yaml
+    python audit_pmax_asset_automation.py --all --config path/to/google-ads.yaml
+
 Output:
     Per-account breakdown showing each PMAX campaign's asset automation settings
     with compliance status (all should be OPTED_OUT for full compliance).
 
 Prerequisites:
-    - google-ads.yaml at project root with valid OAuth credentials
+    - google-ads.yaml at project root (or --config <path>) with valid OAuth credentials
     - pip install google-ads
 """
 
@@ -47,15 +50,15 @@ ASSET_AUTOMATION_TYPES = {
 }
 
 
-def list_mcc_accounts(client):
+def list_mcc_accounts(client, config_path):
     """List all enabled client accounts under the MCC."""
     import yaml
-    with open('google-ads.yaml', 'r', encoding='utf-8') as f:
+    with open(config_path, 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
     login_cid = str(config.get('login_customer_id', '')).replace('-', '')
 
     if not login_cid:
-        print("ERROR: login_customer_id not set in google-ads.yaml — cannot use --all")
+        print(f"ERROR: login_customer_id not set in {config_path} — cannot use --all")
         sys.exit(1)
 
     ga_service = client.get_service('GoogleAdsService')
@@ -168,6 +171,8 @@ def main():
     parser.add_argument('--cid', help='Single customer ID (no dashes)')
     parser.add_argument('--cids', help='Comma-separated customer IDs')
     parser.add_argument('--all', action='store_true', help='Audit all accounts under MCC (requires login_customer_id in google-ads.yaml)')
+    parser.add_argument('--config', default='google-ads.yaml',
+                        help='Path to google-ads.yaml (default: ./google-ads.yaml)')
     args = parser.parse_args()
 
     if not args.cid and not args.cids and not args.all:
@@ -178,12 +183,12 @@ def main():
         print('  python audit_pmax_asset_automation.py --all')
         sys.exit(1)
 
-    client = GoogleAdsClient.load_from_storage("google-ads.yaml")
+    client = GoogleAdsClient.load_from_storage(args.config)
 
     accounts_to_audit = []
     if args.all:
         print("Listing all accounts under MCC...")
-        accounts_to_audit = list_mcc_accounts(client)
+        accounts_to_audit = list_mcc_accounts(client, args.config)
         print(f"Found {len(accounts_to_audit)} accounts to audit\n")
     elif args.cid:
         accounts_to_audit = [{'cid': args.cid.replace('-', ''), 'name': f'CID {args.cid}'}]
