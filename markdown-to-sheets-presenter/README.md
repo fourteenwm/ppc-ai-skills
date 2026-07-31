@@ -16,17 +16,23 @@ Transforms markdown reports (competitive analysis, performance reviews, ad recon
 - Executive presentation rules: no text truncation, 550px+ description columns, charts below data
 - Handles large tables (100+ rows), currency values, percentages, and missing data
 - Returns clickable Google Sheets link with tab summary
+- Operator docs: `rules.md` (presenter vs raw CSV, theme judgment, table
+  structure), `examples.md` (three worked decisions incl. the asks to
+  decline), and `references/presentation-contract.md` (the script/agent
+  division of labor, line-cited)
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/markdown-to-sheets-presenter/scripts .claude/skills/markdown-to-sheets-presenter/templates
-curl -o .claude/skills/markdown-to-sheets-presenter/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/SKILL.md
-curl -o .claude/skills/markdown-to-sheets-presenter/SETUP.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/SETUP.md
+mkdir -p .claude/skills/markdown-to-sheets-presenter/scripts .claude/skills/markdown-to-sheets-presenter/templates .claude/skills/markdown-to-sheets-presenter/references
+for f in SKILL.md README.md SETUP.md rules.md examples.md; do
+  curl -o .claude/skills/markdown-to-sheets-presenter/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/$f
+done
+curl -o .claude/skills/markdown-to-sheets-presenter/references/presentation-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/references/presentation-contract.md
 curl -o .claude/skills/markdown-to-sheets-presenter/scripts/create_spreadsheet.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/markdown-to-sheets-presenter/scripts/create_spreadsheet.py
 curl -o .claude/skills/markdown-to-sheets-presenter/templates/professional-blue-theme.json \

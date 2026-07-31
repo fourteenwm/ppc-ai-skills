@@ -5,25 +5,47 @@ description: Analyze search queries for geographic targeting conflicts in GEO ca
 
 # GEO Conflict Analyzer
 
-Analyze search queries for geographic targeting conflicts in GEO campaigns. Uses OpenAI GPT-4o to determine if queries should PASS (no conflict — safe to add as negative) or FAIL (conflict detected — do NOT negative, we actively target this geo).
-
----
-
-## Triggers
-
-- `run geo conflict analyzer`
-- `analyze geo conflicts`
-- `geo conflict check`
+The last safety gate before a negative-keyword upload: checks each
+candidate query against the geos an account actively targets, so you
+never negative your own live traffic. Verdicts are PASS (no conflict —
+geo-safe to negative) or FAIL (conflict — do NOT negative). How to read
+the verdicts is [rules.md](rules.md); exact script mechanics are
+[`references/analysis-contract.md`](references/analysis-contract.md);
+the classification ruleset itself is [prompt.md](prompt.md).
 
 ---
 
 ## What It Does
 
-1. Reads queries from a Google Sheet tab where a status column = "Waiting"
-2. Sends batches to OpenAI GPT-4o for geo conflict analysis
-3. Writes PASS/FAIL + confidence results to an output tab
+1. Reads queries from a Google Sheet tab where a status column =
+   "Waiting", with each row carrying its account's active geo targets
+   (column H)
+2. Sends **one batch per run** (default 50) to OpenAI GPT-4o with the
+   prompt.md ruleset
+3. Appends PASS/FAIL + confidence results to an output tab
 
-Pairs naturally with [`sqr-pipeline`](../sqr-pipeline/) — run its off-brand classification first, then geo-conflict analysis on queries that need geographic validation before being negatived.
+Pairs with [`sqr-pipeline`](../sqr-pipeline/) — its off-brand
+classification runs first; this check protects active geo targets before
+anything is negatived.
+
+---
+
+## What this skill deliberately does NOT do
+
+- **Doesn't pull queries or geo targets from Google Ads.** The input
+  sheet is upstream's product; column H is the ground truth the model
+  sees, current or not. No Google Ads API anywhere — Sheets + OpenAI
+  only.
+- **Doesn't upload or remove negatives.** PASS rows flow back to your
+  upload workflow (sqr-pipeline or Editor); FAIL rows come off the list.
+- **Never updates the input tab.** Status stays "Waiting" after every
+  run — flipping it is your step, and skipping it duplicates work and
+  spend (contract).
+- **Never creates tabs.** Both tabs must exist; a mistyped output tab
+  fails *after* the OpenAI call is paid for.
+- **Doesn't decide query intent.** Whether a query is junk was upstream's
+  call; this skill only answers "does negativing it break active geo
+  targeting?"
 
 ---
 
@@ -60,6 +82,9 @@ python scripts/analyze.py --sheet-id YOUR_SHEET_ID --batch-size 100
 python scripts/analyze.py --sheet-id YOUR_SHEET_ID --dry-run
 ```
 
+Batch size is a cost/reliability dial — one run is one model call, and
+oversized batches truncate ([rules.md](rules.md) § operational rules).
+
 ---
 
 ## Input Format
@@ -71,6 +96,9 @@ Reads from the input tab with columns:
 - **Column H** — GEO Names (comma-separated list of actively targeted geos for that CID)
 - **Column I** — Status (filters for "Waiting")
 
+A Waiting row with an empty column H is skipped silently, forever — the
+first thing to check when a row never processes (contract).
+
 ---
 
 ## Output Format
@@ -81,6 +109,10 @@ Each result row contains:
 - **Geo_Check** — PASS or FAIL
 - **Conflicting_Geo** — If FAIL, which geo target it conflicts with
 - **Confidence** — HIGH / MEDIUM / LOW
+
+Results **append** to the output tab (nothing is cleared, no headers are
+written, no run-date column exists) — history accumulates and position is
+the only ordering (contract).
 
 ---
 
@@ -95,7 +127,10 @@ Each result row contains:
 - Includes: abbreviations, typos, prepositions, modifiers of our target geos
 - Do NOT negative — would block keywords we're actively bidding on
 
-See `prompt.md` for the full 200+ example ruleset.
+See `prompt.md` for the full ruleset — the specificity ladder, the
+default-to-FAIL rule, and 95 worked verdict examples. Reading the output
+(confidence triage, real-conflict-vs-noise classes) is
+[rules.md](rules.md).
 
 ---
 
@@ -123,14 +158,34 @@ pip install openai google-auth google-api-python-client python-dotenv
 
 | File | Purpose |
 |------|---------|
-| `SKILL.md` | This documentation |
-| `prompt.md` | GPT system prompt with PASS/FAIL rules (200+ examples) |
+| `SKILL.md` | This file — workflow + routing |
+| `rules.md` | Judgment layer: verdict+confidence triage, conflict-vs-noise classes, operational rules, escalation |
+| `examples.md` | Three worked reads incl. the property-name call and the duplicate-append trap |
+| `prompt.md` | The classification ruleset (95 worked examples). **Runtime dependency:** `analyze.py` loads this file from the skill folder on every run and sends it as the system prompt — missing file is a hard error, and edits change verdicts on the next run |
+| `references/analysis-contract.md` | Line-derived script mechanics: selection, batching, parsing, append semantics, the never-flips-status invariant |
 | `scripts/analyze.py` | Main execution script |
-| `README.md` | User-facing overview |
+| `README.md` | User-facing overview + install |
 
 ---
 
-## Related Skills
+## After a Run
 
-- [`sqr-pipeline`](../sqr-pipeline/) — End-to-end SQR negative-keyword pipeline (classify queries as high-intent/off-brand/informational/low-intent with 3-run consensus → review → two-step upload); this geo check is its optional step
-- [`sqr-classifier`](../sqr-classifier/) — Zero-setup paste-and-classify intent classification
+New verdict rows sit at the **bottom** of the output tab (append-only,
+contract). The input tab is untouched — **flip Status on accepted rows
+now**, or the next run re-analyzes and duplicates them. `token.json` may
+show a fresh mtime (refresh side effect, expected). Console output isn't
+persisted; the output tab is the only record that the run happened.
+
+---
+
+## When to Load What
+
+| Moment | Load |
+|---|---|
+| Reading any output — FAIL triage, LOW-confidence rows, noise classes | [rules.md](rules.md) |
+| Exact selection/parsing/append mechanics, cost/truncation questions | [references/analysis-contract.md](references/analysis-contract.md) |
+| First read, or output rows outnumber input queries | [examples.md](examples.md) |
+| Why a specific verdict — the ladder, the fuzzy rules | [prompt.md](prompt.md) |
+| The full pipeline this gates (classification → review → upload) | [sqr-pipeline](../sqr-pipeline/) — its optional step 3 runs this same check in-pipeline with its own inline prompt; this skill is the standalone sheet-driven variant |
+| Quick intent classification without the pipeline | [sqr-classifier](../sqr-classifier/) |
+| Sheets OAuth setup | [google-ads-api-setup](../google-ads-api-setup/) |

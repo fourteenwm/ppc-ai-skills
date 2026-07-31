@@ -15,25 +15,36 @@ Analyzes search queries for geographic targeting conflicts in Google Ads GEO cam
 ## What It Does
 
 1. Reads queries from a Google Sheet tab (status = "Waiting")
-2. Groups by CID and looks up each account's active geo targets
-3. Sends batches of 50 queries to GPT-4o with a 200+ example ruleset
-4. Writes PASS/FAIL + confidence back to an output tab
+2. Groups by CID, reading each account's active geo targets from the same
+   sheet (column H — nothing is fetched from Google Ads)
+3. Sends one batch per run (default 50 queries) to GPT-4o with a
+   95-example PASS/FAIL ruleset
+4. Appends PASS/FAIL + confidence results to an output tab
 
 Pairs with [`sqr-pipeline`](../sqr-pipeline/) — its off-brand classification runs first, then geo-conflict runs on queries that need geographic validation.
+
+Operator docs ship alongside: `rules.md` (how to read verdicts, real
+conflicts vs noise), `examples.md` (three worked reads), and
+`references/analysis-contract.md` (exact script mechanics, line-cited).
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/geo-conflict-analyzer/scripts
-curl -o .claude/skills/geo-conflict-analyzer/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/geo-conflict-analyzer/SKILL.md
-curl -o .claude/skills/geo-conflict-analyzer/prompt.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/geo-conflict-analyzer/prompt.md
+mkdir -p .claude/skills/geo-conflict-analyzer/scripts .claude/skills/geo-conflict-analyzer/references
+for f in SKILL.md README.md prompt.md rules.md examples.md; do
+  curl -o .claude/skills/geo-conflict-analyzer/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/geo-conflict-analyzer/$f
+done
+curl -o .claude/skills/geo-conflict-analyzer/references/analysis-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/geo-conflict-analyzer/references/analysis-contract.md
 curl -o .claude/skills/geo-conflict-analyzer/scripts/analyze.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/geo-conflict-analyzer/scripts/analyze.py
 ```
+
+`prompt.md` is a **runtime dependency**, not documentation — the script
+loads it on every run as the model's system prompt.
 
 ---
 
@@ -71,7 +82,7 @@ python scripts/analyze.py --sheet-id YOUR_SHEET_ID --dry-run
 | H | GEO Names | Comma-separated list of this CID's active geo targets |
 | I | Status | Must equal `Waiting` to be processed |
 
-See [SKILL.md](SKILL.md) for full documentation and [prompt.md](prompt.md) for the 200+ example PASS/FAIL ruleset.
+See [SKILL.md](SKILL.md) for full documentation and [prompt.md](prompt.md) for the 95-example PASS/FAIL ruleset.
 
 ---
 

@@ -14,14 +14,24 @@ Two scripts that work together:
 
 2. **`youtube_channel_extractor.py`** — Reads flagged videos from your sheet, looks up which channel each video belongs to via YouTube Data API, aggregates by channel. This is where the real leverage is: 24,000 flagged videos collapse to ~9,000 channels, and each channel exclusion blocks ALL future videos.
 
+Plus operator docs: `rules.md` (which flags to act on, the substring
+traps, when NOT to negate), `examples.md` (three worked reads incl. the
+account that reads clean but isn't), and
+`references/audit-contract.md` (exact mechanics of both scripts,
+line-cited).
+
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/youtube-placement-audit/scripts
-curl -o .claude/skills/youtube-placement-audit/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/SKILL.md
+mkdir -p .claude/skills/youtube-placement-audit/scripts .claude/skills/youtube-placement-audit/references
+for f in SKILL.md README.md rules.md examples.md; do
+  curl -o .claude/skills/youtube-placement-audit/$f \
+    https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/$f
+done
+curl -o .claude/skills/youtube-placement-audit/references/audit-contract.md \
+  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/references/audit-contract.md
 curl -o .claude/skills/youtube-placement-audit/scripts/youtube_placement_audit.py \
   https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/youtube-placement-audit/scripts/youtube_placement_audit.py
 curl -o .claude/skills/youtube-placement-audit/scripts/youtube_channel_extractor.py \
@@ -69,9 +79,14 @@ python scripts/youtube_placement_audit.py --mcc 1234567890 --sheet YOUR_SHEET_ID
 python scripts/youtube_channel_extractor.py --sheet YOUR_SHEET_ID --creds google-ads.yaml --force
 ```
 
-### 5. Negate in Google Ads
+### 5. Review, then negate in Google Ads
 
-Open your sheet, review the "Channels to Negate" tabs, add channel URLs as placement exclusions.
+Open your sheet and read the flags through `rules.md` first — matching is
+substring-based (a Toyota channel trips `toy`), so the sheet is a review
+surface, not a paste-ready list. Build the exclusion list from the
+"Channels to Negate" tabs plus any `YOUTUBE_CHANNEL` rows in the Bad tabs
+(those don't flow through the extractor), then add the channel URLs as
+placement exclusions.
 
 ---
 

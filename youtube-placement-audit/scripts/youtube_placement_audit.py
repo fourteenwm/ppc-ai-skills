@@ -8,8 +8,8 @@ adult content, gaming, non-English, spam) and writes results to Google Sheets.
 Setup:
     1. pip install google-ads gspread google-auth pyyaml
     2. Create google-ads.yaml with your credentials (see README)
-    3. Create a Google Sheet and paste the ID below
-    4. Share that sheet with your service account email (or use OAuth)
+    3. Create a Google Sheet and pass its ID via --sheet
+    4. Make sure the OAuth account in google-ads.yaml can edit that sheet
 
 Usage:
     python youtube_placement_audit.py --mcc 1234567890 --sheet YOUR_SHEET_ID

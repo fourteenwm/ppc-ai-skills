@@ -7,16 +7,27 @@ version: "1.0.0"
 
 # Markdown to Google Sheets Presenter
 
-## Overview
+Turn a markdown report (competitive analysis, ad recon, performance
+review) into a client-ready Google Sheet: multi-tab layout, themed
+formatting, conditional colors. The shipped script bootstraps the
+spreadsheet; everything the client actually sees is composed by the agent
+per [`references/presentation-contract.md`](references/presentation-contract.md)'s
+division of labor. Judgment calls — when to present vs hand over a CSV,
+theme handling, tab structure — live in [rules.md](rules.md).
 
-This skill transforms markdown reports (competitive analysis, ad recon, performance reports) into professionally formatted Google Sheets ready for client presentation.
+## What this skill deliberately does NOT do
 
-**Trigger Phrases:**
-- "Make this presentable for the client"
-- "Create a Google Sheet from this"
-- "Export this to Google Sheets"
-- "Format this report for sharing"
-- "Convert this to a spreadsheet"
+- **Never edits report content.** This is a formatting pass: numbers, ad
+  copy, and quotes land verbatim, ad copy never truncates (rules,
+  invariant 1). Wrong findings get fixed in the source report, not here.
+- **Ships no converter.** `create_spreadsheet.py` creates one
+  header-formatted tab and exits — parsing, population, and conditional
+  formatting are agent-composed API calls, not hidden code (contract).
+- **No Drive operations.** Sheets-only scope: the file lands in the Drive
+  root of the authorized account and gets moved/shared manually.
+- **Not a data pipeline.** Recurring exports and re-import workflows
+  belong to raw CSVs ([rules.md](rules.md) § presenter vs raw CSV), not a
+  presentation layer.
 
 ## Prerequisites
 
@@ -62,40 +73,20 @@ Analyze the markdown to determine:
 | Campaign Data | `Campaigns` | Main data table |
 | Recommendations | `Action_Items` | Next steps |
 
-### Step 4: Apply Formatting
+These are the standard maps. When to deviate — merging small sections,
+single-table reports, prose-only sources — is
+[rules.md](rules.md) § table-structure judgment.
 
-**Color Palette (Professional Blue):**
-```
-Header Background: #1a73e8 (Google Blue)
-Header Text: #ffffff (White)
-Subheader Background: #e8f0fe (Light Blue)
-Subheader Text: #1a73e8 (Google Blue)
-Row Alternating 1: #ffffff (White)
-Row Alternating 2: #f8f9fa (Light Gray)
-Border Color: #dadce0 (Gray)
-Success/Green: #34a853
-Warning/Yellow: #fbbc04
-Alert/Red: #ea4335
-```
+### Step 4: Load the Theme
 
-**Typography:**
-- Headers: Bold, 12pt
-- Subheaders: Bold, 11pt
-- Data: Regular, 10pt
-- Font: Arial (default)
-
-**Conditional Formatting (Auto-Applied):**
-
-| Pattern | Condition | Format |
-|---------|-----------|--------|
-| Score columns | >= 80% of max | Green background |
-| Score columns | 50-79% of max | Yellow background |
-| Score columns | < 50% of max | Red background |
-| Status | "HIGH" threat | Red background |
-| Status | "MEDIUM" threat | Yellow background |
-| Status | "LOW" threat | Green background |
-| Flags | Contains checkmark | Green text |
-| Flags | Contains X | Red text |
+Every presentation value — colors (with API-ready RGB decimals),
+typography tiers, conditional-formatting thresholds, row heights and
+column widths — lives in
+[`templates/professional-blue-theme.json`](templates/professional-blue-theme.json).
+Read it before composing any formatting call; don't improvise values
+inline. Client-brand variants are copies of that file
+([rules.md](rules.md) § theme judgment). What the file owns, block by
+block: [references/presentation-contract.md](references/presentation-contract.md).
 
 ### Step 5: Create Google Sheet
 
@@ -113,7 +104,17 @@ Pass `--config path/to/google-ads.yaml` if your credentials live elsewhere. The 
 Example: "Example Client - Competitive Analysis - 2025-12-16"
 ```
 
-### Step 6: Return Results
+### Step 6: Populate and Format
+
+The agent-composed pass (no shipped code — contract § division of
+labor): rename `Data`/add tabs per the Step 3 plan, write values, then
+format from the theme — header/subheader styling, alternating rows,
+conditional formatting on scores and status columns, column widths,
+number formats. Formatting decisions (truncation ban, currency and
+percentage handling, missing data as "—", large tables, chart placement)
+are [rules.md](rules.md)'s tables — apply them as you build.
+
+### Step 7: Return Results
 
 Provide user with:
 1. **Clickable Google Sheets link**
@@ -139,42 +140,6 @@ Provide user with:
 *Click the link above to open your Google Sheet.*
 ```
 
-## Executive Presentation Requirements
-
-When creating CEO/executive presentations:
-
-### NEVER Truncate Text
-Ad copy and descriptions are critical - always show full text.
-
-### Column Width
-Description columns must be 550+ pixels for full visibility.
-
-### Chart Positioning
-Charts must be positioned BELOW all data (row 24+), never overlapping.
-
-## Special Handling
-
-### Large Tables (>100 rows)
-- Enable filtering on header row
-- Add pagination note
-
-### Scoring Tables
-- Apply conditional formatting based on score thresholds
-- Right-align numeric columns
-- Include score interpretation legend
-
-### Missing Data
-- Use "—" for empty cells (not blank)
-- Gray out unavailable metrics
-
-### Currency Values
-- Apply accounting format
-- Right-align
-
-### Percentages
-- Apply percentage format
-- Right-align
-
 ## Error Handling
 
 | Error | Action |
@@ -185,17 +150,35 @@ Charts must be positioned BELOW all data (row 24+), never overlapping.
 | API quota | Suggest waiting or manual copy |
 | Parse failure | Fall back to raw text layout |
 
-## Integration
+## Files
 
-Feeds naturally from other skills' markdown outputs:
-- Competitive analysis reports
-- Extension audit reports
-- Performance assessments
-- Search query / keyword analysis summaries
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | This file — workflow + routing |
+| `rules.md` | Judgment layer: presenter vs raw CSV, theme judgment, table structure, false alarms, escalation |
+| `examples.md` | Three worked decisions incl. the asks this skill should decline |
+| `references/presentation-contract.md` | The script/agent division of labor, exact script behavior, the theme file's contract |
+| `SETUP.md` | Credential setup + quick test + troubleshooting |
+| `scripts/create_spreadsheet.py` | The bootstrap: one spreadsheet, one formatted header row, JSON on stdout |
+| `templates/professional-blue-theme.json` | The theme — single home of every presentation value, consumed by the agent (no script reads it) |
+| `README.md` | User-facing overview + install |
 
-## Maintenance
+## After a Run
 
-Update this skill when:
-- New report types are added
-- Formatting requirements change
-- Google Sheets API updates
+The Google Sheet is the artifact; nothing lands on local disk. The
+spreadsheet ID and URL print as JSON on stdout (contract) — capture them
+if you'll need the sheet programmatically later, because creation is
+**never idempotent**: re-running makes a second spreadsheet with the same
+name, and Drive allows that.
+
+## When to Load What
+
+| Moment | Load |
+|---|---|
+| Deciding sheet-vs-CSV, structuring tabs, theming | [rules.md](rules.md) |
+| Exact script behavior, stdout/stderr contract, theme file blocks | [references/presentation-contract.md](references/presentation-contract.md) |
+| First run, or the ask smells like a decline case | [examples.md](examples.md) |
+| The input is a competitive analysis | [competitor-analysis-v2](../competitor-analysis-v2/) produces it — its 15 strategic + 7 tactical scoring is what the Strategic/Tactical tab map was built for |
+| The ask is machine-readable data, not presentation | [google-ads-query](../google-ads-query/) — its CSVs are the re-import surface |
+| The source skill already writes a Sheet natively | Use it directly — e.g. [account-diagnostic](../account-diagnostic/) with `--sheet-id`; don't re-present a sheet |
+| No credentials yet / 403 at the Sheets step | [google-ads-api-setup](../google-ads-api-setup/) (SETUP.md has the short version) |

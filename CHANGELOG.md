@@ -2,7 +2,77 @@
 
 All notable changes to this repository.
 
-## 2026-07-27 — Operator-docs pass: pmax-builder + pmax-asset-automation
+## 2026-07-31 — Operator-docs pass: markdown-to-sheets-presenter + youtube-placement-audit + geo-conflict-analyzer
+
+Three more skills get the full operator-docs treatment. One docstring
+correction; every script otherwise byte-untouched.
+
+- [`markdown-to-sheets-presenter/`](markdown-to-sheets-presenter/) — NEW
+  [`rules.md`](markdown-to-sheets-presenter/rules.md) (presenter vs raw
+  CSV decision table, theme judgment incl. the never-recolor-semantics
+  rule, table-structure judgment, false alarms, escalation), NEW
+  [`examples.md`](markdown-to-sheets-presenter/examples.md) (a
+  competitive-analysis build with the substring-free bootstrap console, a
+  nine-section report merged to three tabs, and the asks this skill
+  should decline), and NEW
+  [`references/presentation-contract.md`](markdown-to-sheets-presenter/references/presentation-contract.md)
+  — the script/agent division of labor: the shipped script bootstraps one
+  header-formatted tab (columns A–Z only, 11pt vs the theme's 12pt,
+  stdout-is-JSON) and everything else is agent-composed API calls.
+  `templates/professional-blue-theme.json` is now the declared single
+  home of every presentation value (colors with API-ready RGB decimals,
+  typography, thresholds, layout), consumed by the agent — SKILL.md's
+  inline palette/typography/conditional-formatting payload re-homed to a
+  pointer. SKILL.md re-homed to workflow + routing with a does-NOT-do
+  boundary, an explicit populate-and-format step, files table,
+  after-a-run note (creation is never idempotent), and when-to-load
+  routing; README install block now fetches all eight skill files.
+- [`youtube-placement-audit/`](youtube-placement-audit/) — NEW
+  [`rules.md`](youtube-placement-audit/rules.md) (category-by-category
+  negate/keep calls incl. the gaming and non-English judgment rows, the
+  substring trap table, when NOT to negate, triage order with the
+  false-clean check, customization judgment, cadence), NEW
+  [`examples.md`](youtube-placement-audit/examples.md) (a monthly run
+  with the Toyota-flagged-as-Kids catch, the account that reads clean but
+  lost access, and the flagged-row-with-conversions call plus the
+  language-boundary customization), and NEW
+  [`references/audit-contract.md`](youtube-placement-audit/references/audit-contract.md)
+  — line-derived mechanics of both scripts: the full 27-keyword taxonomy
+  with first-hit-wins and keyword-beats-NEA precedence, the space-padded
+  ` sex ` isolation, script-not-language non-Latin detection (24 scripts,
+  Latin-script languages invisible), the silent-swallow false-clean trap,
+  zero-flag runs writing nothing and zero-row tabs skipping their clear
+  (the stale-tab tell), and the extractor's `/video/`-only filter that
+  makes channel-type rows bypass the Channels-to-Negate tabs. SKILL.md
+  re-homed with boundary, files table, after-a-run, and routing; its
+  keyword summary now matches the shipped list. README install block
+  fetches all seven skill files. **One code change:** the audit script's
+  module docstring dropped its pre-flag setup instructions ("paste the ID
+  below", service-account sharing) in favor of the actual `--sheet` flag
+  and OAuth-edit-access reality — comment-only, behavior identical.
+- [`geo-conflict-analyzer/`](geo-conflict-analyzer/) — NEW
+  [`rules.md`](geo-conflict-analyzer/rules.md) (FAIL-is-a-protection and
+  PASS-is-not-a-recommendation invariants, the cost asymmetry behind the
+  default-to-FAIL bias, verdict+confidence triage, the
+  real-conflict-vs-noise table incl. the property-name-vs-geo call and
+  presence-vs-targeting, operational rules, escalation), NEW
+  [`examples.md`](geo-conflict-analyzer/examples.md) (a routine batch
+  whose FAIL protects an active geo ad group, the PASS/LOW property-name
+  resolution, and the Tuesday duplicate-append plus Wednesday
+  parse-shortfall), and NEW
+  [`references/analysis-contract.md`](geo-conflict-analyzer/references/analysis-contract.md)
+  — line-derived mechanics: four-condition row selection with the
+  silent empty-column-H skip, first-row-per-CID geo lists, one model
+  call per run with the 4,000-token output cap, strict-regex parsing
+  with silent drops, headerless append-only output, and the
+  never-flips-status invariant that shapes the whole workflow. SKILL.md
+  re-homed with boundary, files table (prompt.md explicitly marked as a
+  runtime dependency), after-a-run, and routing; the "200+ example
+  ruleset" claim corrected to the counted 95 across SKILL.md and README
+  (54 PASS + 41 FAIL). README install block fetches all seven skill
+  files.
+
+
 
 Both PMax skills get the full operator-docs treatment, plus one small
 script addition.
