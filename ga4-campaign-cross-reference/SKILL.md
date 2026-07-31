@@ -487,7 +487,7 @@ Use this checklist for every investigation:
 
 **Related Documentation:**
 - The Real-World Example section above — a full hypothesis → verification → finding walkthrough
-- **ga4-cross-analysis** (in this repo) — system overview of the full workflow; ships `scripts/query_campaign_settings.py` for the campaign-settings verification step
+- **ga4-cross-analysis** (in this repo) — system overview of the full workflow; ships `../ga4-cross-analysis/scripts/query_campaign_settings.py` for the campaign-settings verification step
 
 ---
 

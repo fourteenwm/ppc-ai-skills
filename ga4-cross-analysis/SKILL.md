@@ -26,13 +26,31 @@ Use this skill when you need:
 - User asks: "What user segments are converting from [campaign]?"
 - Agent needs: GA4 data as input for analysis
 
+**Not sure this is the right skill?** The decision table in [`rules.md`](rules.md) routes
+single-metric asks, interpretation asks, and full investigations to their owners.
+
+## Deliberately Does NOT Do
+
+- **No interpretation or recommendations** — the product is the dataset. "What does this
+  discrepancy mean" routes to [ga4-campaign-cross-reference](../ga4-campaign-cross-reference/);
+  "why are my leads bad" routes to [ga4-lead-quality-investigation](../ga4-lead-quality-investigation/).
+- **No GA4-side scripts shipped** — the three GA4 pulls and the performance pull are
+  you-implement contracts (environment-specific property IDs, events, registries).
+- **No mutations** — every query in this skill is read-only on both platforms.
+- **No location names, radius values, or URL exclusion lists from the shipped script** —
+  it prints geo IDs, detects-but-doesn't-quantify proximity targets, and can't retrieve
+  URL exclusions at all; those fields come from the UI or your own scripts (source map in
+  the contract).
+- **Not the investigation orchestrator** — ga4-lead-quality-investigation owns the full
+  workflow and auto-loads this skill as its collection step.
+
 ---
 
 ## Prerequisites
 
 - **`google-ads.yaml`** with valid OAuth credentials — see the [google-ads-api-setup](../google-ads-api-setup/) skill for creating it. The shipped script loads the yaml from the working directory you run it from; querying client accounts through a manager account requires `login_customer_id` in the yaml.
 - Python with the `google-ads` package (`pip install google-ads`)
-- For the GA4-side scripts you implement: the `google-analytics-data` package and GA4 Data API access to your property
+- For the GA4-side scripts you implement: the `google-analytics-data` package and GA4 Data API access to your property. Reusing the Ads OAuth client requires a refresh token minted with the GA4 read scope included — scopes are fixed at mint time and can't be added to an existing token; the re-mint steps are in the contract's GA4 implementation notes.
 
 ---
 
@@ -42,35 +60,15 @@ One script ships in this skill's `scripts/` folder; four are yours to implement.
 
 ### Shipped: `scripts/query_campaign_settings.py`
 
-Given a customer ID and campaign name, prints the campaign configuration used for cross-referencing against GA4 behavior: status, budget, bidding strategy (with CPA/ROAS targets), geographic targeting (locations, radius, presence vs interest), URL expansion setting, device bid adjustments, and network settings.
+Given a customer ID and campaign name, prints the campaign configuration used for cross-referencing against GA4 behavior: status, budget, bidding strategy (with CPA/ROAS targets), geographic targeting, URL expansion setting, device bid adjustments, and network settings.
 
 Usage: `python scripts/query_campaign_settings.py <customer_id> "<campaign_name>"` (run from a directory containing your `google-ads.yaml`).
 
 ### You Implement (Contract Provided)
 
-These four are environment-specific — they depend on which GA4 property ID, event names, and dimensions your account uses, and on where your credentials and registries live — so they're documented as contracts rather than shipped as generic scripts:
+Four scripts are environment-specific and documented as contracts: `query_campaign_performance.py` (spend, conversions, value, ROAS — the [google-ads-query](../google-ads-query/) skill ships a template that covers it), `query_ga4_campaign_conversions.py` (conversion summary), `query_ga4_user_segments.py` (cities, devices, browsers, hours), and `query_ga4_landing_pages.py` (landing pages with intent categorization).
 
-1. **`query_campaign_performance.py`** — given a customer ID and campaign name, return campaign spend, conversions, conversion value, and ROAS for the date range. (The [google-ads-query](../google-ads-query/) skill in this repo ships a campaign-performance GAQL template that satisfies this contract.)
-2. **`query_ga4_campaign_conversions.py`** — given a GA4 property ID, campaign name, and event name, return the conversion summary: total conversions, total users, conversion rate.
-3. **`query_ga4_user_segments.py`** — given the same inputs, return user segments: cities, devices, browsers, hourly distribution.
-4. **`query_ga4_landing_pages.py`** — given the same inputs, return landing pages with conversion counts, users, and a high-intent vs low-intent categorization.
-
-**GA4-side implementation notes:**
-
-1. Install `google-analytics-data` (`pip install google-analytics-data`)
-2. Reuse the same OAuth credentials as the Google Ads API (just add the
-   `https://www.googleapis.com/auth/analytics.readonly` scope to your refresh
-   token).
-3. Query the GA4 Data API (`runReport`) for:
-   - `landing_pages`: dimensions `[sessionDefaultChannelGrouping, landingPage]`,
-     metrics `[conversions, sessions, totalUsers]`, filter on the Google Ads
-     campaign as source/medium or session campaign ID.
-   - `user_segments`: dimensions like `[city, deviceCategory, browser, hour]`,
-     metrics `[conversions, totalUsers]`, filter on your event of interest.
-   - `conversion_summary`: metrics `[conversions, totalUsers, sessions]` filtered
-     to the specific event name (e.g. `contact_form_submission`).
-
-See GA4 Data API reference: https://developers.google.com/analytics/devguides/reporting/data/v1
+**The full contract layer lives in [`references/collection-contract.md`](references/collection-contract.md):** the shipped script's exact mechanics (matching rules, exit codes, what each section prints and cannot print), the four you-implement contracts with GA4 Data API implementation notes (including the credential re-mint steps), and the field-by-field source map for the Step 4 JSON.
 
 ---
 
@@ -116,7 +114,10 @@ All three pulls use the GA4 scripts you implement per the Script Contract above:
 - Landing pages — `query_ga4_landing_pages.py`
 
 ### Step 4: Structure Output
-Return data in this format:
+
+Return data in this format. Which field comes from which source — including the fields
+only the UI can fill — is the contract's source map; fields with no legitimate source
+stay `null` or absent, never invented (rules.md invariant 2).
 
 ```json
 {
@@ -209,88 +210,52 @@ campaign "Pmax: Example Campaign", GA4 property [GA4_PROPERTY_ID], event "contac
 
 ## Output Format Options
 
-### 1. Structured JSON (default)
-Best for: Agents, scripts, programmatic consumption
-
-### 2. Markdown Tables
-Best for: Human readability, quick review
-```
-User: "Show GA4 data for Acme Plumbing as tables"
-```
-
-### 3. Summary Only
-Best for: Quick checks
-```
-User: "Quick summary of Acme Plumbing GA4 data"
-```
-
----
-
-## Example Usage Scenarios
-
-### Scenario 1: Quick Data Lookup
-```
-User: "What landing pages are converting from Best HVAC PMAX?"
-Assistant: <invokes skill, returns landing_pages section only>
-```
-
-### Scenario 2: Campaign Settings Verification
-```
-User: "Check if City Dental PMAX has correct geo targeting"
-Assistant: <invokes skill, returns campaign_settings.geo_targeting>
-```
-
-### Scenario 3: Full Data Collection (for Agent)
-```
-Agent needs full dataset for analysis
-<invokes skill with all parameters>
-<receives complete JSON structure>
-```
+1. **Structured JSON** (default) — agents, scripts, programmatic consumption
+2. **Markdown tables** — human review ("Show GA4 data for Acme Plumbing as tables")
+3. **Summary only** — quick checks ("Quick summary of Acme Plumbing GA4 data")
 
 ---
 
 ## Error Handling
 
-### If GA4 Property Not Found:
-```
-Error: GA4 property [GA4_PROPERTY_ID] not found in your property registry
-Suggestion: Check the property ID or add it to your registry
-```
+Protocol-level responses when collection can't proceed:
 
-### If Campaign Not Found:
-```
-Error: Campaign "Pmax: Example Campaign" not found in account [CUSTOMER_ID]
-Suggestion: Check campaign name spelling (case-sensitive)
-```
+- **GA4 property not in your registry** → stop and confirm the property ID with the user; don't guess a property.
+- **Campaign not found** → verify the exact name (case-sensitive) against a campaign-list pull before retrying. Note the shipped script prints `ERROR: … not found` but still **exits 0** — read the console, not the exit code.
+- **No data in the date range** → widen the range or confirm the event name; an empty result is a finding worth reporting, not an error to hide.
 
-### If No Data in Date Range:
-```
-Warning: No conversions found for event "contact_form_submission" in last 14 days
-Suggestion: Try longer date range or check event name
-```
+Script-exact error shapes and exit codes: [`references/collection-contract.md`](references/collection-contract.md) § Exit codes.
 
 ---
 
-## Used By
+## Files in This Skill
 
-- [ga4-lead-quality-investigation](../ga4-lead-quality-investigation/) — the lead quality investigation skill in this repo auto-invokes this skill as its data collection step.
+| File | Role |
+|---|---|
+| `SKILL.md` | This file — workflow, JSON output contract, routing |
+| `README.md` | Zero-context install + what ships vs what you implement |
+| `rules.md` | Collection judgment: tool selection, reading the settings output, false alarms, partial-data honesty |
+| `examples.md` | 3 worked reads: full collection, the exit-0 not-found trap, the routed investigation ask |
+| `references/collection-contract.md` | Shipped-script mechanics, the four you-implement contracts + GA4 implementation notes, JSON source map |
+| `scripts/query_campaign_settings.py` | The one shipped collector — Google Ads campaign settings, console-only |
 
-**How a consuming skill or agent uses it:**
-1. Identifies the need for GA4 + Google Ads data
-2. Invokes this skill with the required inputs
-3. Receives structured JSON per the Step 4 contract
-4. Analyzes the data and generates recommendations
+## After a Run
 
----
+Nothing lands in this folder: the shipped script writes only to the console, and the
+assembled JSON is agent-produced — returned in-chat unless the operator asks for a file.
+`metadata.analysis_date` + `metadata.date_range` make a saved dataset self-describing.
 
-## Related Documentation
+## When to Load Other Skills
 
-- [google-ads-api-setup](../google-ads-api-setup/) — create the `google-ads.yaml` credentials file
-- [google-ads-query](../google-ads-query/) — general-purpose GAQL pulls (covers the campaign-performance contract)
-- GA4 Data API reference: https://developers.google.com/analytics/devguides/reporting/data/v1
+| Skill | When |
+|---|---|
+| [ga4-campaign-cross-reference](../ga4-campaign-cross-reference/) | The dataset is assembled and someone asks what a discrepancy means — hypothesis → verification → finding lives there |
+| [ga4-lead-quality-investigation](../ga4-lead-quality-investigation/) | The ask is a full lead-quality investigation — it orchestrates and auto-loads this skill as its collection step (this skill's primary consumer) |
+| [google-ads-query](../google-ads-query/) | Single-metric Ads pulls, campaign-name lookups, and the shipped template covering the campaign-performance contract |
+| [google-ads-api-setup](../google-ads-api-setup/) | No `google-ads.yaml` yet, or the token needs re-minting to add the GA4 read scope |
 
 ---
 
 **Created:** October 24, 2025
-**Last Updated:** July 21, 2026
+**Last Updated:** July 31, 2026
 **Status:** Active

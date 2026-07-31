@@ -2,6 +2,61 @@
 
 All notable changes to this repository.
 
+## 2026-07-31 — Operator-docs pass: ga4-cross-analysis + neg-conflict-finder (+ a cross-reference path fix)
+
+The two special-variant skills get their operator-docs treatment, each at the
+depth its shape calls for. Every script byte-untouched — docs-only commit.
+
+- [`ga4-cross-analysis/`](ga4-cross-analysis/) (protocol + one shipped script) —
+  NEW [`rules.md`](ga4-cross-analysis/rules.md) (collection-not-interpretation
+  invariants, the is-this-the-right-tool table, how to read each settings-output
+  block, false alarms, partial-data honesty), NEW
+  [`examples.md`](ga4-cross-analysis/examples.md) (a full collection where the
+  `AREA_OF_INTEREST` line reframes distant-city conversions, the not-found run
+  that still exits 0, and the investigation ask that routes onward), NEW
+  [`references/collection-contract.md`](ga4-cross-analysis/references/collection-contract.md)
+  (line-derived shipped-script mechanics: exact case-sensitive name matching with
+  no status filter, the duplicate-name double block, exit codes, exactly three
+  bid-strategy types with detail lines, geo IDs never names and radius never
+  printed, the device zero-modifier fallback that renders a full opt-out as "No
+  bid adjustment", URL exclusions not retrievable by API; the four you-implement
+  contracts with GA4 Data API notes; and the Step-4 JSON field source map).
+  SKILL.md re-homed to workflow + routing with a does-NOT-do boundary, files
+  table, after-a-run note, and when-to-load routing. One correction: the GA4
+  credential note used to say to "add the `analytics.readonly` scope to your
+  refresh token" — scopes are fixed when a token is minted; the docs now
+  describe the actual path (add the scope to the api-setup `SCOPES` list,
+  re-run the consent flow, paste the new token). Install block now fetches all
+  six skill files.
+- [`neg-conflict-finder/`](neg-conflict-finder/) (Google Ads Script — UI-paste
+  model, so the judgment layer ships inline in SKILL.md rather than as separate
+  files) — new inline sections: how the script decides "blocked" in plain terms
+  (detection keys on the negative's match type only; phrase negatives flag
+  contiguous in-order containment — `"acme"` flags `[acme apartments]`; the
+  sheet is a floor, not a ceiling), reading the sheet in triage order
+  (blocked exact positives and brand terms first, shared-list blast radius,
+  per-ad-group duplicate rows), the four-way shared-list vs campaign-level
+  resolution table (Google has no override — including the brand-routing case
+  where the right fix is moving the positive), a worked read with the sheet
+  rows and log lines newcomers misread (`0 keywords across 1 shared lists` is
+  the MCC-seed cache working; the account-level warning is the documented
+  degradation; `NO CONFLICT` vs absent-account), and when-to-load routing that
+  reciprocates the four existing inbound routes (sqr-pipeline's remove branch,
+  add-account-negative-keywords, non-serving-keyword-scanner,
+  account-diagnostic check 36). Corrections against the .js: the match-semantics
+  bullets in SKILL and README described per-positive-type gating the code
+  doesn't have; the README example row `[reviews]` blocking `[acme reviews]`
+  was impossible under exact-negative equality (replaced with a code-true
+  deliberate-split row); MCC shared lists are matched through
+  `campaign_shared_set` associations, not `customer.managerCustomer`; Ads
+  Scripts preview still performs the Sheet write (only account mutations are
+  suppressed), so "Preview … without writing rows" is gone; Level & Location
+  examples now show the exact emitted formats.
+- [`ga4-campaign-cross-reference/`](ga4-campaign-cross-reference/) — the
+  Related-Documentation pointer to the settings script now uses the explicit
+  cross-skill path (`../ga4-cross-analysis/scripts/…`); the old local-looking
+  `scripts/…` form read as a file this skill ships, which it doesn't.
+
 ## 2026-07-31 — Operator-docs pass: add-account-negative-keywords + competitor-analysis-v2
 
 Two more skills get the full operator-docs treatment. Every script

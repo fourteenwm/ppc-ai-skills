@@ -18,10 +18,10 @@ Conflicts at every level Google supports:
 | **MCC shared lists** | Lists applied via the manager account |
 | **Account-level negatives** | Customer-level negative keywords (when the API supports the field path) |
 
-The detection is **match-type-aware**:
-- Broad negatives block broad, phrase, and exact positives
-- Phrase negatives block phrase and exact positives via subsequence match (the same way Google actually blocks them)
-- Exact negatives block exact positives only
+The detection is **match-type-aware** — keyed on the *negative's* match type (the positive's own match type doesn't change whether a row appears, only how dead the keyword is):
+- Broad negatives flag any positive containing every word of the negative, in any order
+- Phrase negatives flag any positive containing the negative's words in order as a contiguous whole-word run — the same way Google's phrase negatives actually block (so `"acme"` flags `[acme apartments]`)
+- Exact negatives flag only a positive whose full text is identical to the negative's
 
 ---
 
@@ -31,11 +31,13 @@ A Google Sheet with one row per conflict:
 
 | Account Name | Conflicting Negative Keyword | Level & Location | Blocked Positive Keywords |
 |---|---|---|---|
-| Acme Co | "free" | Shared List: Global Negatives | "free shipping calculator", "free trial sign up" |
-| Acme Co | [reviews] | Campaign: Brand - Search | [acme reviews] |
-| Beta LLC | "diy" | Ad Group: Bathroom Remodel | "diy bathroom remodel cost" |
+| Acme Co | "free" | Shared List: Global Negatives (Applied to Campaign: Services - Search) | "free shipping calculator", "free trial sign up" |
+| Acme Co | [acme] | Campaign: Brand - Search | acme |
+| Beta LLC | "diy" | Ad Group: Bathroom Remodel (Campaign: Remodel - Search) | "diy bathroom remodel cost" |
 
-Run it daily on a schedule. Review conflicts. Remove the negatives you actually want gone. Don't auto-delete — some conflicts are intentional (a brand campaign with `[brand]` positive and `brand reviews` negative is a deliberate split).
+A clean scanned account gets a `NO CONFLICT` row, so the sheet doubles as a coverage record — an account *missing* entirely was skipped by the spend filter or errored (the logs say which).
+
+Run it daily on a schedule. Review conflicts. Remove the negatives you actually want gone. Don't auto-delete — some conflicts are intentional (the `[acme]` row above is a deliberate query-shaping split: exact-negative the bare one-word brand query while broad `acme` catches longer brand searches; the SKILL.md's triage and resolution tables cover which rows to fix first and how).
 
 ---
 

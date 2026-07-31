@@ -10,9 +10,9 @@ A cross-platform data collection protocol that structures GA4 conversion data al
 
 - Shipped script: `scripts/query_campaign_settings.py` — Google Ads campaign configuration (bidding strategy + targets, geographic targeting type, device bid adjustments, network settings, URL expansion) for cross-referencing against GA4 behavior
 - A Script Contract for the four environment-specific collection scripts you implement (campaign performance + three GA4 Data API queries), with implementation notes down to the `runReport` dimensions and metrics to request
-- Structured JSON output contract with metadata, Google Ads settings, and GA4 behavioral data
+- Structured JSON output contract with metadata, Google Ads settings, and GA4 behavioral data — plus a field-by-field source map covering the fields only the UI can fill
+- Operator docs: `rules.md` (when cross-analysis is the right tool, reading the settings output, false alarms, partial-data honesty) and `examples.md` (3 worked reads, including the exit-0 not-found trap)
 - Three output formats: structured JSON (for agents), markdown tables (for review), or summary only (for quick checks)
-- Error handling for missing properties, campaigns, or empty date ranges
 - Data collection layer for the [ga4-lead-quality-investigation](../ga4-lead-quality-investigation/) skill in this repo
 
 ---
@@ -20,13 +20,13 @@ A cross-platform data collection protocol that structures GA4 conversion data al
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/ga4-cross-analysis/scripts
-curl -o .claude/skills/ga4-cross-analysis/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ga4-cross-analysis/SKILL.md
-curl -o .claude/skills/ga4-cross-analysis/README.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ga4-cross-analysis/README.md
-curl -o .claude/skills/ga4-cross-analysis/scripts/query_campaign_settings.py \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ga4-cross-analysis/scripts/query_campaign_settings.py
+mkdir -p .claude/skills/ga4-cross-analysis/scripts \
+         .claude/skills/ga4-cross-analysis/references
+for f in SKILL.md README.md rules.md examples.md references/collection-contract.md \
+         scripts/query_campaign_settings.py; do
+  curl -o ".claude/skills/ga4-cross-analysis/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/ga4-cross-analysis/$f"
+done
 ```
 
 First run (with `google-ads.yaml` in your working directory):
@@ -39,14 +39,14 @@ python .claude/skills/ga4-cross-analysis/scripts/query_campaign_settings.py 1234
 
 ## Script Contract (You Provide)
 
-The shipped script covers the Google Ads campaign-settings side. Four collection scripts are environment-specific — they depend on your GA4 property, event names, and where your credentials and registries live — so the SKILL.md documents the contract each must satisfy and you implement them yourself:
+The shipped script covers the Google Ads campaign-settings side. Four collection scripts are environment-specific — they depend on your GA4 property, event names, and where your credentials and registries live — so this skill documents the contract each must satisfy and you implement them yourself:
 
 1. `query_campaign_performance.py` — campaign spend, conversions, conversion value, ROAS (the [google-ads-query](../google-ads-query/) skill in this repo ships a template that covers this)
 2. `query_ga4_campaign_conversions.py` — GA4 conversion summary for the campaign
 3. `query_ga4_user_segments.py` — cities, devices, browsers, hourly distribution
 4. `query_ga4_landing_pages.py` — landing pages with conversion counts and intent categorization
 
-Implementation notes (GA4 Data API `runReport` dimensions and metrics, OAuth scope reuse) are in the SKILL.md.
+Implementation notes (GA4 Data API `runReport` dimensions and metrics, plus the OAuth re-mint that adds the GA4 read scope to your Ads credential — scopes are fixed when a token is minted) are in `references/collection-contract.md`.
 
 ---
 
