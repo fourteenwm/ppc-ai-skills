@@ -355,7 +355,7 @@ Return results in this exact format:
 
 ## Example Angle Development
 
-**Client:** Example SaaS
+**Client:** Brightwell Software
 **Verified Gaps:** 3 (Free trial, Social proof, Mobile app)
 
 ---

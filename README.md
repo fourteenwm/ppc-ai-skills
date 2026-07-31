@@ -132,7 +132,7 @@ done
 ### Competitive & Brand Safety
 | Skill | What It Does |
 |-------|-------------|
-| [Competitor Analysis v2](competitor-analysis-v2/) | Structured competitive intelligence — auction insights, ad copy teardown, positioning gaps |
+| [Competitor Analysis v2](competitor-analysis-v2/) | Structured competitive intelligence — website teardown across 5 competitors, 22-attribute ad scoring, positioning gaps, client-verified angle briefs |
 | [YouTube Placement Audit](youtube-placement-audit/) | Scan MCC for bad YouTube placements and aggregate by channel for bulk negation |
 | [Non-Serving Keyword Scanner](non-serving-keyword-scanner/) | Find keywords with zero impressions over 180 days across accounts |
 

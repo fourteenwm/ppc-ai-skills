@@ -16,20 +16,21 @@ Bulk-add account-level negative keywords (Admin → Account Settings → Negativ
 - Per-account error handling — one failure doesn't stop the batch
 - Optional dual logging: local JSONL plus a Google Sheets central log
 - Multi-account support (comma-separated names/CIDs or portfolio filter via `accounts.json`)
-- Sample 131-keyword property-management baseline included (replace with your own)
+- Sample 131-keyword property-management baseline included (curate against your portfolio before rolling — `rules.md` shows how)
+- Operator docs: `rules.md` (baseline curation, when account-level is the wrong altitude, conflict awareness, false alarms), `examples.md` (worked reads including the two that prevent bad executions), and `references/mutation-contract.md` (line-derived script mechanics)
 
 ---
 
 ## Installation
 
 ```bash
-mkdir -p .claude/skills/add-account-negative-keywords/scripts
-curl -o .claude/skills/add-account-negative-keywords/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/add-account-negative-keywords/SKILL.md
-curl -o .claude/skills/add-account-negative-keywords/scripts/add_account_negative_keywords.py \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/add-account-negative-keywords/scripts/add_account_negative_keywords.py
-curl -o .claude/skills/add-account-negative-keywords/scripts/sample_baseline_keywords.txt \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/add-account-negative-keywords/scripts/sample_baseline_keywords.txt
+mkdir -p .claude/skills/add-account-negative-keywords/scripts \
+         .claude/skills/add-account-negative-keywords/references
+for f in SKILL.md README.md rules.md examples.md references/mutation-contract.md \
+         scripts/add_account_negative_keywords.py scripts/sample_baseline_keywords.txt; do
+  curl -o ".claude/skills/add-account-negative-keywords/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/add-account-negative-keywords/$f"
+done
 ```
 
 ---
@@ -52,7 +53,7 @@ The Google Ads API has three reporting bugs that affect this domain. The skill i
 - `shared_set.reference_count` always reports `0` — ignore
 - `negative_keyword_list.shared_set` reads back empty in GAQL — the write works, the read doesn't. Don't rely on read-back to verify attachment; verify in the UI.
 
-The skill documents these in detail.
+The full quirk table, and how the script responds to each, is in `references/mutation-contract.md`.
 
 ---
 

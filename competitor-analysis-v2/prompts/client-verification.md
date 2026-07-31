@@ -427,7 +427,7 @@ Return results in this exact format:
 
 ## Example Analysis
 
-**Client:** Example SaaS
+**Client:** Brightwell Software
 **Website:** example-client.com
 **Competitive Gaps:** 5 identified from Phase 3
 
@@ -490,7 +490,7 @@ Return results in this exact format:
 - **Priority:** HIGH
 - **Evidence:** "30-day free trial, no credit card required"
 - **Source:** example-client.com/pricing#trial
-- **Competitive advantage:** No competitor mentions free trial in ads, but Example SaaS clearly offers it
+- **Competitive advantage:** No competitor mentions free trial in ads, but Brightwell Software clearly offers it
 - **Recommendation readiness:** ✅ Ready for angle development
 
 #### 2. Limited social proof in ads

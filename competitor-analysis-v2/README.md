@@ -15,7 +15,8 @@ An 8-phase competitive analysis workflow that combines website intelligence, ad 
 - Gap analysis: table stakes vs. differentiators vs. whitespace
 - Mandatory client verification phase — no recommendations without website evidence
 - Two output formats: Client Gift (10-15 page PDF) and Ads Angle Brief (1 page tactical)
-- Playwright-based screenshot capture script
+- Playwright-based screenshot capture script with automatic bot-evasion retry
+- Operator docs: `rules.md` (which competitors earn a slot, screenshot-read judgment, angle selection, false alarms), `examples.md` (a full engagement, a gift-only run, the ask this skill declines), and `references/workflow-contract.md` (file authority map, the prompt-numbering translation table, line-derived screenshot mechanics)
 
 ---
 
@@ -24,20 +25,19 @@ An 8-phase competitive analysis workflow that combines website intelligence, ad 
 ```bash
 mkdir -p .claude/skills/competitor-analysis-v2/scripts \
          .claude/skills/competitor-analysis-v2/prompts \
-         .claude/skills/competitor-analysis-v2/templates
-curl -o .claude/skills/competitor-analysis-v2/SKILL.md \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/SKILL.md
-curl -o .claude/skills/competitor-analysis-v2/scripts/screenshot.cjs \
-  https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/scripts/screenshot.cjs
-for f in website-extraction.md strategic-analysis.md tactical-scan.md \
-         gap-identification.md client-verification.md angle-development.md \
-         analysis-framework.md; do
-  curl -o ".claude/skills/competitor-analysis-v2/prompts/$f" \
-    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/prompts/$f"
-done
-for f in client-gift.md ads-angle-brief.md template.css; do
-  curl -o ".claude/skills/competitor-analysis-v2/templates/$f" \
-    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/templates/$f"
+         .claude/skills/competitor-analysis-v2/templates \
+         .claude/skills/competitor-analysis-v2/sales \
+         .claude/skills/competitor-analysis-v2/references
+for f in SKILL.md README.md rules.md examples.md \
+         references/workflow-contract.md scripts/screenshot.cjs \
+         prompts/website-extraction.md prompts/strategic-analysis.md \
+         prompts/tactical-scan.md prompts/gap-identification.md \
+         prompts/client-verification.md prompts/angle-development.md \
+         prompts/analysis-framework.md templates/client-gift.md \
+         templates/ads-angle-brief.md templates/template.css \
+         sales/service-page-copy.md; do
+  curl -o ".claude/skills/competitor-analysis-v2/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/$f"
 done
 ```
 

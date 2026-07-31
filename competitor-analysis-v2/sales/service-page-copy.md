@@ -4,7 +4,7 @@ Copy templates for positioning this service to different audiences.
 
 ---
 
-## For Partner Agency / Example SaaS Clients (Auto Repair)
+## For Partner Agency Clients (Auto Repair)
 
 ### Hero Section
 
@@ -150,7 +150,7 @@ This isn't marketing copy - it's how to frame the deliverable when presenting to
 **Body:**
 Hey [Name],
 
-I've been developing a competitive intelligence capability that I think could add value for our Example SaaS clients.
+I've been developing a competitive intelligence capability that I think could add value for our shared auto repair clients.
 
 It's a systematic analysis of 5 competitors - their websites, messaging, positioning, and gaps. The output is a 10-15 page strategic report that shows:
 - What everyone in the market is saying (table stakes)

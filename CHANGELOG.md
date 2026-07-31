@@ -2,7 +2,56 @@
 
 All notable changes to this repository.
 
-## 2026-07-31 — Operator-docs pass: markdown-to-sheets-presenter + youtube-placement-audit + geo-conflict-analyzer
+## 2026-07-31 — Operator-docs pass: add-account-negative-keywords + competitor-analysis-v2
+
+Two more skills get the full operator-docs treatment. Every script
+byte-untouched — this is a docs-only commit.
+
+- [`add-account-negative-keywords/`](add-account-negative-keywords/) — NEW
+  [`rules.md`](add-account-negative-keywords/rules.md) (baseline curation
+  classes with the exceptions sweep, when account-level is the wrong
+  altitude, conflict awareness wired to neg-conflict-finder, false-alarm
+  table, escalation defaults), NEW
+  [`examples.md`](add-account-negative-keywords/examples.md) (a portfolio
+  roll with a curation catch and a pre-existing-conflict find, the two
+  dry-run reads that prevent bad executions, and the asks the skill
+  declines), NEW
+  [`references/mutation-contract.md`](add-account-negative-keywords/references/mutation-contract.md)
+  (line-derived: the three passes, account and keywords-file resolution,
+  the three state layers and the categorization's attachment blind spot,
+  PHRASE hardcoded at the mutation site, session/approval semantics,
+  logging, console anatomy, the API quirk table re-homed from SKILL.md).
+  SKILL.md re-homed to workflow + routing with the mutation-safety
+  protocol front and center; three stale claims corrected against the
+  script (the `--keywords-file` default is the bare filename resolved
+  cwd-first with a script-folder fallback — not `data/…`; logs and
+  sessions land in the skill folder, not `./logs/`; the referenced
+  "cleanup script" doesn't ship and removals are now described as
+  deliberately out of scope). README + SKILL install blocks now fetch
+  every skill file.
+- [`competitor-analysis-v2/`](competitor-analysis-v2/) — NEW
+  [`rules.md`](competitor-analysis-v2/rules.md) (which competitors earn
+  one of the five slots, screenshot-read vs extraction-read judgment,
+  angle selection across the seven prompts, false alarms, escalation),
+  NEW [`examples.md`](competitor-analysis-v2/examples.md) (a full
+  both-outputs engagement with a bot-block retry and a thin-fetch catch,
+  a gift-only property-management run with the numbering translation
+  live, and the spend-intelligence ask the skill declines), NEW
+  [`references/workflow-contract.md`](competitor-analysis-v2/references/workflow-contract.md)
+  (the prompts/ authority map — prompts own their stages' methodology,
+  nothing restates them — plus the v1→v2 phase-numbering translation
+  table and line-derived screenshot.cjs mechanics: the silent non-http
+  drop, headful retry, exit-0-on-partial-failure, and the
+  screenshots.json status surface). SKILL.md re-homed with a
+  does-NOT-do boundary, files table, and when-to-load routing
+  (markdown-to-sheets-presenter's existing route now reciprocated); the
+  Quick Gift example's phase list corrected (a PDF delivery needs Phase
+  8); the five "Example SaaS" placeholder-residue occurrences renamed
+  (Brightwell Software in the two prompt examples; role phrasing in
+  sales/); README + SKILL install blocks now fetch every skill file
+  including `sales/service-page-copy.md`, closing the
+  File-Locations-vs-install asymmetry. Root README row corrected —
+  the skill reads public surfaces, not auction insights.
 
 Three more skills get the full operator-docs treatment. One docstring
 correction; every script otherwise byte-untouched.

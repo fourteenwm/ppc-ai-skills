@@ -6,34 +6,28 @@ allowed-tools: [Bash, Read, Write, WebFetch, WebSearch, Task]
 
 # Competitor Analysis v2
 
-**Auto-invoke when:** User asks for competitive analysis, competitor research, market positioning analysis, or says "competitor report", "analyze competitors", "competitive intelligence", or "client gift".
+**Purpose:** An 8-phase competitive analysis of a client plus up to 5 competitors —
+website intelligence, optional 22-attribute ad scoring, automated screenshots, gap
+identification, and mandatory client verification — producing a strategic **Client
+Gift** (10-15 page PDF), a tactical **Ads Angle Brief** (1 page), or both.
 
----
+**Credentials Required:** None. The whole workflow runs on Playwright plus web fetches.
+Competitor ad copy for the optional ad-scoring phase comes from a SERP tool or is
+pasted in — no Google Ads API access needed.
 
-## What This Skill Does
-
-Comprehensive competitive analysis combining:
-- **Website Intelligence** - Deep extraction of competitor messaging, positioning, and gaps
-- **Ad Copy Analysis** - 22-attribute framework for Google Ads evaluation
-- **Visual Documentation** - Automated screenshots via Playwright
-- **Two Output Types** - Strategic Client Gift OR tactical Ads Angle Brief
-- **Verification Rigor** - All recommendations verified against client website
-
-**Credentials Required:** None. The whole workflow runs on Playwright plus web fetches. Competitor ad copy for the optional ad-scoring phase comes from a SERP tool or is pasted in — no Google Ads API access needed.
+**This skill deliberately does NOT:**
+- See competitor spend, impression share, or auction data — public surfaces only;
+  decline asks that need them
+- Put Google Ads mechanics in the Client Gift, or hand the Ads Brief to a client
+- Ship a claim without client-website verification — Phase 6 gates both outputs
+- Build the final RSAs — the brief's 30-char angle sketches feed
+  [`ad-copy-generation-framework`](../ad-copy-generation-framework/) and
+  [`rsa-single-account`](../rsa-single-account/)
+- Monitor competitors over time — every run is a dated snapshot
 
 ---
 
 ## When to Use This Skill
-
-### Auto-invoke triggers:
-- "Analyze competitors for [client]"
-- "Competitive analysis for [market]"
-- "What are [client]'s competitors doing?"
-- "Create a competitor report"
-- "Client gift for [client]"
-- "Market positioning analysis"
-
-### Use cases:
 
 | Use case | Output |
 |----------|--------|
@@ -41,198 +35,104 @@ Comprehensive competitive analysis combining:
 | Relationship/retention tool for your own managed accounts | Client Gift (as a gift) |
 | Positioning input before an ad copy build | Ads Brief |
 
+**Ask the user at the start** which output they want (for white-label partner work,
+"Both" is the usual answer; for a relationship gift, "Client Gift" alone). The choice
+decides which prompts run — the run table is in
+`references/workflow-contract.md` § Which prompts run, per output.
+
 ---
 
 ## The 8-Phase Workflow
 
+The seven files in `prompts/` are the methodology authority for their stages — this
+SKILL routes to them and never restates their scoring criteria. Four of them carry
+internal phase labels from the framework's v1 numbering; **translate via the contract's
+numbering table** rather than trusting a prompt's label against the phases below.
+
 ### Phase 1: Gather Inputs
 
-**Required:**
 ```
-- Client name
-- Client URL
+- Client name + URL
 - Industry/market
 - 5 competitor URLs (or request search assistance)
 - Output type: "Client Gift" | "Ads Brief" | "Both"
 ```
 
-**If user doesn't have competitor URLs:**
-1. Use WebSearch to find 8-10 competitors in the same market
-2. Present options with brief descriptions
-3. Get approval on 5 to analyze
-
----
+Competitor selection is a judgment call with its own rules — who earns one of the five
+slots, what to exclude, why an honest 3 beats a padded 5: `rules.md` § Which
+competitors earn a slot. If the user has no list: WebSearch 8-10 candidates, present
+with brief descriptions, get approval on 5.
 
 ### Phase 2: Capture Screenshots (MANDATORY)
-
-**Run the screenshot script:**
 
 ```bash
 node .claude/skills/competitor-analysis-v2/scripts/screenshot.cjs \
   https://client.com \
-  https://competitor1.com \
-  https://competitor2.com \
-  https://competitor3.com \
-  https://competitor4.com \
-  https://competitor5.com \
+  https://competitor1.com https://competitor2.com https://competitor3.com \
+  https://competitor4.com https://competitor5.com \
   --output /tmp/competitor-report/screenshots
 ```
 
-**Prerequisites:**
-```bash
-# Check Playwright is installed
-node -e "require('playwright')" 2>/dev/null && echo "Ready" || echo "Need install"
-
-# If not installed:
-npm install playwright
-```
-
-**Output:**
-- 6 full-page screenshots (PNG)
-- `screenshots.json` metadata file
-
----
+Client URL first — index 1 is the client everywhere downstream. Full URLs only (a
+schemeless URL is silently dropped). Check the `Screenshots captured: X/Y` line, not
+the exit code. Prerequisite: `npm install playwright`. Capture mechanics, retry
+behavior, and the `screenshots.json` metadata contract:
+`references/workflow-contract.md` § screenshot.cjs.
 
 ### Phase 3: Extract Website Content (Parallel)
 
-**Launch 6 parallel Task agents** to fetch all websites simultaneously:
+Launch 6 parallel Task agents, one per URL (client + 5 competitors):
 
 ```
-For each URL (client + 5 competitors):
 - subagent_type: "general-purpose"
-- prompt: "Use WebFetch to analyze [URL]. Use this extraction prompt: [paste from prompts/website-extraction.md]. Return only the XML output."
+- prompt: "Use WebFetch to analyze [URL]. Use this extraction prompt:
+  [paste from prompts/website-extraction.md]. Return only the XML output."
 ```
 
-**Why parallel:** Serial fetching takes 5-6 minutes. Parallel completes in ~1 minute.
-
-**Output:** Structured XML data for each site including:
-- Business name, headline, value proposition
-- Services, trust signals, unique claims
-- Social proof (ratings, review counts, testimonial themes)
-- Risk reversal tactics (guarantees, offers)
-- Emotional triggers, objection handling
-- Target audience, positioning tier, brand tone
-
----
+Serial fetching takes 5-6 minutes; parallel completes in ~1. Output: one 21-field XML
+profile per site (schema owned by `prompts/website-extraction.md`). An empty field on a
+JS-heavy site can be a fetch artifact — cross-check the screenshot before recording it
+as a gap (`rules.md` § Screenshot reads).
 
 ### Phase 4: Analyze Competitor Ads (If Available)
 
-**If SERP API results or pasted ads are provided:**
-
-1. Run `prompts/strategic-analysis.md` - 15 attributes (0-45 points)
-2. Run `prompts/tactical-scan.md` - 7 attributes (0-21 points)
-3. Score each competitor
-4. Identify ad-specific gaps
-
-**If no ads available:**
-- Skip this phase
-- Note: "Ad analysis not performed (no competitor ads provided)"
-- Website analysis from Phase 3 is sufficient for Client Gift
-
----
+If SERP results or pasted ads exist: run `prompts/strategic-analysis.md` (attributes
+1-15, 45 points) and `prompts/tactical-scan.md` (attributes 16-22, 21 points) per
+competitor ad, then feed scores to Phase 5. If no ads: skip, note "Ad analysis not
+performed (no competitor ads provided)" — website analysis is sufficient for the
+Client Gift.
 
 ### Phase 5: Gap Identification
 
-**Use `prompts/gap-identification.md` enhanced with:**
-
-#### A. Messaging Matrix
-| Competitor | Headline | Main Claim | USP | CTA | Proof Type | Pricing? |
-|------------|----------|------------|-----|-----|------------|----------|
-
-**Analysis:**
-- What claims appear in 3+ competitors? (Table stakes)
-- What claims appear in only 1? (Differentiator)
-- What's missing from all? (Opportunity)
-
-#### B. Positioning Map
-2x2 grid with appropriate axes:
-- **Service:** Price vs Specialization
-- **Speed:** Speed vs Quality
-- **Local:** Scale vs Personalization
-
-**Identify:**
-- Where competitors cluster
-- Where white space exists
-- Where client currently sits (or should sit)
-
-#### C. Gap Categories
-- **Strategic gaps** - Positioning no competitor owns
-- **Tactical gaps** - Weaknesses everyone shares
-- **Whitespace** - Unmet market needs
-
----
+Run `prompts/gap-identification.md` — messaging matrix, positioning map, emotional
+landscape, strategic/tactical gap tests (table stakes vs differentiators vs
+whitespace). Blank scaffolds live in `prompts/analysis-framework.md`. This phase
+identifies opportunities, never recommendations — that distinction is the prompt's own
+critical rule.
 
 ### Phase 6: Client Verification (MANDATORY)
 
-**Use `prompts/client-verification.md`**
-
-**Process:**
-1. Scrape client website (WebFetch/Firecrawl)
-2. Extract verified capabilities with sources
-3. Map gaps to capabilities:
-   - ✅ **Can fill** - Gap + website evidence
-   - ❌ **Cannot verify** - Gap but no evidence
-
-**Output:**
-- Verified capabilities inventory
-- Gap-to-capability mapping
-- Source citations for all claims
-- "Cannot recommend" list
-
-**CRITICAL:** No recommendations without verification. This phase is NON-NEGOTIABLE.
-
----
+Run `prompts/client-verification.md`: scrape the client site, build the verified
+capabilities inventory, map every gap to ✅ can-fill / ❌ cannot-verify with source
+citations. **No recommendation survives without verification — this phase gates both
+outputs and is non-negotiable.** It is the
+[`ad-copy-verification-standard`](../ad-copy-verification-standard/) in action.
 
 ### Phase 7: Generate Output(s)
 
-**Based on user's output preference:**
-
-#### Output 1: Client Gift (10-15 pages)
-Strategic document for the CLIENT. **NO Google Ads mechanics.**
-
-Uses `templates/client-gift.md` structure:
-1. Cover page
-2. Executive summary (3 key findings)
-3. Who we looked at (competitor profiles)
-4. Screenshots grid (3x2)
-5. Messaging matrix
-6. Table stakes (what everyone says)
-7. Opportunities (what no one says)
-8. How competitors sell (pain/outcome/proof)
-9. Positioning map
-10. Emotional landscape
-11. Customer concerns
-12. Implications
-13. Recommendations
-14. Full screenshots comparison
-15. Summary
-
-**Tone:** Strategic, insight-driven, no jargon.
-
-#### Output 2: Ads Angle Brief (1 page)
-Tactical document for the PRACTITIONER.
-
-Uses `templates/ads-angle-brief.md` structure:
-1. Primary positioning axis
-2. Top 3 angles (with proof required)
-3. Angles NOT to pursue
-4. Headlines by angle
-5. Campaign-to-angle map
-6. Compliance watch-outs
-7. Ad-to-page rules
-
-**Uses:** Verified angles from Phase 6 only.
-
----
+- **Client Gift** (10-15 pages, for the CLIENT, zero Google Ads mechanics) — structure
+  owned by `templates/client-gift.md` (15 sections, cover through summary). Tone:
+  strategic, insight-driven, no jargon.
+- **Ads Angle Brief** (1 page, for the PRACTITIONER) — structure owned by
+  `templates/ads-angle-brief.md` (7 sections: positioning axis through ad-to-page
+  rules). Angle development runs `prompts/angle-development.md` on verified gaps only;
+  angle-choice judgment (verification strength beats gap value, compliance demotions,
+  small-sample phrasing) is `rules.md` § Angle selection.
 
 ### Phase 8: PDF Generation (For Client Gift)
 
-**Generate professional PDF:**
-
-1. Create HTML with embedded CSS from `templates/template.css`
-2. Include screenshots at appropriate positions
-3. Render positioning maps as CSS grids
-4. Generate PDF via Playwright:
+Build HTML with embedded CSS from `templates/template.css`, place screenshots, render
+positioning maps as CSS grids, then:
 
 ```javascript
 const { chromium } = require('playwright');
@@ -252,120 +152,91 @@ const { chromium } = require('playwright');
 
 ---
 
-## Output Selection
-
-**Ask user at start:**
-
-```
-Which output would you like?
-
-1. Client Gift - Strategic document for the client (10-15 pages, PDF)
-2. Ads Angle Brief - Tactical document for you (1 page, markdown)
-3. Both - Full analysis with both outputs
-
-For white-label partner work, "Both" is recommended.
-For a client-relationship gift, "Client Gift" alone is usually right.
-```
-
----
-
-## Common Use Cases
-
-### Use Case: White-Label Partner Work
-
-**Context:** Generate deliverables for a partner agency to re-brand and deliver to their clients
-
-**Workflow:**
-1. Run full analysis for the target vertical
-2. Generate both outputs (Client Gift for partner to deliver, Ads Brief for internal use)
-3. Save deliverables to your project's output folder (e.g., `./deliverables/competitor-analysis/`)
-
-### Use Case: Internal Portfolio Tool
-
-**Context:** Run as a relationship/retention tool across your managed accounts
-
-**Workflow:**
-1. Run full analysis for each account's vertical
-2. Generate Client Gift (as relationship gift to the client)
-3. Ads Brief optional (for your internal optimization work)
-4. Save to your output folder
-
----
-
 ## Quality Checklist
 
 Before delivery:
-- [ ] All 6 screenshots captured successfully
-- [ ] Website content extracted for all 6 URLs
+- [ ] All 6 screenshots captured successfully (`X/Y` line, `screenshots.json`)
+- [ ] Website content extracted for all 6 URLs (thin fetches cross-checked)
 - [ ] Client verification completed (Phase 6)
 - [ ] All recommendations have source citations
 - [ ] Client Gift has NO Google Ads mechanics
-- [ ] Ads Brief uses ONLY verified angles
+- [ ] Ads Brief uses ONLY verified angles; "Cannot Recommend" list intact
 - [ ] Positioning maps are accurate
-- [ ] No unverified claims in any output
+- [ ] Property management client → Fair Housing check on every angle
 
 ---
 
-## File Locations
+## Files in This Skill
 
-**Prompts:**
-- `prompts/website-extraction.md` - Website content extraction (XML)
-- `prompts/strategic-analysis.md` - 15 strategic attributes
-- `prompts/tactical-scan.md` - 7 tactical attributes
-- `prompts/gap-identification.md` - Gap analysis + positioning
-- `prompts/client-verification.md` - Mandatory verification
-- `prompts/angle-development.md` - Verified angle creation
-- `prompts/analysis-framework.md` - Templates for matrices
+| File | Role |
+|---|---|
+| `SKILL.md` | This workflow — identity, phases, routing |
+| `rules.md` | Judgment: competitor selection, screenshot reads, angle choice, false alarms, escalation |
+| `examples.md` | Three worked reads: full engagement, gift-only PM run, the declined ask |
+| `references/workflow-contract.md` | Authority map, the v1→v2 numbering translation table, line-derived screenshot.cjs mechanics |
+| `prompts/website-extraction.md` | Phase 3 authority — extraction prompt + 21-field XML schema |
+| `prompts/strategic-analysis.md` | Phase 4 authority — attributes 1-15 criteria + bands *(internal label "Phase 1" = v1)* |
+| `prompts/tactical-scan.md` | Phase 4 authority — attributes 16-22 flags + bands *(internal label "Phase 2" = v1)* |
+| `prompts/gap-identification.md` | Phase 5 authority — matrix, maps, gap tests |
+| `prompts/client-verification.md` | Phase 6 authority — the verification law *(internal label "Phase 4" = v1)* |
+| `prompts/angle-development.md` | Post-Phase-6 authority — angle structure + priorities *(internal label "Phase 5" = v1)* |
+| `prompts/analysis-framework.md` | Blank scaffolds for Phase 5 outputs |
+| `scripts/screenshot.cjs` | Playwright capture — the skill's only code |
+| `templates/client-gift.md`, `templates/ads-angle-brief.md`, `templates/template.css` | Output structure + PDF styling |
+| `sales/service-page-copy.md` | Copy for selling this as a service (page copy, emails, testimonial capture) — business asset, not a runtime input |
 
-**Scripts:**
-- `scripts/screenshot.cjs` - Playwright screenshot capture
+## After a Run
 
-**Templates:**
-- `templates/client-gift.md` - Client Gift structure
-- `templates/ads-angle-brief.md` - Ads Brief structure
-- `templates/template.css` - PDF styling
+Nothing lands in the skill folder. The run's footprint, all in your chosen output
+location: the screenshot PNGs plus `screenshots.json` (ISO `capturedAt`, per-URL
+success/retried — the record of what ran and what's missing), and the deliverables
+(`[client]-competitor-report.html` → `.pdf`, the brief's markdown). Date the
+deliverables; every run is a snapshot, and the next one starts fresh.
 
-**Sales:**
-- `sales/service-page-copy.md` - Marketing copy templates for offering this as a service
+## When to Load Other Skills
 
----
-
-## Integration
-
-### Ad Copy Verification Standard
-This skill enforces the `ad-copy-verification-standard` skill from this catalog (install it alongside):
-- All claims verified from client website
-- Source citations required
-- "Cannot recommend" list for unverifiable gaps
-
-### Related Skills
-- `ad-copy-generation-framework` - 23-element RSA copywriting framework for turning verified angles into copy
-- `rsa-single-account` - Full single-account RSA build; use after this when the brief feeds ad creation
-- `fair-housing-compliance` - Required when the client is property management / housing
+| Load | When |
+|---|---|
+| [`ad-copy-verification-standard`](../ad-copy-verification-standard/) | Always — Phase 6 is this standard; install it alongside |
+| [`ad-copy-generation-framework`](../ad-copy-generation-framework/) | After the brief, to turn verified angles into full RSA copy (23 elements) |
+| [`rsa-single-account`](../rsa-single-account/) | When the brief feeds a full single-account RSA build |
+| [`fair-housing-compliance`](../fair-housing-compliance/) | Before writing any angle or recommendation for a property-management / housing client |
+| [`markdown-to-sheets-presenter`](../markdown-to-sheets-presenter/) | When the client wants the scoring matrices and gap tables as a formatted Google Sheet alongside (or instead of) the PDF |
 
 ---
 
 ## Example Usage
 
-### Full Analysis
+**"Run competitor analysis for Smith Auto Repair"** → ask which output → Both → client
+URL + 5 competitor URLs (or search flow) → full 8-phase run → Client Gift PDF + Ads
+Brief markdown.
 
-**User:** "Run competitor analysis for Smith Auto Repair"
+**"Create a client gift for Example Property"** → Client Gift only → phases 1-3, 5-8
+(Phase 4 skipped unless ads are provided) → strategic PDF, delivered with the
+property-management framing from `sales/service-page-copy.md`.
 
-**Claude:**
-1. "Which output - Client Gift, Ads Brief, or Both?" → Both
-2. "Client URL?" → smithautorepair.com
-3. "Competitor URLs (or should I search)?" → [5 URLs provided]
-4. Runs 8-phase workflow
-5. Delivers Client Gift PDF + Ads Brief markdown
+---
 
-### Quick Gift
+## Installation
 
-**User:** "Create a client gift for Example Property"
-
-**Claude:**
-1. Output: Client Gift only
-2. Runs phases 1-3, 5-7 (skips ad analysis)
-3. Delivers strategic Client Gift PDF
+```bash
+mkdir -p .claude/skills/competitor-analysis-v2/scripts \
+         .claude/skills/competitor-analysis-v2/prompts \
+         .claude/skills/competitor-analysis-v2/templates \
+         .claude/skills/competitor-analysis-v2/sales \
+         .claude/skills/competitor-analysis-v2/references
+for f in SKILL.md README.md rules.md examples.md \
+         references/workflow-contract.md scripts/screenshot.cjs \
+         prompts/website-extraction.md prompts/strategic-analysis.md \
+         prompts/tactical-scan.md prompts/gap-identification.md \
+         prompts/client-verification.md prompts/angle-development.md \
+         prompts/analysis-framework.md templates/client-gift.md \
+         templates/ads-angle-brief.md templates/template.css \
+         sales/service-page-copy.md; do
+  curl -o ".claude/skills/competitor-analysis-v2/$f" \
+    "https://raw.githubusercontent.com/fourteenwm/ppc-ai-skills/main/competitor-analysis-v2/$f"
+done
+```
 
 ---
 
@@ -373,8 +244,3 @@ This skill enforces the `ad-copy-verification-standard` skill from this catalog 
 
 - **v2.0** (2026-01) - Merged the 22-attribute ad analysis framework and the strategic competitor report into a single 8-phase workflow
 - **v1.0** (2025-12) - Original 22-attribute ad copy analysis framework
-
----
-
-**Compliance:** All recommendations pass the ad copy verification standard — no unverified claims
-**Outputs:** Client Gift, Ads Angle Brief, or Both
