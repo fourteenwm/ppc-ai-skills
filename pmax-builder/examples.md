@@ -79,10 +79,11 @@ PMax CSV generated: data/pmax-builds/lindenmoor-flats-pmax.csv
 
 Sanity read: dates are ~3 business days out to next June 30 (built Monday
 2026-08-03 → starts Thursday); `$10.0/day` is the float rendering of the
-budget default, not an error; 255 rows = campaign + asset group + 14 themes
-+ location + 238 negatives. Import in Google Ads Editor, upload images manually, set the real
-budget — then run the [`pmax-asset-automation`](../pmax-asset-automation/)
-audit to confirm the five automation opt-outs landed.
+budget default, not an error; 255 rows = campaign + asset group + 14
+themes + location + 238 negatives. Import in Google Ads Editor, upload
+images manually, set the real budget — then run the
+[`pmax-asset-automation`](../pmax-asset-automation/) audit to confirm the
+five automation opt-outs landed.
 
 ---
 
