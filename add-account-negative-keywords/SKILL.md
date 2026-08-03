@@ -173,7 +173,7 @@ the contract; read the preview's resolved-account lines, not just the totals.
 
 | Load | When |
 |---|---|
-| [`mutation-safety`](../mutation-safety/) | Before any `--execute` — this skill implements its Pattern B (preview/approve/execute); the protocol rules live there |
+| [`mutation-safety`](../mutation-safety/) | Before any `--execute` — this skill implements its Rule 1 two-step approval protocol (preview/approve/execute); the protocol rules live there |
 | [`neg-conflict-finder`](../neg-conflict-finder/) | After every roll (and before, if you suspect existing conflicts) — finds negatives silently blocking positives at every level |
 | [`sqr-pipeline`](../sqr-pipeline/) | When the ask is query-evidence negatives ("negate these search terms") — that's campaign-level with its own review gate, not baseline material |
 | [`google-ads-query`](../google-ads-query/) | Pre-flight: pull an account's positive keywords to grep against the baseline before the first roll |

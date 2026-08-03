@@ -42,7 +42,7 @@ predate the 8-phase workflow. Translate on contact; do not "fix" a prompt mid-ru
 | `tactical-scan.md` "(Phase 2)" | Second ad-scoring pass | **Phase 4** |
 | `gap-identification.md` "(Phase 5)" — and its references to "Phase 3 XML", "Phase 4 ads", "Phase 6 verification" | Already renumbered to the v2 workflow | **Phase 5** ✓ |
 | `client-verification.md` "(Phase 4)" — its "Phase 3" = gap identification, its "Phase 5" = angle development | Verification | **Phase 6** |
-| `angle-development.md` "(Phase 5)" — its "Phase 4" = verification, its "Phases 1-2" = strategic/tactical | Angle development | **Between 6 and 7** — feeds the Ads Angle Brief; no workflow number of its own |
+| `angle-development.md` "(Phase 5)" — its "Phase 4" = verification, its "Phases 1-2" = strategic/tactical; the "Phase 1-4" ladder in its Recommended Implementation Order sections (`:242-255`, `:512-520`) is a rollout schedule for launching angles, not workflow stages — this table doesn't apply there | Angle development | **Between 6 and 7** — feeds the Ads Angle Brief; no workflow number of its own |
 | `templates/ads-angle-brief.md` "(Phase 5)" / "(Phase 6)" | Gap identification ✓ / angle development | Phase 5 / post-6 |
 
 Two cross-file facts that follow from the shared v1 ancestry:

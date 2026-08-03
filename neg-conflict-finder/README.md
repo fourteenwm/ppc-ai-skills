@@ -111,6 +111,6 @@ Apache 2.0 (preserved from the original Google reference script). Use, modify, a
 
 ---
 
-Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage 100+ Google Ads accounts with a system of specialized AI skills.
+Built by [Kurt Henninger](https://fourteenwebmedia.com) — I manage over 110 Google Ads accounts with 85+ specialized skills.
 
 More free skills: [github.com/fourteenwm/ppc-ai-skills](https://github.com/fourteenwm/ppc-ai-skills)

@@ -74,6 +74,10 @@ the workflow lives in [SKILL.md](SKILL.md).
 - **Scoring tables** get the conditional-formatting treatment (thresholds
   from the theme), right-aligned numerics, and a legend row so the client
   knows what green means without asking.
+- **Currency values** get the accounting format, right-aligned.
+- **Percentages** get the percentage format, right-aligned.
+- **Tables over 100 rows** get filtering enabled on the header row and a
+  pagination note.
 
 ## False alarms
 

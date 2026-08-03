@@ -40,4 +40,5 @@ Thumbs.db
 # Logs / runtime state
 *.log
 logs/
+sessions/
 data/

@@ -21,7 +21,7 @@ This is an **ADS-SCRIPT skill**: one Google Ads Script (`scripts/mcc-neg-keyword
 - **No removals, no mutations.** The script writes rows to a Google Sheet and touches nothing in any account. Resolution is a human in the UI.
 - **No query-level analysis.** Detection runs on keyword *text*, not live search queries — the sheet is a floor, not a ceiling (see "What a flag means" below).
 - **No paused entities.** Positives and negatives are collected from enabled campaigns/ad groups/criteria only.
-- **No PMax / Display / Video.** Search keyword inventory only.
+- **No PMax / Display / Video.** Search keyword inventory only — not via a channel filter (none exists in the code): PMax is excluded structurally (no keyword inventory to read), Display/Video by account construction.
 - **No prioritization in the output.** Rows arrive unranked; the triage order below is the operator's judgment layer, not a sheet column.
 
 ## What It Does

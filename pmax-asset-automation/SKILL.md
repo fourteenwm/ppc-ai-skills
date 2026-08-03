@@ -124,6 +124,7 @@ from running the audit.
 | Same problem, Demand Gen campaigns (ad-level automation) | [dgen-automation-disable](../dgen-automation-disable/) — the ad-level twin |
 | Building a new PMax with the opt-outs pre-baked | [pmax-builder](../pmax-builder/) — then audit after import |
 | This check as one slice of a full account sweep | [account-diagnostic](../account-diagnostic/) — its automation checks route here to fix |
+| The same flags surfaced by a creative-compliance audit | [ads-checker](../ads-checker/) — its automation checks (2, 6, 7) route here as the campaign-level fixer |
 | No API credentials yet | [google-ads-api-setup](../google-ads-api-setup/) |
 | The philosophy behind the standard (*Empty > Inaccurate*) | [ad-copy-verification-standard](../ad-copy-verification-standard/) |
 

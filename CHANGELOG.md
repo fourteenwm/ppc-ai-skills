@@ -2,6 +2,71 @@
 
 All notable changes to this repository.
 
+## 2026-08-03 — Doc-accuracy pass: fifteen fixes across eight skills
+
+Fifteen corrections from re-deriving doc claims against the code and files
+they describe. Doc-only except one `.gitignore` line — every script is
+byte-untouched.
+
+- [`markdown-to-sheets-presenter/rules.md`](markdown-to-sheets-presenter/rules.md)
+  — the three formatting decisions SKILL.md's Step-6 router sends here
+  (currency values → accounting format, right-aligned; percentages →
+  percentage format, right-aligned; tables over 100 rows → header filter
+  row plus a pagination note) now have homes in the table-structure
+  section. They were dropped when the old SKILL "Special Handling" section
+  was re-homed, stranding the router pointer and the README's capability
+  line.
+- [`markdown-to-sheets-presenter/examples.md`](markdown-to-sheets-presenter/examples.md)
+  — example 2's percentage-format cite follows that content to rules.md
+  (the SKILL section it named no longer exists), and example 1's
+  report-back pointer now says Step 7 (Return Results was renumbered when
+  Populate and Format became Step 6).
+- [`add-account-negative-keywords/SKILL.md`](add-account-negative-keywords/SKILL.md)
+  — the mutation-safety routing row names the real protocol: Rule 1's
+  two-step approval. "Pattern B" appears nowhere in mutation-safety, which
+  is organized Rule 1–5.
+- [`add-account-negative-keywords/references/mutation-contract.md`](add-account-negative-keywords/references/mutation-contract.md)
+  — sheet-failure handling counts three cases, not two: generic-exception
+  failures never attempt the sheet write at all (that handler has no
+  log-sheet block), so the account is absent from the Sheet log rather
+  than silently swallowed.
+- [`pmax-builder/examples.md`](pmax-builder/examples.md) and
+  [`references/build-contract.md`](pmax-builder/references/build-contract.md)
+  — the worked example's summary line reads `40mi`: argparse applies
+  `type=float` to CLI strings only, so the example's command (no
+  `--radius`) keeps the int default, and only a passed flag renders
+  `40.0mi`. The contract's float-quirk note is scoped accordingly (the
+  budget default is already a float and always renders `$10.0/day`). And
+  the late-June trap window is the last two business days before June 30,
+  not three.
+- [`CHANGELOG.md`](CHANGELOG.md) — the pmax-builder entry below claimed
+  the scraper's SDK tolerance is documented "in the contract and SKILL";
+  the contract carries no scraper content — the SKILL does.
+- [`geo-conflict-analyzer/references/analysis-contract.md`](geo-conflict-analyzer/references/analysis-contract.md)
+  — the prompt's 95 verdict lines are 93 worked examples plus two
+  arrow-carrying rule statements; the 54 PASS / 41 FAIL counts were
+  already right.
+- [`youtube-placement-audit/references/audit-contract.md`](youtube-placement-audit/references/audit-contract.md)
+  — the ` sex ` padding pin corrected to `:68` (`:69` is the next keyword
+  in the dict).
+- [`competitor-analysis-v2/references/workflow-contract.md`](competitor-analysis-v2/references/workflow-contract.md)
+  — the numbering-translation table now notes angle-development's third
+  "Phase 1-4" sense: its Recommended Implementation Order sections are a
+  rollout schedule for launching angles, not workflow stages, and the
+  translation doesn't apply there.
+- [`neg-conflict-finder/README.md`](neg-conflict-finder/README.md) and
+  [`SKILL.md`](neg-conflict-finder/SKILL.md) — the footer aligned to the
+  house line (it was the one outlier among the repo's READMEs), and the
+  "No PMax / Display / Video" boundary now says how: no channel filter
+  exists in the code — PMax is excluded structurally, Display/Video by
+  account construction.
+- [`pmax-asset-automation/SKILL.md`](pmax-asset-automation/SKILL.md) —
+  the When-to-Load table reciprocates ads-checker's inbound routes (its
+  automation checks 2, 6, and 7 route here as the campaign-level fixer).
+- [`.gitignore`](.gitignore) — `sessions/` joins the runtime-state block:
+  the negatives script's session JSONs carry resolved account names,
+  CIDs, and keyword lists, and were commit-able in a cloned-repo install.
+
 ## 2026-07-31 — Operator-docs pass: ga4-cross-analysis + neg-conflict-finder (+ a cross-reference path fix)
 
 The two special-variant skills get their operator-docs treatment, each at the
@@ -201,7 +266,7 @@ script addition.
   README install block now fetches all ten skill files. Scripts and
   templates byte-untouched; the bundled scraper's tolerance for both
   current (attribute-style) and legacy (dict) Firecrawl SDK responses is
-  now documented in the contract and SKILL.
+  now documented in the SKILL.
 - [`pmax-asset-automation/`](pmax-asset-automation/) — NEW
   [`rules.md`](pmax-asset-automation/rules.md) (risk ranking of the five
   automation settings incl. the two-sided video-enhancement argument,

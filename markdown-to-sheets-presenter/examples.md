@@ -46,7 +46,7 @@ full-length with the description column at the theme's 550px — one
 headline ran 87 characters and the answer was a wider column, not an
 ellipsis (invariant 1).
 
-**Report back:** the Output Format block from SKILL.md Step 6 — link, tab
+**Report back:** the Output Format block from SKILL.md Step 7 — link, tab
 list, row counts per tab.
 
 ---
@@ -69,7 +69,7 @@ steps).
 **Formatting beats:**
 
 - Spend column gets accounting format, right-aligned; CTR/CVR columns get
-  percentage format (SKILL.md special handling).
+  percentage format (rules.md, table structure).
 - Two campaigns have no quality-score data — cells read `—` in gray, not
   blank (invariant 4).
 - The campaign table is 31 rows: under the 100-row threshold, so no filter

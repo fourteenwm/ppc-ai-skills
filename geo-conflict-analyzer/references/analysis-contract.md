@@ -44,8 +44,8 @@ Loaded fresh on every run from the skill folder root
 (`SCRIPT_DIR.parent / "prompt.md"`); a missing file raises
 `FileNotFoundError` before any API call. It is not documentation-about
 the model's behavior — it IS the behavior: the PASS/FAIL definitions, the
-specificity ladder, the **95 worked verdict examples** (54 PASS, 41 FAIL,
-counted from the file), the default-to-FAIL rule, and the required output
+specificity ladder, the **95 verdict lines** (93 worked examples; 54 PASS,
+41 FAIL, counted from the file), the default-to-FAIL rule, and the required output
 format all live there. Editing it changes classification on the next run;
 test edits with `--dry-run` batches before trusting them.
 

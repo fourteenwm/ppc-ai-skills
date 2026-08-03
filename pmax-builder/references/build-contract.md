@@ -172,8 +172,11 @@ PMax CSV generated: data/pmax-builds/<name>-pmax.csv
   Ad copy source: Google Sheet | CLI arguments
 ```
 
-Numeric quirks worth knowing so you don't misread a healthy run: the radius
-and budget lines render Python floats (`40.0mi`, `$10.0/day` — not `$10.00`),
-and `Ad copy source` says `Google Sheet` whenever `--sheet-id` was passed,
+Numeric quirks worth knowing so you don't misread a healthy run: the budget
+line renders a Python float (`$10.0/day` — not `$10.00`; the default is
+already a float), the radius line does so only when `--radius` was passed on
+the CLI (`40.0mi` — argparse applies `type=float` to CLI strings, so the
+omitted-flag default prints `40mi`), and `Ad copy source` says `Google
+Sheet` whenever `--sheet-id` was passed,
 even though the copy itself may have had rows skipped — the count lines above
 it are the real verification surface.

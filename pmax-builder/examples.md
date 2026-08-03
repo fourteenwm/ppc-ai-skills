@@ -62,7 +62,7 @@ PMax CSV generated: data/pmax-builds/lindenmoor-flats-pmax.csv
   Asset Group: General
   Business: Lindenmoor Flats
   URL: https://www.lindenmoorflats.com/
-  Location: Columbus, OH (40.0mi radius)
+  Location: Columbus, OH (40mi radius)
   Budget: $10.0/day
   Dates: 2026-08-06 to 2027-06-30
   Headlines: 15
@@ -78,9 +78,9 @@ PMax CSV generated: data/pmax-builds/lindenmoor-flats-pmax.csv
 ```
 
 Sanity read: dates are ~3 business days out to next June 30 (built Monday
-2026-08-03 → starts Thursday); `40.0mi`/`$10.0/day` are the float rendering,
-not errors; 255 rows = campaign + asset group + 14 themes + location + 238
-negatives. Import in Google Ads Editor, upload images manually, set the real
+2026-08-03 → starts Thursday); `$10.0/day` is the float rendering of the
+budget default, not an error; 255 rows = campaign + asset group + 14 themes
++ location + 238 negatives. Import in Google Ads Editor, upload images manually, set the real
 budget — then run the [`pmax-asset-automation`](../pmax-asset-automation/)
 audit to confirm the five automation opt-outs landed.
 
@@ -191,5 +191,5 @@ Re-run with the end date the build actually intends:
   Dates: 2026-07-02 to 2027-06-30
 ```
 
-Import proceeds normally. The trap window is roughly the last three business
-days of June every year; the fix is one explicit flag.
+Import proceeds normally. The trap window is roughly the last two business
+days before June 30 every year; the fix is one explicit flag.

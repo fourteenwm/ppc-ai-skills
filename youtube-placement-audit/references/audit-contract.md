@@ -35,7 +35,7 @@ whitespace-only name, checked first `:121-122`) and **Non-English content**
 - **Keyword beats non-English.** The non-Latin check runs only when no
   keyword matched (`:130-131`) — a Cyrillic channel with "minecraft" in
   the name lands in the keyword tab, not the NEA tab.
-- **The ` sex ` padding** (`:69`): matches only with a space on BOTH
+- **The ` sex ` padding** (`:68`): matches only with a space on BOTH
   sides. "Sussex Home Tours" is safe — but so is a name that merely *ends*
   in the bare word, since there's no trailing space. Deliberate
   word-isolation with a known edge, not a bug.
