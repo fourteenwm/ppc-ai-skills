@@ -14,6 +14,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Give legal advice.** It encodes Fair Housing Act rules as hard guardrails for ad-targeting work. It is not counsel — gray-area calls (novel audience types, ambiguous proxies) go to a compliance attorney, not an AI judgment; the skill's own rule for uncertainty is "default to NOT using it."
+- **Audit accounts wholesale.** It gates targeting decisions as they happen and flags suspicious signals it encounters — but it ships no scanner. Sweeping an entire account for violations is a separate audit task that uses this skill's criteria.
+- **Cover other regulated verticals.** Employment and credit advertising carry their own discrimination rules; these lists are housing-specific.
+- **Optimize performance.** When compliance and performance conflict, compliance wins — the skill never trades legal risk for conversions.
+
+---
+
 ## CRITICAL LEGAL REQUIREMENT
 
 **All property management accounts are subject to Fair Housing Act regulations.** This is a **legal requirement**, not a client preference.
@@ -184,6 +193,20 @@ These audience types may be compliant but require verification:
 - Discussing campaign structure changes
 - Analyzing campaign settings
 - User mentions "targeting", "audiences", "demographics", "geo", or "location"
+
+---
+
+## When to Load Other Skills
+
+Skills in this repo that route here when their work touches housing accounts:
+
+| Skill | When it routes here |
+|-------|---------------------|
+| [`ads-checker`](../ads-checker/) | When its creative audit hits a discriminatory-category match on a housing account — this skill is the compliance layer alongside the rewrite |
+| [`add-account-negative-keywords`](../add-account-negative-keywords/) | Before deciding negative-keyword baseline rows touching age, family status, or income on PM portfolios |
+| [`competitor-analysis-v2`](../competitor-analysis-v2/) | Before writing any angle or recommendation for a property-management / housing client |
+
+The reverse direction needs no table: this skill auto-loads on ANY targeting, audience, or geo discussion for PM accounts (see "When This Skill Auto-Loads" above).
 
 ---
 

@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Do the analysis.** The framework structures what you found — the investigation itself happens upstream (see [`investigation-methodology`](../investigation-methodology/)). If the analysis is thin, this framework exposes that; it can't fix it.
+- **Verify the data.** "What We Looked At" makes every data source transparent; it doesn't audit whether the numbers are right. Attribution is not verification.
+- **Apply to internal docs.** This is for client-facing deliverables only — technical implementation details deliberately stay out of the report (they're for internal notes).
+- **Deliver the report.** Output is the formatted communication; sending, presenting, or scheduling it is yours.
+
+---
+
 ## Core Framework: Background → Analysis → Conclusions
 
 **When to use:** Investigation summaries, monthly reviews, strategy presentations, performance reports for client stakeholders
@@ -337,6 +346,15 @@ Before sending any client communication, verify:
 - [ ] No technical jargon without explanation
 - [ ] Action items are specific with owners/timelines
 - [ ] Timeline sets realistic expectations
+
+---
+
+## When to Load Other Skills
+
+| Skill | When |
+|-------|------|
+| [`investigation-methodology`](../investigation-methodology/) | Upstream, during the investigation itself — its Step 4 (Present Findings) hands root cause + evidence to this framework whenever the audience is a client |
+| Reporting-stage producing skills | Skills that generate client-deliverable findings route here for formatting — in this repo: [`conversion-tracking-health`](../conversion-tracking-health/), [`ga4-lead-quality-investigation`](../ga4-lead-quality-investigation/), [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/) |
 
 ---
 

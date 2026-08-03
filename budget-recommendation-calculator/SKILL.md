@@ -12,6 +12,16 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Diagnose the root cause.** The decision tree assumes you already know whether budget is the constraint — that diagnosis is [`impression-share-diagnostics`](../impression-share-diagnostics/)' job (budget vs. quality vs. low demand vs. ramp-up).
+- **Pull the data.** Pacing variance, IS metrics, and CPA/ROAS come in from your pacing source and the API — this skill does the go/no-go reasoning and the math, nothing upstream.
+- **Write the change.** The recommendation ends at a number. Writing it to the account is a mutation, governed by [`mutation-safety`](../mutation-safety/)'s two-step approval.
+- **Set your tolerances.** Standard ±8% vs. tight ±5% pacing tolerance is portfolio policy ([`portfolio-pacing-rules`](../portfolio-pacing-rules/)); this skill consumes the tolerance, it doesn't choose it.
+- **Exceed the cap — ever.** No calculation method outputs more than a 10% single-change increase. When the gap is bigger, the answer is multiple increases across ramp-up periods, not a bigger jump.
+
+---
+
 ## Core Principles
 
 ### Budget Philosophy
@@ -398,22 +408,6 @@ Recommended: Option 1 (conservative)
 
 ---
 
-## Integration with Other Skills
-
-### Prerequisite Skills:
-1. **impression-share-diagnostics** — Determines if budget is the constraint
-2. A pacing data source — Google Sheet, spreadsheet, or direct API query for MTD spend vs. target
-
-### Workflow:
-```
-1. impression-share-diagnostics → Diagnoses root cause (budget constraint?)
-2. Check pacing variance against your portfolio's tolerance
-3. THIS SKILL → Calculates budget recommendation (how much to increase?)
-4. Verify current budget data before writing changes
-```
-
----
-
 ## Quality Checks Before Recommending
 
 ### Pre-Flight Checklist:
@@ -432,11 +426,24 @@ Recommended: Option 1 (conservative)
 
 ---
 
-## Related Skills in This Repo
+## When to Load Other Skills
 
-- **[impression-share-diagnostics](../impression-share-diagnostics/)** — Root cause diagnosis before recommendation
-- **[mutation-safety](../mutation-safety/)** — Two-step approval protocol for writing budget changes to live accounts
-- **[gaql-query-patterns](../gaql-query-patterns/)** — GAQL templates for pulling budget and spend data
+The sequence around this skill (a pacing data source — Google Sheet, spreadsheet, or direct API query for MTD spend vs. target — is a prerequisite throughout):
+
+```
+1. impression-share-diagnostics → Diagnoses root cause (budget constraint?)
+2. Check pacing variance against your portfolio's tolerance
+3. THIS SKILL → Calculates budget recommendation (how much to increase?)
+4. Verify current budget data before writing changes
+```
+
+| Skill | When |
+|-------|------|
+| [`impression-share-diagnostics`](../impression-share-diagnostics/) | BEFORE this skill — diagnose whether budget is actually the constraint; if the diagnosis is quality, low demand, or ramp-up, this calculator's answer is "do not increase" |
+| [`portfolio-pacing-rules`](../portfolio-pacing-rules/) | When you need the pacing tolerance itself (standard ±8%, tight ±5%) rather than assuming one |
+| [`gaql-query-patterns`](../gaql-query-patterns/) | When pulling the budget, spend, and IS data this skill's inputs come from |
+| [`mutation-safety`](../mutation-safety/) | When an approved recommendation is written to the account — the budget change is a mutation and goes through two-step approval |
+| [`underspending-investigation`](../underspending-investigation/) | For the full producing workflow this calculator plugs into — it routes here at its recommendation step |
 
 ---
 

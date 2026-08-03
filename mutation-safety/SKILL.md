@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Choose the mutation.** Producing skills decide WHAT to change; this protocol governs how any change gets approved and executed. Clearing the two-step gate is control, not endorsement — an approved mutation can still be a bad idea.
+- **Check content or compliance.** Whether copy is verified ([`ad-copy-verification-standard`](../ad-copy-verification-standard/)) or targeting is lawful ([`fair-housing-compliance`](../fair-housing-compliance/)) is decided upstream; this skill only guarantees a human saw the exact change first.
+- **Gate reads.** Queries, reports, and audits run freely — the "NOT Mutations" list below is explicit about what needs no approval.
+- **Undo for you.** Revert Knowledge documents HOW to reverse each mutation type, but some operations (removed conversion actions) are permanent — which is why the dry-run must flag irreversibility BEFORE execution, not after.
+
+---
+
 ## Core Rules
 
 ### Rule 1: No Mutations Without Two-Step Approval
@@ -120,6 +129,27 @@ Reversibility: [Yes/No — how to undo if needed]
 Type APPROVE to execute, or CANCEL to abort.
 ```
 
+### Worked Example (Synthetic Data)
+
+A skill proposes raising Acme Plumbing's search budget. The dry-run preview it must show first:
+
+```
+MUTATION PREVIEW
+================
+Target: Acme Plumbing (CID: 1234567890)
+Operation: Campaign budget increase
+Entities affected: 1
+
+Current → Proposed:
+  - Budget "Search - General": $50.00/day → $54.00/day (+8%)
+
+Reversibility: Yes — op.update back to $50.00/day restores the original state.
+
+Type APPROVE to execute, or CANCEL to abort.
+```
+
+Nothing has executed yet. If the user replies APPROVE, exactly this change runs — same account, same entity, same values. If the user replies CANCEL, asks a question, or says anything else, the account stays untouched. And the approval is typed by the user — never generated on their behalf (Rule 5).
+
 ---
 
 ## Revert Knowledge
@@ -145,3 +175,16 @@ If a mutation needs to be undone:
 4. **Auto-approve in batch** — Script processes 50 accounts without stopping for review
 5. **Overwrite vs. append** — Sheet write replaces existing data instead of adding to it
 6. **Test vs. production** — Mutation runs against live account instead of test account
+
+---
+
+## When to Load Other Skills
+
+This skill is a gate, not a workflow — producing skills route INTO it whenever they reach a write step. In this repo that includes [`add-account-negative-keywords`](../add-account-negative-keywords/) and [`sqr-pipeline`](../sqr-pipeline/) (negative-keyword uploads), [`dgen-automation-disable`](../dgen-automation-disable/) (ad-automation settings), [`pmax-asset-automation`](../pmax-asset-automation/) (campaign-level automation fixes), and [`budget-recommendation-calculator`](../budget-recommendation-calculator/) (when an approved recommendation is written to the account).
+
+Load alongside:
+
+| Skill | When |
+|-------|------|
+| [`ad-copy-verification-standard`](../ad-copy-verification-standard/) | When the mutation writes ad copy — verification gates the content, this skill gates the write |
+| [`fair-housing-compliance`](../fair-housing-compliance/) | When the mutation touches targeting on housing accounts — compliance gates the targeting choice, this skill gates the write |

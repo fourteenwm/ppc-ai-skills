@@ -22,7 +22,7 @@ This skill tells you:
 
 ## What's Inside
 
-- **4 diagnostic scenarios** with patterns, mechanisms, and recommendations
+- **5 diagnostic scenarios** with patterns, mechanisms, and recommendations
 - **IS patterns cheat sheet** — quick lookup table matching IS values to diagnosis
 - **Smart bidding context** — why budget is the primary lever now
 - **Budget vs. quality trade-off rules** — when to increase, when to fix quality first

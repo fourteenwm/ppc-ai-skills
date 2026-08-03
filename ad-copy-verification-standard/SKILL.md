@@ -14,6 +14,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Generate the copy.** Structure, distribution formulas, and copywriting craft live in [`ad-copy-generation-framework`](../ad-copy-generation-framework/) — this standard only decides which claims are allowed in.
+- **Scrape websites itself.** It requires scraped site content (Firecrawl, Jina Reader, or any scraper returning clean markdown — see Rule 1) but ships no scraper.
+- **Check Google Ads policy.** A claim can be fully verified and still disapproved (trademarks, restricted categories). Verification is factual grounding, not policy review.
+- **Judge performance.** It never says whether verified copy will convert — only whether it's true to the website. Diagnosing underperforming copy is [`investigation-methodology`](../investigation-methodology/)'s territory.
+
+---
+
 ## Core Principle
 
 **ABSOLUTE REQUIREMENT: Only create ad copy based on EXPLICITLY VERIFIED information from the business's website.**
@@ -476,10 +485,13 @@ Ad copy creation is successful when:
 
 ---
 
-## Related Skills in This Repo
+## When to Load Other Skills
 
-- **[mutation-safety](../mutation-safety/)** — Two-step approval protocol that prevents writing unverified copy to live accounts
-- **[investigation-methodology](../investigation-methodology/)** — Hypothesis-driven framework for diagnosing ad copy issues
+| Skill | When |
+|-------|------|
+| [`ad-copy-generation-framework`](../ad-copy-generation-framework/) | Alongside this standard on any copy-generation task — it shapes verified claims into headlines and descriptions; this standard gates what goes in |
+| [`mutation-safety`](../mutation-safety/) | When approved copy is written to a live account — its two-step approval is the last catch for unverified copy that slips through review |
+| [`investigation-methodology`](../investigation-methodology/) | When existing ad copy underperforms and you need a hypothesis-driven diagnosis before rewriting |
 
 ---
 

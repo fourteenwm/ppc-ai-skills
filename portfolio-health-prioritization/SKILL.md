@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Investigate accounts.** It decides WHICH accounts get investigated and in what order — the digging itself belongs to investigation skills (e.g. [`underspending-investigation`](../underspending-investigation/) for pacing misses).
+- **Run the health check.** It consumes the flagged-account list your own monitoring produces (script, sheet, or API sweep — "replace with your own equivalent" throughout) — it ships no scanner.
+- **Set the thresholds.** The ±5%/±8% tolerances are portfolio policy from [`portfolio-pacing-rules`](../portfolio-pacing-rules/); this skill applies them to build the day's list, it doesn't choose them.
+- **Fix anything.** Output is a prioritized list. Budget changes, quality work, and every other intervention happen downstream in their own skills, under their own guardrails.
+
+---
+
 ## Quick Reference: Priority Tiers
 
 ### 🚨 Tier 1: CRITICAL (Investigate First)
@@ -430,34 +439,16 @@ Tier 3 (Medium Priority): 9 accounts (near threshold, ad disapprovals, etc.)
 
 ---
 
-## Integration with Other Skills
+## When to Load Other Skills
 
-### Skills This Prioritization Feeds Into:
+| Skill | When |
+|-------|------|
+| [`portfolio-pacing-rules`](../portfolio-pacing-rules/) | For the pacing thresholds this skill's tiers are built on (±8% Portfolio B, ±5% Portfolio A) and the budget management philosophy behind them — the tolerance policy lives there |
+| [`underspending-investigation`](../underspending-investigation/) | After prioritization, for each selected account whose flag is a pacing miss — it runs the actual investigation |
+| [`budget-recommendation-calculator`](../budget-recommendation-calculator/) | Downstream, when an investigation lands on a budget fix — tier urgency affects how quickly the recommendation moves |
+| [`account-diagnostic`](../account-diagnostic/) | When a prioritized account needs a full health inspection rather than a single-issue investigation — deciding which account to inspect first is this skill's job, the inspection is that one's |
 
-**Directly Used By:**
-- Your portfolio settings audit agent/workflow (external — replace with your own)
-
-**Indirectly Impacts:**
-- Your underspending investigation workflow (external)
-- [`portfolio-pacing-rules`](../portfolio-pacing-rules/) - References same thresholds
-- [`budget-recommendation-calculator`](../budget-recommendation-calculator/) - Urgency affects recommendation timing
-
-### Skills Referenced By This Skill:
-
-- [`portfolio-pacing-rules`](../portfolio-pacing-rules/) - Pacing thresholds (±8% Portfolio B, ±5% Portfolio A)
-- Your sheets-lookup helper (external — internal data plumbing, replace with your own sheet-reading code)
-
----
-
-## Related Skills & Documentation
-
-**Related Skills:**
-- [`portfolio-pacing-rules`](../portfolio-pacing-rules/) - Pacing thresholds and budget management philosophy
-- [`budget-recommendation-calculator`](../budget-recommendation-calculator/) - Used after prioritization to generate recommendations
-
-**External (replace with your own):**
-- Sheets-lookup helper — data source for pacing variance
-- Underspending investigation agent/workflow — investigates accounts flagged by prioritization
+**External pieces you supply yourself:** the daily portfolio health check that produces the flagged-account list, and the pacing data source (sheet or API) behind the variance numbers — both referenced throughout this skill, both replaceable with your own equivalents.
 
 ---
 

@@ -7,6 +7,13 @@ description: Structured hypothesis-driven investigation framework for diagnosing
 
 Structured framework for diagnosing Google Ads performance issues. Follow this process for every investigation — no exceptions.
 
+## What This Skill Deliberately Does NOT Do
+
+- **Replace domain judgment.** Step 4's recommendation must be specific, but the domain rules that make it safe live in their own skills — a budget fix still goes through [`budget-recommendation-calculator`](../budget-recommendation-calculator/)'s conservative caps; a live-account change still goes through [`mutation-safety`](../mutation-safety/)'s approval gate.
+- **Pull data for you.** The framework sequences WHICH evidence to gather at each layer; it works with the API, exports, or screenshots — whatever access exists.
+- **Format the client deliverable.** Findings presented to a client go through [`client-communication-standards`](../client-communication-standards/) (Background → Analysis → Conclusions); Step 4 here is the internal analytical output that feeds it.
+- **Guarantee an answer.** Inconclusive is a valid verdict — the Rules require saying so over inventing a cause.
+
 ## Step 1: Define the Problem Statement
 
 Start with the specific question. Do not generalize.
@@ -142,3 +149,46 @@ The conclusion should identify the PRIMARY cause. There may be contributing fact
 
 ### Ask When Stuck
 If the data doesn't point to a clear root cause after Layer 4, say so. "The data is inconclusive — here's what I've eliminated, and here are the remaining possibilities that need manual investigation" is better than making up an answer.
+
+## Worked Example (Synthetic Data)
+
+**Step 1 — Problem statement:** "Metro Auto's CPA rose from $42 to $67 (+60%) between June and July, same campaigns both months."
+
+**Step 2 — Hypotheses before any data:**
+```
+H1: Budget or bid strategy changed — 25%
+H2: Conversion tracking broke or changed — 20%
+H3: New competitor / auction pressure — 20%
+H4: Seasonality (summer slowdown) — 15%
+H5: Negative keywords blocking good traffic — 10%
+H6: Landing page issue — 10%
+```
+
+**Step 3 — Evidence, one layer at a time:**
+
+- **Layer 1 (performance):** Cost roughly flat ($3.1k → $3.2k); conversions fell 74 → 48. The CPA rise is conversion-driven, not spend-driven. → H1 down, H2/H5/H6 up.
+- **Layer 2 (traffic quality):** Clicks and CTR flat; conversion rate 4.1% → 2.7%. Traffic held — the drop is post-click. → H3 down (auction pressure would show in CPCs and volume), H2/H6 up.
+- **Layer 3 (segmentation):** Mobile conversion rate fell 4.4% → 1.6% while desktop held (3.8% → 4.0%). → H6 now leading, mobile-specific. H4 down — seasonality wouldn't pick a device.
+- **Layer 4 (change history):** Website relaunched July 2; zero keyword, bid, budget, or negative changes in the account. → H1/H5 eliminated.
+- **Layer 5 (tracking):** Conversion actions unchanged; tags verified firing on the new site. → H2 eliminated.
+
+**Step 4 — Findings:**
+
+Root cause: the July 2 site relaunch broke the mobile experience — mobile conversion rate fell ~64% while desktop held, and the timing matches change history.
+
+```
+✅ Confirmed: Mobile CVR 4.4% → 1.6% after the relaunch; desktop stable (90% confidence)
+❌ Eliminated: No account changes (Layer 4); tracking verified working (Layer 5)
+⚠️ Uncertain: Minor seasonal contribution possible — but seasonality isn't device-specific, so secondary at most
+```
+
+Recommendation: Fix the mobile landing experience (test the form on the relaunched template), then re-check mobile conversion rate over the following 7-10 days. No bidding or budget changes until the site issue is resolved — the account didn't cause this.
+
+## When to Load Other Skills
+
+| Skill | When |
+|-------|------|
+| [`change-history-checker`](../change-history-checker/) | At Layer 4 — it pulls the account change history (up to 90 days back) that this layer interrogates |
+| [`impression-share-diagnostics`](../impression-share-diagnostics/) | When the problem statement is underspending — IS analysis is the specialized layer for budget vs. quality vs. demand |
+| [`budget-recommendation-calculator`](../budget-recommendation-calculator/) | When the root cause is a budget constraint and the recommendation needs conservative sizing |
+| [`client-communication-standards`](../client-communication-standards/) | When Step 4's findings become a client-facing report (Background → Analysis → Conclusions) |

@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Calculate the budget change.** Diagnosis ends at "budget is (or isn't) the constraint" — the sizing math (5-10% caps, adjustment factors, daily translation) lives in [`budget-recommendation-calculator`](../budget-recommendation-calculator/).
+- **Diagnose PMax with the decision tree.** Performance Max has no impression share metrics — the scenarios apply to Search campaigns (plus the bid-cap check for Display/Video remarketing). PMax gets budget-utilization and asset diagnostics instead (see the campaign-type section).
+- **Treat Rank Lost IS as a target.** The skill reads it as evidence for the constraint diagnosis, never as a number to optimize down — chasing it is the misconception this skill exists to correct.
+- **Pull the metrics.** The required API fields are listed under Data Sources Required; the query templates live in [`gaql-query-patterns`](../gaql-query-patterns/).
+
+---
+
 ## Core Impression Share Metrics
 
 ### Search Impression Share (Search IS)
@@ -454,11 +463,14 @@ Use the gap between potential ceiling and required budget to estimate underpacin
 
 ---
 
-## Related Skills in This Repo
+## When to Load Other Skills
 
-- **[budget-recommendation-calculator](../budget-recommendation-calculator/)** — Uses IS diagnosis to calculate conservative budget recommendations
-- **[gaql-query-patterns](../gaql-query-patterns/)** — GAQL templates for pulling impression share metrics
-- **[investigation-methodology](../investigation-methodology/)** — Hypothesis-driven diagnostic framework
+| Skill | When |
+|-------|------|
+| [`budget-recommendation-calculator`](../budget-recommendation-calculator/) | AFTER diagnosis, when the verdict is "budget constraint" — it turns the diagnosis into a conservative, capped recommendation |
+| [`underspending-investigation`](../underspending-investigation/) | The producing investigation workflow that routes here — this skill is its impression-share analysis step |
+| [`investigation-methodology`](../investigation-methodology/) | When IS analysis is one layer of a broader performance investigation rather than a standalone underspend question |
+| [`gaql-query-patterns`](../gaql-query-patterns/) | When pulling the IS metrics this skill interprets |
 
 ---
 

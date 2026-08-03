@@ -16,6 +16,13 @@ Comprehensive Google Ads RSA copywriting framework with 23 elements, distributio
 - Reviewing ad copy quality
 - Training on ad copywriting principles
 
+## What This Skill Deliberately Does NOT Do
+
+- **Verify claims.** The framework governs structure and distribution — how many keyword headlines, where the CTA goes, what makes copy strong. Whether a specific claim may be used at all is [`ad-copy-verification-standard`](../ad-copy-verification-standard/)'s call: every claim must come from explicitly verified website content, and no distribution formula overrides that.
+- **Write to live accounts.** Output is copy for human review — a Google Sheet reviewed before import, never a direct API write.
+- **Decide which ads need new copy.** Audit and refresh skills pick the targets; this framework loads once the writing starts.
+- **Check Google Ads policy.** Character limits, title case, and sentiment targets (`technical-specs.md`) are formatting validation, not a policy or trademark review.
+
 ## Key Features
 
 - **3-Tier Element System**: Mandatory, Preferred, and Optional elements
@@ -77,10 +84,14 @@ Example: "Get Emergency Plumbing Fixed Today"
 
 See `examples.md` for more.
 
-## Integration with Other Skills
+## When to Load Other Skills
 
-- **Ad Copy Verification Standard**: Only recommend extensions/ad copy from EXPLICITLY verified website content
-- **Mutation Safety**: Agent outputs to Google Sheet (manual review before import)
+| Skill | When |
+|-------|------|
+| [`ad-copy-verification-standard`](../ad-copy-verification-standard/) | BEFORE generating — it gates what claims are allowed in (explicitly verified website content only); this framework then shapes those claims into headlines and descriptions |
+| [`mutation-safety`](../mutation-safety/) | Only if generated copy is pushed to an account via API — the normal output path (Google Sheet, manual review before import) is not a mutation |
+
+Producing skills in this repo that route here for copywriting: [`rsa-single-account`](../rsa-single-account/), [`rsa-refresh`](../rsa-refresh/), [`rsa-bulk-edit`](../rsa-bulk-edit/), [`pmax-builder`](../pmax-builder/), and [`competitor-analysis-v2`](../competitor-analysis-v2/).
 
 ## Usage in Agents
 

@@ -2,6 +2,47 @@
 
 All notable changes to this repository.
 
+## 2026-08-03 — Knowledge-skill trim: boundaries, when-to-load wiring, worked examples (nine skills)
+
+Nine knowledge skills — [`ad-copy-generation-framework`](ad-copy-generation-framework/),
+[`ad-copy-verification-standard`](ad-copy-verification-standard/),
+[`budget-recommendation-calculator`](budget-recommendation-calculator/),
+[`client-communication-standards`](client-communication-standards/),
+[`fair-housing-compliance`](fair-housing-compliance/),
+[`impression-share-diagnostics`](impression-share-diagnostics/),
+[`investigation-methodology`](investigation-methodology/),
+[`mutation-safety`](mutation-safety/), and
+[`portfolio-health-prioritization`](portfolio-health-prioritization/) — get the
+same three additions, with existing content untouched around them:
+
+- **An explicit "What This Skill Deliberately Does NOT Do" boundary** at the top
+  of each SKILL.md, derived from each file's own rules (e.g. the budget
+  calculator never exceeds its 10% single-change cap; the verification standard
+  ships no scraper; fair-housing compliance is guardrails, not legal advice).
+- **Flat related-skills lists converted to when-to-load wiring** — every row
+  says when to load the other skill, and every target is a folder that exists.
+  Where a skill had no cross-skill wiring at all (client-communication-standards,
+  fair-housing-compliance, investigation-methodology, mutation-safety), the
+  wiring reciprocates routes other skills already declare into it. In
+  [`portfolio-health-prioritization/SKILL.md`](portfolio-health-prioritization/SKILL.md)
+  the two overlapping integration sections called the underspending workflow
+  "external — replace with your own"; this repo ships
+  [`underspending-investigation`](underspending-investigation/), so the
+  consolidated wiring now points at it.
+- **A worked example where none existed** (synthetic data):
+  [`investigation-methodology/SKILL.md`](investigation-methodology/SKILL.md)
+  gains an end-to-end run of the framework — problem statement through
+  hypothesis scorecard to a device-specific root cause — and
+  [`mutation-safety/SKILL.md`](mutation-safety/SKILL.md) gains a filled-in
+  dry-run preview showing the approve/cancel fork. Skills that already carry
+  strong examples got none added.
+
+One count reconciled from file content:
+[`impression-share-diagnostics/README.md`](impression-share-diagnostics/README.md)
+said "4 diagnostic scenarios" while the SKILL documents five (1, 2, 3, 3a, 4) —
+now says 5. Knowledge skills keep their single-file shape (no new rules.md or
+examples.md), and every SKILL.md frontmatter is byte-identical. Docs-only commit.
+
 ## 2026-08-03 — Doc-accuracy pass: fifteen fixes across eight skills
 
 Fifteen corrections from re-deriving doc claims against the code and files
