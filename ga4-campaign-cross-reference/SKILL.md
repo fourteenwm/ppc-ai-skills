@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Collect the data.** It compares two datasets it's handed; gathering them is the prerequisite [`ga4-cross-analysis`](../ga4-cross-analysis/) step, which ships the campaign-settings query this skill reads.
+- **Treat every discrepancy as a settings problem.** Its whole method refuses that — a GA4 anomaly (VPNs, mobile IP inaccuracy) gets ruled out, not "fixed."
+- **Prioritize or build the action plan.** It confirms or rules out gaps; turning the confirmed ones into a sequenced plan is [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/).
+- **Apply the changes.** It documents findings; execution happens downstream under its own guardrails.
+
+---
+
 ## Core Principle: Hypothesis-Driven Verification
 
 **CRITICAL:** Never assume GA4 data indicates a campaign settings problem without verification.
@@ -477,17 +486,16 @@ Use this checklist for every investigation:
 
 ---
 
-## Related Skills & Documentation
+## When to Load Other Skills
 
-**Related Skills:**
-- **ga4-cross-analysis** - Data collection prerequisite
-- **lead-quality-pattern-analysis** - Red flag detection (identifies what to cross-reference)
-- **lead-quality-recommendation-prioritization** - Uses verified findings to generate recommendations
-- **client-communication-standards** - Formatting for "What Was Ruled Out" sections
+| Skill | When |
+|-------|------|
+| [`ga4-cross-analysis`](../ga4-cross-analysis/) | Before cross-referencing — it collects both datasets and ships the campaign-settings query (`../ga4-cross-analysis/scripts/query_campaign_settings.py`) this skill's verification step reads |
+| [`lead-quality-pattern-analysis`](../lead-quality-pattern-analysis/) | When you need the red-flag detection that identifies what's worth cross-referencing in the first place |
+| [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/) | After findings are confirmed — it turns verified gaps into prioritized recommendations |
+| [`client-communication-standards`](../client-communication-standards/) | When formatting the findings (including the "What Was Ruled Out" section) into a client deliverable |
 
-**Related Documentation:**
-- The Real-World Example section above — a full hypothesis → verification → finding walkthrough
-- **ga4-cross-analysis** (in this repo) — system overview of the full workflow; ships `../ga4-cross-analysis/scripts/query_campaign_settings.py` for the campaign-settings verification step
+The full hypothesis → verification → finding walkthrough lives in the Real-World Example above.
 
 ---
 

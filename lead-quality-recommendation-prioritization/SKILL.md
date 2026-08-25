@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Detect the issues.** Its inputs are red flags from [`lead-quality-pattern-analysis`](../lead-quality-pattern-analysis/) and verified gaps from [`ga4-campaign-cross-reference`](../ga4-campaign-cross-reference/); it prioritizes, it doesn't find.
+- **Recommend the unverified.** Its Core Principle is Verified-first — an unconfirmed hypothesis is documented in "What Was Ruled Out," never shipped as an action.
+- **Execute the changes.** It structures the plan and timeline; applying the changes is downstream and mutation-gated.
+- **Format the client deliverable.** The final report formatting is [`client-communication-standards`](../client-communication-standards/).
+
+---
+
 ## Core Principle: Actionable, Verified, Prioritized
 
 **Every recommendation must be:**
@@ -486,17 +495,17 @@ Clear action plan with specific next steps, verified recommendations, and docume
 
 ---
 
-## Related Skills & Documentation
+## When to Load Other Skills
 
-**Related Skills:**
-- **lead-quality-pattern-analysis** - Identifies issues that become recommendations
-- **ga4-campaign-cross-reference** - Verifies what's already done (prevents duplicate recommendations)
-- **client-communication-standards** - Formatting for final report delivery
-- **budget-recommendation-calculator** - Similar prioritization framework for budget changes
+| Skill | When |
+|-------|------|
+| [`lead-quality-pattern-analysis`](../lead-quality-pattern-analysis/) | Upstream — it identifies the red flags that become recommendations |
+| [`ga4-campaign-cross-reference`](../ga4-campaign-cross-reference/) | Upstream — it verifies what's already configured so you don't recommend a fix that's in place |
+| [`client-communication-standards`](../client-communication-standards/) | When formatting the prioritized plan into a client-facing report |
+| [`budget-recommendation-calculator`](../budget-recommendation-calculator/) | When a recommendation is a budget change — it carries the parallel prioritization framework for pacing fixes |
+| [`ga4-lead-quality-investigation`](../ga4-lead-quality-investigation/) | It orchestrates the full investigation and routes here for its Step-5 prioritization |
 
-**Related Documentation:**
-- The Real-World Example section above — a full recommendation structure, end to end
-- **ga4-cross-analysis** (in this repo) — system overview of the workflow these recommendations conclude
+The full recommendation structure end to end lives in the Real-World Example above; [`ga4-cross-analysis`](../ga4-cross-analysis/) gives the system overview of the workflow these recommendations conclude.
 
 ---
 

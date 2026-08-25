@@ -2,6 +2,55 @@
 
 All notable changes to this repository.
 
+## 2026-08-25 — Knowledge-skill trim: boundaries, when-to-load wiring, worked examples (eight skills)
+
+Eight knowledge skills — [`sqr-classifier`](sqr-classifier/),
+[`ga4-campaign-cross-reference`](ga4-campaign-cross-reference/),
+[`ga4-lead-quality-investigation`](ga4-lead-quality-investigation/),
+[`gaql-query-patterns`](gaql-query-patterns/),
+[`google-ads-samples`](google-ads-samples/),
+[`lead-quality-pattern-analysis`](lead-quality-pattern-analysis/),
+[`lead-quality-recommendation-prioritization`](lead-quality-recommendation-prioritization/), and
+[`portfolio-pacing-rules`](portfolio-pacing-rules/) — get the same three
+additions as the 2026-08-03 batch, with existing content untouched around them:
+
+- **An explicit "What This Skill Deliberately Does NOT Do" boundary** at the top
+  of each SKILL.md, derived from each file's own rules (e.g. the query-pattern
+  library ships templates but no runner and stays read-only; the pacing rules
+  set the tolerance bands but don't recompute the variance; the lead-quality
+  investigation is read-only and never mutates Google Ads).
+- **Flat related-skills lists converted to when-to-load wiring** — every row
+  says when to load the other skill, and every target is a folder that exists.
+  Where a skill had no cross-skill wiring at all (sqr-classifier,
+  gaql-query-patterns), the wiring reciprocates routes other skills already
+  declare into it. In
+  [`portfolio-pacing-rules/SKILL.md`](portfolio-pacing-rules/SKILL.md) the
+  "Integration with Agents" and "Related Documentation" sections consolidate
+  into one when-to-load table plus an external-pieces paragraph (house
+  terminology is skills, not agents).
+- **A worked example where none existed** (synthetic data):
+  [`sqr-classifier/SKILL.md`](sqr-classifier/SKILL.md) gains a five-term
+  classification for a synthetic auto-repair shop, and
+  [`ga4-lead-quality-investigation/SKILL.md`](ga4-lead-quality-investigation/SKILL.md)
+  gains a compact end-to-end run on synthetic data. Skills that already carry
+  strong examples got none added.
+
+Three reconciliations from file content:
+[`gaql-query-patterns/README.md`](gaql-query-patterns/README.md) listed a
+"Change History" pattern the SKILL never contained — the row is dropped and the
+wiring routes change-history queries to
+[`change-history-checker`](change-history-checker/), which owns the required
+date-window and LIMIT rules.
+[`ga4-lead-quality-investigation`](ga4-lead-quality-investigation/) now records
+that its `query_campaign_settings.py` reference implementation ships in the
+sibling [`ga4-cross-analysis`](ga4-cross-analysis/), consistent across the SKILL
+and README. And
+[`ga4-campaign-cross-reference/SKILL.md`](ga4-campaign-cross-reference/SKILL.md)'s
+pointer to that same script stays in its cross-skill `../` path form through the
+wiring conversion. Knowledge skills keep their single-file shape (no new
+rules.md or examples.md), and every SKILL.md frontmatter is byte-identical.
+Docs-only commit.
+
 ## 2026-08-03 — Knowledge-skill trim: boundaries, when-to-load wiring, worked examples (nine skills)
 
 Nine knowledge skills — [`ad-copy-generation-framework`](ad-copy-generation-framework/),

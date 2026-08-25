@@ -12,6 +12,16 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Pull the data.** It defines the thresholds; the pacing numbers come from your own tracking sheet and the Google Ads API (see Data Sources Referenced).
+- **Calculate pacing.** Variance is auto-calculated in your Pacing Dashboard — this skill sets and interprets the tolerance bands, it doesn't recompute the number.
+- **Size the budget change.** It holds the conservative 5-10% ceiling; the actual increase math is [`budget-recommendation-calculator`](../budget-recommendation-calculator/), which consumes the tolerance defined here.
+- **Select or investigate accounts.** [`portfolio-health-prioritization`](../portfolio-health-prioritization/) picks which accounts to act on and [`underspending-investigation`](../underspending-investigation/) diagnoses them; this skill provides the thresholds both rely on.
+- **Execute changes.** It is protocol-only — no mutations happen here.
+
+---
+
 ## Quick Reference: Pacing Thresholds by Portfolio
 
 ### Portfolio A
@@ -159,20 +169,6 @@ allowed-tools: [Read]
 
 ---
 
-## Integration with Agents
-
-### Agents/workflows that use this skill:
-- Your portfolio settings audit agent/workflow — applies portfolio thresholds to pacing analysis
-- Your underspending investigation workflow — uses pacing tolerances for diagnosis
-- Your account-level error analysis — flags accounts outside portfolio-specific thresholds
-
-All agent references above are internal — replace with your own equivalents. This skill is protocol-only and works with any agent setup.
-
-### How to reference:
-Agents and skills can reference this skill's rules directly. Claude will auto-load this skill when portfolio-specific pacing rules are needed.
-
----
-
 ## Budget Management Context (Smart Bidding)
 
 ### Primary Control Lever: Monthly Budget
@@ -220,11 +216,16 @@ Where:
 
 ---
 
-## Related Documentation
+## When to Load Other Skills
 
-- Your own portfolio context files — strategic context (names, pacing rules, client KPIs)
-- Your own accounts map — account name → CID → portfolio mapping
-- Your own dashboard/sheet config — tab schemas for pacing data
+| Skill | When |
+|-------|------|
+| [`budget-recommendation-calculator`](../budget-recommendation-calculator/) | When a pacing miss becomes a budget change — it sizes the increase within the tolerance defined here (it consumes this policy, it doesn't set it) |
+| [`portfolio-health-prioritization`](../portfolio-health-prioritization/) | When deciding which accounts to look at first — its tiers are built on these ±5%/±8% thresholds |
+| [`underspending-investigation`](../underspending-investigation/) | When an account is outside tolerance and needs diagnosis — it uses these thresholds as its Step-1 gate |
+| [`budget-guardian`](../budget-guardian/) and [`shared-budget-updater`](../shared-budget-updater/) | For spend-pace variance context on a book — both reference this policy for what "normal" looks like |
+
+**External pieces you supply yourself:** your own portfolio context files (names, pacing rules, client KPIs), your accounts map (account name → CID → portfolio), and your dashboard/sheet config (tab schemas for the pacing data) — all referenced throughout this skill, all replaceable with your own equivalents.
 
 ---
 

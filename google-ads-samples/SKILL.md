@@ -14,6 +14,15 @@ allowed-tools: [Read, Grep, Glob]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Run the samples.** It finds, explains, and adapts proven patterns (see the Instructions steps); executing the resulting code is yours to do.
+- **Write GAQL for you.** Simple reporting queries belong to [`gaql-query-patterns`](../gaql-query-patterns/), not here.
+- **Wrap mutations in approval.** The samples show mutations; the two-step preview-and-approve gate is [`mutation-safety`](../mutation-safety/).
+- **Maintain or vet the samples.** They are Google's official `google-ads-python` examples (cloned in Setup) — this skill indexes them, it doesn't own or warrant them.
+
+---
+
 ## Setup (One-Time)
 
 This skill assumes you have a local checkout of Google's official Python samples repo at `./google-ads-python/`:
@@ -300,12 +309,13 @@ Skip this skill when:
 
 ---
 
-## Integration with Other Skills
+## When to Load Other Skills
 
-This skill works well with:
-- **mutation-safety** - Examples show mutations, its two-step approval wraps them safely
-- **fair-housing-compliance** - Examples show targeting, compliance checks constraints
-- **client-communication-standards** - Examples gather data, standards format reports
+| Skill | When |
+|-------|------|
+| [`mutation-safety`](../mutation-safety/) | When a sample performs a mutation — its two-step approval wraps the change before it runs |
+| [`fair-housing-compliance`](../fair-housing-compliance/) | When a sample sets targeting for a housing account — compliance constrains what's allowed |
+| [`client-communication-standards`](../client-communication-standards/) | When a reporting sample's output becomes a client-facing deliverable |
 
 ---
 

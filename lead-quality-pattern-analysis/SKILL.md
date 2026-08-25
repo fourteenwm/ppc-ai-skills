@@ -12,6 +12,15 @@ allowed-tools: [Read]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Collect the data.** It runs on GA4 behavioral data already gathered (Step 1 hands it [`ga4-cross-analysis`](../ga4-cross-analysis/) output); it pulls nothing itself.
+- **Verify flags against campaign settings.** It detects patterns in GA4 behavior; confirming whether a flag is a real config gap or a data artifact is [`ga4-campaign-cross-reference`](../ga4-campaign-cross-reference/)'s hypothesis → verification job.
+- **Build the prioritized plan.** It counts and severity-classifies red flags; turning them into a sequenced action plan is [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/).
+- **Apply the fixes.** Adding URL or placement exclusions runs through [`mutation-safety`](../mutation-safety/)'s two-step approval, not here.
+
+---
+
 ## Quick Reference: Red Flag Decision Tree
 
 **Severity Classification:**
@@ -447,10 +456,16 @@ Performance Max campaign serving in-app ads (Android WebView) that lead users to
 
 ---
 
-## Related Skills in This Repo
+## When to Load Other Skills
 
-- **[investigation-methodology](../investigation-methodology/)** — Hypothesis-driven framework for diagnosing root causes
-- **[mutation-safety](../mutation-safety/)** — Two-step approval before applying URL/placement exclusions
+| Skill | When |
+|-------|------|
+| [`ga4-cross-analysis`](../ga4-cross-analysis/) | Before applying the frameworks, when you still need to collect the GA4 behavioral data they read |
+| [`ga4-campaign-cross-reference`](../ga4-campaign-cross-reference/) | To verify a flagged pattern against live campaign settings — flag → hypothesis → finding |
+| [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/) | To turn the counted red flags into a prioritized, sequenced action plan |
+| [`investigation-methodology`](../investigation-methodology/) | For the broader hypothesis-driven framework when the root cause spans more than lead quality |
+| [`mutation-safety`](../mutation-safety/) | Two-step approval before applying any URL or placement exclusion the analysis recommends |
+| [`ga4-lead-quality-investigation`](../ga4-lead-quality-investigation/) | It orchestrates the full investigation and auto-loads this skill as its red-flag detection step |
 
 ---
 

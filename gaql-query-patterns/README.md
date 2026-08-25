@@ -18,7 +18,6 @@ Ready-to-use Google Ads Query Language (GAQL) templates for the most common PPC 
 | Conversion Tracking | Conversion actions, values, attribution |
 | Geographic Performance | Performance by location |
 | Device Performance | Mobile vs. desktop vs. tablet breakdown |
-| Change History | What changed in the account and when |
 | Account-Level Metrics | High-level account summary |
 
 ---

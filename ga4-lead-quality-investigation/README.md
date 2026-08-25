@@ -58,6 +58,8 @@ This skill calls two classes of script under `scripts/` that you implement again
    - Ad scheduling (day parting)
    - Negative keyword lists attached
 
+   A working reference implementation of this script ships in the sibling [`ga4-cross-analysis`](../ga4-cross-analysis/) skill at `../ga4-cross-analysis/scripts/query_campaign_settings.py` — you can use it directly rather than writing your own.
+
 2. **GA4 query scripts** — given a GA4 property ID, campaign name, conversion event name, and date range, return:
    - Conversion summary (total conversions, total users, conversion rate)
    - Landing pages with conversion counts and categorization (high-intent vs low-intent)

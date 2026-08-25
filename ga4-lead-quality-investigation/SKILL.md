@@ -12,6 +12,15 @@ allowed-tools: [Read, Write, Bash, Grep, Glob, Skill]
 
 ---
 
+## What This Skill Deliberately Does NOT Do
+
+- **Mutate anything.** It is read-only — it writes an analysis document and never touches Google Ads.
+- **Own the methods.** The 5 frameworks, formulas, and templates live in the companion skills it auto-loads (see "Auto-Load Domain Knowledge Skills"); this file sequences them into the 7-step protocol.
+- **Ship the collector scripts.** `query_campaign_settings.py` ships as a reference implementation in the sibling [`ga4-cross-analysis`](../ga4-cross-analysis/) (`../ga4-cross-analysis/scripts/query_campaign_settings.py`); the GA4 query scripts are environment-specific and yours to implement (see "Script Contract").
+- **Execute the fixes.** It produces prioritized recommendations; applying them is downstream and mutation-gated.
+
+---
+
 ## Inputs
 
 The skill expects:
@@ -87,10 +96,10 @@ Apply all 5 analysis frameworks from the companion skill:
 Run a campaign-settings query against the Google Ads API to capture current configuration:
 
 ```bash
-python query_campaign_settings.py {CUSTOMER_ID} "{CAMPAIGN_NAME}"
+python ../ga4-cross-analysis/scripts/query_campaign_settings.py {CUSTOMER_ID} "{CAMPAIGN_NAME}"
 ```
 
-(The script is environment-specific — see "Script Contract" below.)
+(This reference script ships in the [`ga4-cross-analysis`](../ga4-cross-analysis/) companion — see "Script Contract" below.)
 
 **Document ALL settings:**
 
@@ -215,6 +224,28 @@ The skill is NOT required to run all steps. Use judgment:
 
 ---
 
+## Worked Example (Synthetic)
+
+**Inputs:** Lindenmoor Apartments, customer ID `1234567890`, campaign "Lindenmoor - Pmax", GA4 property `123456789`, event `book_tour`, issue "tour bookings are no-shows," last 14 days.
+
+**Steps 1-2 (collect + patterns):** 50 `book_tour` conversions. Red flags across the frameworks:
+
+- Framework 1 (Landing pages): 34/50 (68%) landed on `/blog/*` — informational, not property pages.
+- Framework 3 (Devices): 37/50 (74%) Android WebView (in-app browser).
+- Framework 4 (Time): 21/50 (42%) converted 1-4 AM.
+- Framework 5 (User behavior): 50/50 (100%) new users.
+
+Four red flags → **Severe** (>3).
+
+**Steps 3-4 (verify → finding):**
+
+- Hypothesis: blog traffic is converting. Verification: checked URL exclusions — none configured. Finding: **CONFIGURATION GAP** — add `/blog/*` to content exclusions.
+- Ruled out: GA4 shows out-of-area cities, but location targeting is correct with a tight radius → IP geolocation artifact, so **no targeting change**.
+
+**Step 5 (prioritize):** IMMEDIATE — add `/blog/*` URL exclusions (addresses 68% of conversions) and exclude mobile-app inventory. MEDIUM — add in-market audience signals to tighten targeting. Expected impact: removing the blog and in-app traffic should cut the low-intent conversions driving the no-shows.
+
+---
+
 ## Tools Used
 
 - **Skill** — Auto-invoke 5 domain-knowledge companion skills (CRITICAL — use at start)
@@ -227,12 +258,12 @@ The skill is NOT required to run all steps. Use judgment:
 
 ## Script Contract
 
-The skill assumes two classes of script under `scripts/`:
+The skill relies on two classes of script:
 
-1. **`query_campaign_settings.py`** — given a customer ID and campaign name, returns campaign configuration (geo targeting, URL exclusions, bid strategy, audience signals, ad scheduling, placement exclusions).
-2. **GA4 query scripts** — given a GA4 property ID, campaign name, conversion event, and date range, return: conversion summary, landing pages, user segments (city / device / browser / hour), engagement metrics.
+1. **`query_campaign_settings.py`** — given a customer ID and campaign name, returns campaign configuration (geo targeting, URL exclusions, bid strategy, audience signals, ad scheduling, placement exclusions). A working reference implementation ships in the sibling [`ga4-cross-analysis`](../ga4-cross-analysis/) skill at `../ga4-cross-analysis/scripts/query_campaign_settings.py` — use it directly rather than writing your own.
+2. **GA4 query scripts** — given a GA4 property ID, campaign name, conversion event, and date range, return: conversion summary, landing pages, user segments (city / device / browser / hour), engagement metrics. These are environment-specific — you implement them against your own infrastructure.
 
-Both are environment-specific — they live where your Google Ads credentials, GA4 service account, account registry, and property registry live. This repo documents the skill's data contract; you implement the scripts against your own infrastructure.
+Both live where your Google Ads credentials, GA4 service account, account registry, and property registry live. This repo documents the data contract each must satisfy.
 
 **Reference implementation hooks:**
 
@@ -461,14 +492,16 @@ An orchestrator can launch N parallel `Task(subagent_type="general-purpose", …
 
 ---
 
-## Companion Skills (Required)
+## When to Load Other Skills
 
-All 5 are shipped in this repo as standalone skills:
+This skill auto-loads all five companions at the start of every investigation (see "Auto-Load Domain Knowledge Skills"). Each also ships standalone in this repo; here is which step each serves:
 
-- `ga4-cross-analysis` — Data collection from GA4 + Google Ads APIs (structured JSON output)
-- `lead-quality-pattern-analysis` — 5 red-flag detection frameworks with severity classification
-- `ga4-campaign-cross-reference` — Hypothesis-driven verification methodology
-- `lead-quality-recommendation-prioritization` — 3-tier priority system and recommendation templates
-- `client-communication-standards` — Background → Analysis → Conclusions report formatting
+| Skill | When |
+|-------|------|
+| [`ga4-cross-analysis`](../ga4-cross-analysis/) | Step 1 data collection — it assembles the GA4 + Google Ads dataset and ships the campaign-settings query this skill runs; this skill is its primary consumer |
+| [`lead-quality-pattern-analysis`](../lead-quality-pattern-analysis/) | Step 2 — the 5 red-flag detection frameworks and severity classification |
+| [`ga4-campaign-cross-reference`](../ga4-campaign-cross-reference/) | Steps 4 and 6 — hypothesis → verification → finding, and the "What Was Ruled Out" template |
+| [`lead-quality-recommendation-prioritization`](../lead-quality-recommendation-prioritization/) | Step 5 — the 3-tier priority system and recommendation templates |
+| [`client-communication-standards`](../client-communication-standards/) | Step 7 — Background → Analysis → Conclusions formatting for the deliverable |
 
-Install all 5 alongside this skill for full functionality.
+Install all five alongside this skill for full functionality.

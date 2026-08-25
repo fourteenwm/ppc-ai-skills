@@ -7,6 +7,15 @@ description: Reusable GAQL query templates for Google Ads API. Auto-invoke when 
 
 Ready-to-use GAQL (Google Ads Query Language) query templates for common PPC analysis tasks.
 
+## What This Skill Deliberately Does NOT Do
+
+- **Run the queries.** These are copy-paste templates, not a runner — paste them into your own API client, Google Ads Scripts, or [`google-ads-query`](../google-ads-query/) to actually execute and export.
+- **Mutate anything.** Every template is a read-only `SELECT`; nothing here changes an account.
+- **Cover change-history queries.** Pulling what changed and when needs a finite date window and a `LIMIT`, and lives in [`change-history-checker`](../change-history-checker/) — a windowless change query won't run.
+- **Diagnose the results.** The "Use for" and "Interpreting results" notes point you at the analysis; the actual root-causing lives in the diagnostic skills (e.g. [`impression-share-diagnostics`](../impression-share-diagnostics/) for the impression-share query).
+
+---
+
 ## Campaign Queries
 
 ### 7-Day Campaign Spend Analysis
@@ -366,3 +375,15 @@ WHERE campaign.status = 'ENABLED' OR campaign.status = 'PAUSED'
 -- Correct
 WHERE campaign.status IN ('ENABLED', 'PAUSED')
 ```
+
+---
+
+## When to Load Other Skills
+
+| Skill | When |
+|-------|------|
+| [`google-ads-query`](../google-ads-query/) | To run these templates against an account and export the results to CSV — this skill is the templates, that one is the runner |
+| [`change-history-checker`](../change-history-checker/) | For "what changed and when" queries — they require a finite date window (90-day / 30-day) and a `LIMIT` that these general templates don't carry |
+| [`impression-share-diagnostics`](../impression-share-diagnostics/) | To interpret the impression-share query — Search IS, Budget Lost IS, and Rank Lost IS root-causing lives there |
+
+Several skills reach for these templates when they outgrow their own — [`underspending-investigation`](../underspending-investigation/), [`budget-recommendation-calculator`](../budget-recommendation-calculator/), and [`mcc-hack-audit`](../mcc-hack-audit/) all point back here for custom GAQL.

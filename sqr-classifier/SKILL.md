@@ -7,6 +7,13 @@ description: Classify search terms by intent. Auto-invoke when user provides sea
 
 Classify search terms into intent categories for Google Ads accounts.
 
+## What This Skill Deliberately Does NOT Do
+
+- **Pull the search terms.** It classifies the terms you hand it (a paste, a CSV, or a report someone else ran) — pulling the search-term report itself is [`google-ads-query`](../google-ads-query/) or [`gaql-query-patterns`](../gaql-query-patterns/) territory.
+- **Upload or apply negatives.** It labels intent and never auto-generates a negative list without your review; it pushes nothing to an account — the upload lives in [`sqr-pipeline`](../sqr-pipeline/) or [`add-account-negative-keywords`](../add-account-negative-keywords/).
+- **Pattern-match by regex.** Every term gets judgment, not a rule engine — the same query is High Intent for one business and Off-Brand for another, so a mechanical matcher would misclassify.
+- **Classify without context.** It refuses to categorize until it knows what the business does and where it operates; the business type and location come first.
+
 ## When to Use
 
 - User provides a list of search terms to classify
@@ -93,6 +100,24 @@ For large lists (100+ terms):
 3. Ask if the user wants to continue or adjust the classification criteria
 4. At the end, provide the full summary
 
+## Worked Example
+
+**Business:** Metro Auto, an auto repair shop serving a single metro area.
+
+| Search Term | Category | Reasoning |
+|-------------|----------|-----------|
+| brake repair near me | High Intent | Core service plus a local purchase signal ("near me"). |
+| transmission fluid change cost | High Intent | Names a service the shop offers and asks price — active buying research. |
+| auto mechanic jobs | Low Intent | Job seeker, not a customer — related to the industry but won't convert. |
+| how to change your own oil | Informational | DIY how-to; the searcher wants to learn, not hire. |
+| car dealership downtown | Off-Brand | A different business entirely (vehicle sales, not repair) — negate immediately. |
+
+**Summary:**
+- **High Intent:** 2 terms (40%) — keep these
+- **Low Intent:** 1 term (20%) — monitor, consider negatives for high-spend terms
+- **Informational:** 1 term (20%) — usually negative unless targeting top-of-funnel
+- **Off-Brand:** 1 term (20%) — add as negative keywords immediately
+
 ## What NOT to Do
 
 - Do NOT classify without knowing the business type and location
@@ -100,3 +125,12 @@ For large lists (100+ terms):
 - Do NOT mark brand terms as Off-Brand just because they contain a competitor name
 - Do NOT auto-generate negative keyword lists without user review
 - Do NOT assume the business offers services that haven't been confirmed
+
+## When to Load Other Skills
+
+| Skill | When |
+|-------|------|
+| [`google-ads-query`](../google-ads-query/) or [`gaql-query-patterns`](../gaql-query-patterns/) | Before classifying, when you still need to pull the search-term report the classification runs on |
+| [`sqr-pipeline`](../sqr-pipeline/) | When you want the full pull → classify → review → upload flow with negatives actually applied, not just labeled |
+| [`add-account-negative-keywords`](../add-account-negative-keywords/) | When the Off-Brand terms should become account-level negatives across campaigns |
+| [`geo-conflict-analyzer`](../geo-conflict-analyzer/) | It routes here for quick intent classification when the full pipeline isn't warranted |
